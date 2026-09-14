@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intake System - API & Prompt Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/settings.css">
+    <style>
+        .settings-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .rule-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .rule-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        .preview-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #39ff14;
+            max-height: 350px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .schema-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        .schema-field {
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span>📖</span> AI OCR & System Prompt Settings</h1>
+        <div class="header-actions">
+            <a href="audit.html" class="btn btn-primary">← Back to Audit Terminal</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- API Key panel -->
+        <div class="panel">
+            <h2>Gemini AI API Configuration</h2>
+            <div class="settings-section">
+                <div class="form-group">
+                    <span class="form-label">Gemini API Key</span>
+                    <input type="password" id="gemini-key" placeholder="AIzaSy..." style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 14px; color: var(--text-main); font-family: var(--font-family); font-size: 0.95rem;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Management Panel -->
+        <div class="panel" style="border: 1px solid rgba(255, 82, 82, 0.2); background: rgba(255, 82, 82, 0.02);">
+            <h2 style="color: #ff5252;">Database Management</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: -10px;">
+                Perform administrative operations on the intake logs database.
+            </p>
+            <div class="settings-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <span class="form-label" style="color: #ff5252;">Clear Committed Intakes</span>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;">Permanently delete all committed inventory intake records from SQLite database. This cannot be undone.</p>
+                    </div>
+                    <button class="btn" style="color: #ff5252; background: rgba(255, 82, 82, 0.1); border-color: rgba(255, 82, 82, 0.2);" onclick="clearHistoryLog()">🗑️ Clear Database</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Structured prompt: Role & Schema -->
+        <div class="panel">
+            <h2>System Prompt Tuning</h2>
+
+            <div class="settings-section">
+                <div class="form-group">
+                    <span class="form-label">AI Persona / Role</span>
+                    <textarea id="prompt-role" style="width: 100%; height: 60px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px; color: var(--text-main); font-family: var(--font-family); font-size: 0.9rem; resize: vertical;" oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <span class="form-label" style="margin-bottom: 8px;">Target Extraction Fields Guidance</span>
+                    <div class="schema-grid" id="schema-rules-container">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Structured prompt: Brand translations -->
+        <div class="panel">
+            <h2>Brand Abbreviation Mappings</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: -10px;">
+                Define shorthand translations (e.g. pb -> ProBook) to inject into the Gemini AI prompt.
+            </p>
+
+            <div class="dict-grid" id="dict-grid">
+                <!-- Loaded dynamically -->
+            </div>
+
+            <div class="input-row">
+                <div>
+                    <span class="form-label">Abbreviation / Tag</span>
+                    <input type="text" id="dict-key" placeholder="e.g. pb, eb">
+                </div>
+                <div>
+                    <span class="form-label">Maps to / Expansion</span>
+                    <input type="text" id="dict-val" placeholder="e.g. ProBook, EliteBook">
+                </div>
+                <div style="align-self: flex-end;">
+                    <button class="btn btn-primary" onclick="addTranslationRule()">Add Translation</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Structured prompt: Normalization Rules -->
+        <div class="panel">
+            <h2>Handwriting Normalization Rules</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: -10px;">
+                Inject custom instructions into the prompt instructing Gemini how to clean handwriting spelling and formatting errors.
+            </p>
+
+            <div class="rules-list" id="rules-list">
+                <!-- Loaded dynamically -->
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <input type="text" id="new-rule" placeholder="e.g. Standardize screen sizes to have double quotes like 15.6 inch -> 15.6&quot;" style="flex: 1;">
+                <button class="btn btn-primary" onclick="addNormalizationRule()">Add Rule</button>
+            </div>
+        </div>
+
+        <!-- Panel: Compiled Preview -->
+        <div class="panel">
+            <h2>Compiled System Prompt Preview</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: -10px;">
+                This is the exact string generated from the settings above and sent as context to the Gemini Vision API.
+            </p>
+            <div class="preview-card" id="compiled-preview">
+                Loading preview...
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+                <button class="btn btn-secondary" onclick="resetDefaultPromptSettings()">Reset to Defaults</button>
+                <button class="btn btn-primary" style="padding: 12px 28px;" onclick="saveAllSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        let promptSettings = {
+            role: '',
+            translations: {},
+            formatting_rules: [],
+            schema_rules: {}
+        };
+        let geminiApiKey = '';
+
+        const DEFAULT_ROLE = "You are a warehouse inventory auditor. Analyze this handwritten intake form image and extract all table rows.";
+        const DEFAULT_TRANSLATIONS = {
+            "pb": "ProBook",
+            "eb": "EliteBook",
+            "tp": "ThinkPad",
+            "pd": "ProDesk"
+        };
+        const DEFAULT_FORMATTING_RULES = [
+            "Correct handwriting misreadings: '15' or '17' representing CPU processors must be formatted as 'i5' or 'i7' (e.g., output 'i5-8th' instead of '15-8th' or '15-8').",
+            "Always extract and include the CPU generation (ranging from 4th up to 14th, including ranges like '6th-7th' or standalone numbers like '4th', '7th', '8th') in the 'Item' name for all laptop models if it is written on the handwritten sheet (e.g. Dell XPS 13 7th, Dell Inspiron 14 8th, Latitude 3380 6th-7th). Only omit the generation if none is written on the sheet.",
+            "Include model names/numbers (like 5414, 5410, A140, V110, B300, FZ-G1, CF33, 5400, F110) in the 'Item' name itself.",
+            "Specs slash rule: ensure no spaces around slashes in specs like '8 / 256' -> '8/256'.",
+            "If a row's Item column is handwritten with a blank space or has no brand/model prefix (e.g., just '3380 6th-7th' under 'Latitude 3380 6th'), propagate and prepend the brand and model from the preceding row (e.g. format as 'Dell Latitude 3380 6th-7th')."
+        ];
+        const DEFAULT_SCHEMA_RULES = {
+            'Date': "format as YYYY-MM-DD. Note that the date is written once at the start of a section and should propagate downward to all rows in that section, e.g. 6/19 should format as 2026-06-19",
+            'QTY': "integer, quantity value",
+            'Item': "string, name of the item. Correct handwriting spelling mistakes, translate abbreviations using the translation rules, and prepend brand names where missing (e.g., HP ProBook, Lenovo ThinkPad, Dell Latitude, Panasonic, Getac)",
+            'Serial': "string, containing whatever is written in the Serial column of the sheet. If a CPU configuration (e.g. i5, i5-8th, i7-6th, 6th-7th) or model number is written in the Serial column, do NOT ignore it; extract it into the 'Serial' field so that our system can merge it into the 'Item' name. Leave empty ONLY if the Serial column on the sheet is physically blank.",
+            'Location': "string, standardized as either a simple Zone (e.g., E-9) or a Zone with Level (e.g., G2-L3). If the location is blank, propagate the last filled location downward. If a relative Level suffix (e.g., '-L4' or 'L4') is written while the active Zone prefix is 'G2', combine them as 'G2-L4'. Do NOT add a dash within the Zone prefix itself (keep it G2, not G-2).",
+            'Notes': "string, any additional comments written"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+        });
+
+        async function loadConfig() {
+            const config = await API.getConfig() || {};
+            geminiApiKey = config.gemini_api_key || '';
+            document.getElementById('gemini-key').value = geminiApiKey;
+
+            promptSettings = config.prompt_settings || {};
+            if (!promptSettings.role) promptSettings.role = DEFAULT_ROLE;
+            if (!promptSettings.translations) promptSettings.translations = { ...DEFAULT_TRANSLATIONS };
+            if (!promptSettings.formatting_rules) promptSettings.formatting_rules = [...DEFAULT_FORMATTING_RULES];
+            if (!promptSettings.schema_rules) promptSettings.schema_rules = { ...DEFAULT_SCHEMA_RULES };
+
+            initUI();
+        }
+
+        function initUI() {
+            document.getElementById('prompt-role').value = promptSettings.role;
+
+            // Build Schema UI
+            const schemaContainer = document.getElementById('schema-rules-container');
+            schemaContainer.innerHTML = '';
+            Object.keys(promptSettings.schema_rules).forEach(field => {
+                const label = document.createElement('div');
+                label.className = 'schema-field';
+                label.textContent = field;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = promptSettings.schema_rules[field];
+                input.oninput = (e) => {
+                    promptSettings.schema_rules[field] = e.target.value;
+                    updatePreview();
+                };
+
+                schemaContainer.appendChild(label);
+                schemaContainer.appendChild(input);
+            });
+
+            renderTranslations();
+            renderFormattingRules();
+            updatePreview();
+        }
+
+        function renderTranslations() {
+            const grid = document.getElementById('dict-grid');
+            grid.innerHTML = '';
+
+            const keys = Object.keys(promptSettings.translations);
+            if (keys.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; text-align: center; padding: 20px;">No custom translations added yet.</p>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const row = document.createElement('div');
+                row.className = 'dict-row';
+                row.innerHTML = `
+                    <div class="dict-info">
+                        <span class="dict-key">${escapeHtml(key)}</span>
+                        <span class="dict-arrow">→</span>
+                        <span class="dict-val">${escapeHtml(promptSettings.translations[key])}</span>
+                    </div>
+                    <button class="btn btn-delete" onclick="removeTranslationRule('${key}')">Delete</button>
+                `;
+                grid.appendChild(row);
+            });
+        }
+
+        function addTranslationRule() {
+            const keyInput = document.getElementById('dict-key');
+            const valInput = document.getElementById('dict-val');
+            const key = keyInput.value.trim().toLowerCase();
+            const val = valInput.value.trim();
+
+            if (!key || !val) {
+                showToast('Please enter both abbreviation tag and replacement value', 'error');
+                return;
+            }
+
+            promptSettings.translations[key] = val;
+            keyInput.value = '';
+            valInput.value = '';
+            renderTranslations();
+            updatePreview();
+        }
+
+        function removeTranslationRule(key) {
+            delete promptSettings.translations[key];
+            renderTranslations();
+            updatePreview();
+        }
+
+        function renderFormattingRules() {
+            const list = document.getElementById('rules-list');
+            list.innerHTML = '';
+
+            if (promptSettings.formatting_rules.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; text-align: center; padding: 20px;">No custom formatting rules defined.</p>';
+                return;
+            }
+
+            promptSettings.formatting_rules.forEach((rule, idx) => {
+                const item = document.createElement('div');
+                item.className = 'rule-item';
+                item.innerHTML = `
+                    <span class="dict-key" style="background: rgba(255,255,255,0.05); color: var(--text-dim);">${idx + 1}</span>
+                    <span class="rule-text">${escapeHtml(rule)}</span>
+                    <button class="btn btn-delete" style="padding: 4px 8px; font-size: 0.75rem;" onclick="removeFormattingRule(${idx})">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addFormattingRule() {
+            const input = document.getElementById('new-rule');
+            const rule = input.value.trim();
+
+            if (!rule) {
+                showToast('Please enter a formatting rule', 'error');
+                return;
+            }
+
+            promptSettings.formatting_rules.push(rule);
+            input.value = '';
+            renderFormattingRules();
+            updatePreview();
+        }
+
+        function removeFormattingRule(index) {
+            promptSettings.formatting_rules.splice(index, 1);
+            renderFormattingRules();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const role = document.getElementById('prompt-role').value.trim();
+            promptSettings.role = role || DEFAULT_ROLE;
+
+            let prompt = promptSettings.role + "\n\nFor each row, extract:\n";
+            Object.keys(promptSettings.schema_rules).forEach(field => {
+                prompt += `- '${field}' (${promptSettings.schema_rules[field]})\n`;
+            });
+
+            const trans = [];
+            Object.keys(promptSettings.translations).forEach(abbr => {
+                const val = promptSettings.translations[abbr];
+                if (abbr && val) {
+                    trans.push(`${abbr} -> ${val}`);
+                }
+            });
+            if (trans.length > 0) {
+                prompt += `\nUse these translation rules for abbreviations in item names: ${trans.join(', ')}.\n`;
+            }
+
+            if (promptSettings.formatting_rules.length > 0) {
+                prompt += "\nNormalization rules for 'Item' name:\n";
+                promptSettings.formatting_rules.forEach((rule, i) => {
+                    if (rule.trim()) {
+                        prompt += `${i + 1}. ${rule}\n`;
+                    }
+                });
+            }
+
+            prompt += "\nReturn a JSON array of these row objects. If a field is empty, return an empty string. Output ONLY the JSON array (do not wrap in markdown ```json blocks).";
+
+            document.getElementById('compiled-preview').textContent = prompt;
+        }
+
+        async function saveAllSettings() {
+            geminiApiKey = document.getElementById('gemini-key').value.trim();
+            const config = {
+                gemini_api_key: geminiApiKey,
+                prompt_settings: promptSettings
+            };
+
+            const result = await API.saveConfig(config);
+            if (result && result.success) {
+                showToast('All settings and compiled prompt settings saved successfully', 'success');
+            } else {
+                showToast('Failed to save settings: ' + (result?.error || 'Unknown error'), 'error');
+            }
+        }
+
+        function resetDefaultPromptSettings() {
+            promptSettings = {
+                role: DEFAULT_ROLE,
+                translations: { ...DEFAULT_TRANSLATIONS },
+                formatting_rules: [...DEFAULT_FORMATTING_RULES],
+                schema_rules: { ...DEFAULT_SCHEMA_RULES }
+            };
+            initUI();
+            showToast('Settings reset to defaults. Click Save Settings to persist.', 'info');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        async function clearHistoryLog() {
+            if (!confirm('Are you sure you want to clear all committed records from the SQLite database? This cannot be undone.')) {
+                return;
+            }
+            const success = await API.clearCommitted();
+            if (success) {
+                showToast('Database log cleared successfully', 'success');
+            } else {
+                showToast('Failed to clear database log', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            let icon = type === 'success' ? '✓' : (type === 'info' ? 'ℹ' : '⚠');
+            toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+I have been having problems with the Default pricing.
+
+I gotta checkout https://github.com/apify/crawlee
+---------
+1. Data Collection & Price Scraping
+Since you need live marketplace values, you can use highly resilient, open-source crawling tools that scrape pricing without getting blocked by anti-bot walls.
+
+Crawlee (by Apify)
+What it is: A powerful, open-source web scraping and browser automation library built for Node.js.
+
+Why it’s great for your warehouse: Marketplaces like eBay use heavy JavaScript and anti-bot fingerprints. Crawlee automatically manages proxy rotation, mimics human browser behavior, and handles headless browsers (like Chromium and Playwright) out of the box.
+
+How to use it: You can write a script that takes your list of laptop model numbers, queries e-commerce search pages, and extracts the current "Buy It Now" or "Sold" prices into a clean JSON format.
+--------
+
+Perhaps this is an elegant solution; I need tailored realtime data so I can definitely price things at market prices. This will ease the amount of labor required for this type of research.
+
+I mean, I need a reliable solution; I make too many mistakes while attempting to price things accordingly at expected prices.
+
+
+=========
+
+
+Update the 404 page and implement it thoughout the whole entire system, once marketing is on ver 1.0. It currently lives inside the labels directory.
+

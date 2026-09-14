@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Intake Form - Audit & Normalization Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/audit.css">
+</head>
+<body>
+
+    <header>
+        <h1><span>📦</span> Intake Form Audit Terminal</h1>
+        <div class="header-actions">
+            <a href="intake.pdf" target="_blank" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border-color: rgba(16, 185, 129, 0.25);">🖨️ Print Intake Form</a>
+            <a href="settings.html" class="btn">⚙ Dictionary Settings</a>
+            <a href="history.html" class="btn btn-secondary" style="background: rgba(197, 110, 240, 0.1); color: var(--accent-purple); border-color: rgba(197, 110, 240, 0.2);">📜 View History</a>
+            <button id="btn-upload-csv" class="btn btn-secondary" onclick="document.getElementById('csv-file-input').click()">📁 Load Existing CSV</button>
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="Grid.loadExistingCSV(event)">
+            <button id="btn-download" class="btn btn-secondary" onclick="Grid.downloadCSV()">📥 Download CSV</button>
+            <button id="btn-submit" class="btn btn-primary" onclick="submitToCSV()">✅ Commit to Database</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- LEFT PANEL: Image Intake -->
+        <div class="panel image-viewer-container">
+            <div class="data-panel-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h2>1. Upload Images / Capture</h2>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);">Mode:</span>
+                    <select id="mode-selector" onchange="Grid.toggleMode()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; padding: 6px 12px; font-family: var(--font-family); font-size: 0.8rem; cursor: pointer; font-weight: 600; outline: none; transition: border-color 0.2s;">
+                        <option value="ocr">AI OCR Extraction</option>
+                        <option value="overlay">Manual Grid Overlay</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                <p style="font-weight: 600;">Drag & Drop Intake Sheet Here</p>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Supports multiple files in a single session</p>
+                <input type="file" id="file-input" multiple accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="viewer-stage" id="viewer-stage" style="position: relative;">
+                <p style="color: var(--text-dim); font-size: 0.9rem;">No image selected. Upload files.</p>
+                <!-- Image tags will be inserted here dynamically -->
+
+                <!-- Transparent Grid Overlay -->
+                <div id="grid-overlay-container" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; z-index: 5; padding: 50px 10px 10px 10px;">
+                    <table id="overlay-grid-table" style="width: 100%; border-collapse: collapse; table-layout: fixed; background: transparent;">
+                        <colgroup>
+                            <col style="width: 15%;">
+                            <col style="width: 10%;">
+                            <col style="width: 40%;">
+                            <col style="width: 12%;">
+                            <col style="width: 10%;">
+                            <col style="width: 13%;">
+                        </colgroup>
+                        <tbody id="overlay-grid-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="viewer-controls" id="viewer-controls" style="display: none;">
+                    <button onclick="Viewer.rotateImage(-90)">
+                        <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.17-.85.52-1.65 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.52-.83-.87-1.63-1.01-2.47zM18 11h2.02c-.17-1.39-.72-2.73-1.62-3.89l-1.41 1.42c.52.83.87 1.63 1.01 2.47zM16.02 15.47l1.41 1.42c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.17.85-.52 1.65-1.01 2.47zM13 4.07V1L9.12 4.88 13 8.75V5.9c3.9.46 7 3.77 7 7.8 0 .43-.04.85-.11 1.27l2.03.41c.05-.56.08-1.12.08-1.68 0-5.18-3.95-9.45-9-9.83zM11 18.1c-3.9-.46-7-3.77-7-7.8 0-.43.04-.85.11-1.27L2.08 8.62C2.03 9.18 2 9.74 2 10.3c0 5.18 3.95 9.45 9 9.83v3.07l3.88-3.88L11 15.45v2.65z"/></svg>
+                    </button>
+                    <button onclick="Viewer.zoomImage(0.1)">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </button>
+                    <button onclick="Viewer.zoomImage(-0.1)">
+                        <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+                    </button>
+                </div>
+                <!-- Floating Plus Button -->
+                <button id="floating-add-row" onclick="Grid.addBlankRow()" style="display: none; position: absolute; bottom: 65px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent-blue); color: #fff; border: none; font-size: 1.6rem; align-items: center; justify-content: center; cursor: pointer; z-index: 15; box-shadow: 0 4px 15px rgba(0, 168, 255, 0.4); font-weight: bold; transition: all 0.2s ease; outline: none;">+</button>
+            </div>
+
+            <!-- Overlay Alignment Adjustment Panel -->
+            <div id="overlay-adjustment-controls" style="display: none; align-items: center; justify-content: space-between; gap: 16px; background: rgba(9, 9, 11, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 16px; font-size: 0.8rem; margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <span style="color: var(--text-dim); font-weight: 500;">Offset:</span>
+                    <input type="range" id="slider-offset" min="-100" max="600" value="50" oninput="Grid.adjustOverlay()" style="flex: 1; accent-color: var(--accent-blue);">
+                    <span id="label-offset" style="font-family: monospace; min-width: 45px; text-align: right;">50px</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <span style="color: var(--text-dim); font-weight: 500;">Row Height:</span>
+                    <input type="range" id="slider-height" min="15" max="80" value="28" oninput="Grid.adjustOverlay()" style="flex: 1; accent-color: var(--accent-blue);">
+                    <span id="label-height" style="font-family: monospace; min-width: 45px; text-align: right;">28px</span>
+                </div>
+                <button class="btn btn-secondary" onclick="Grid.addBlankRow()" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px;">+ Row</button>
+            </div>
+
+            <div class="thumbnail-strip" id="thumbnail-strip">
+                <!-- Thumbnails will appear here -->
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Extracted normalized data -->
+        <div class="panel" style="overflow: hidden;">
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="spinner"></div>
+                <p style="font-weight: 600;">Processing OCR & Inferring Fields...</p>
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 4px;">Normalizing structured output</p>
+            </div>
+
+            <div class="data-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>2. Verify & Normalize Rows</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="btn-undo" class="btn btn-secondary" onclick="undoCapture()" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; display: none;">↩ Undo Last Capture</button>
+                    <button id="btn-validate-warehouse" class="btn btn-primary" onclick="Grid.sendToWarehouseImport()" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; background: var(--accent-blue); border: none;">🔍 Validate & Preview</button>
+                    <div class="confidence-summary" id="confidence-summary">
+                        Confidence: --
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%; text-align: center;">Approve</th>
+                            <th style="width: 12%;">Date</th>
+                            <th style="width: 8%;">QTY</th>
+                            <th style="width: 25%;">Item Name</th>
+                            <th style="width: 15%;">Serial</th>
+                            <th style="width: 12%;">Location</th>
+                            <th style="width: 15%;">Notes</th>
+                            <th style="width: 8%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-table-body">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                                Upload a handwritten sheet to extract tabular records.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- OCR Console Card -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Raw OCR Output Buffer</span>
+                <div class="ocr-console" id="ocr-console">
+                    Ready to stream extraction text...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/viewer.js"></script>
+    <script src="assets/js/grid.js?v=1.0.1"></script>
+    <script src="assets/js/dragdrop.js"></script>
+    <script src="assets/js/audit.js?v=1.0.1"></script>
+</body>
+</html>

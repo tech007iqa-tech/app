@@ -1,0 +1,102 @@
+# ==============================================================================
+# IQA Warehouse Systems - Production Security & Performance Shield
+# ==============================================================================
+
+# 1. Disable Directory Browsing (Prevents listing files when index is absent)
+Options -Indexes -MultiViews
+
+# 2. Prevent Direct HTTP Download of Sensitive File Types
+# (SQLite databases, SQL dumps, configs, logs, backup files, source specs)
+<FilesMatch "\.(db|sqlite|sqlite3|sql|bak|log|ini|env|sh|conf|csv)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Prevent Access to Hidden / Dot Files (.git, .agents, .env, .htaccess, etc.)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Protect Internal Directories & Documentation
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct HTTP access to core backend classes and raw markdown documentation
+    RewriteRule ^(core|DOCS)/.*$ - [F,L]
+    RewriteRule \.(md)$ - [F,L]
+
+    # Automatic HTTP to HTTPS redirection (Uncomment once free AutoSSL is active in cPanel)
+    # RewriteCond %{HTTPS} off
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# 5. Production Security Headers
+<IfModule mod_headers.c>
+    # Prevent MIME-type sniffing
+    Header set X-Content-Type-Options "nosniff"
+
+    # Prevent Clickjacking (disallows embedding portal inside external iframes)
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Cross-site scripting (XSS) filter
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# 6. Disable PHP Error Display in Production (Prevent server path disclosure)
+<IfModule mod_php7.c>
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
+<IfModule mod_php.c>
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
+
+# 7. GZIP / Deflate Compression (Instant HTML/CSS/JS payload reduction)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# 8. Browser Asset Caching (Instant repeat page loads)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType application/x-javascript "access plus 7 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/x-icon "access plus 30 days"
+</IfModule>
+

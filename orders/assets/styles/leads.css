@@ -1,0 +1,229 @@
+@import url('orders.css');
+
+/* CRM & Leads Premium Styles */
+
+.tasks-section {
+    animation: slideInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.task-card {
+    border-left: 4px solid #be123c !important;
+}
+
+.task-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(159, 18, 57, 0.1);
+    border-color: #e11d48 !important;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Split View Adjustments */
+#interaction-history {
+    background-image: linear-gradient(#f8fafc 33%, rgba(248, 250, 252, 0) 0%);
+    background-position: right;
+    background-size: 1px 100%;
+    background-repeat: repeat-y;
+}
+
+/* Scrollbar for History */
+#interaction-history::-webkit-scrollbar {
+    width: 6px;
+}
+
+#interaction-history::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#interaction-history::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+/* Reusing Order Table Styles if needed, but leads.php is already dense */
+.lead-row:hover {
+    background-color: #f8fafc !important;
+}
+
+.lead-row td {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* CRM Status Colors */
+.status-idle { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
+
+@media (max-width: 1000px) {
+    #leadModal .modal-box {
+        flex-direction: column;
+        max-height: 95vh;
+    }
+
+    #leadModal > div {
+        flex-direction: column !important;
+    }
+
+    #leadModal div[style*="flex: 0.8"] {
+        border-top: 1px solid #e2e8f0;
+        max-height: 300px;
+    }
+}
+
+/* Live Sync Row Highlight Pulse */
+.row-pulse-highlight {
+    animation: rowPulse 1.5s ease-out;
+}
+
+@keyframes rowPulse {
+    0% {
+        background-color: rgba(34, 197, 94, 0.25); /* light green */
+    }
+    50% {
+        background-color: rgba(34, 197, 94, 0.1);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.leads-controls-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 20px;
+}
+
+.leads-actions-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.leads-tabs-container {
+    margin: 0;
+    height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .leads-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .leads-actions-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .leads-actions-group .btn-main {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .leads-tabs-container {
+        display: flex;
+        width: 100%;
+        height: auto;
+        padding: 4px;
+        box-sizing: border-box;
+        margin-top: 5px;
+    }
+
+    .leads-tabs-container .orders-tab-link {
+        flex: 1;
+        text-align: center;
+        padding: 10px 8px;
+        font-size: 0.8rem;
+    }
+}
+
+/* CRM Leads Dark Mode Enhancements */
+[data-theme="dark"] .tasks-section {
+    background: rgba(244, 63, 94, 0.05) !important;
+    border-color: rgba(244, 63, 94, 0.2) !important;
+}
+
+[data-theme="dark"] .tasks-section h2 {
+    color: #f43f5e !important;
+}
+
+[data-theme="dark"] .task-card {
+    background: var(--bg-panel) !important;
+    border-color: rgba(244, 63, 94, 0.2) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .task-card div {
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .task-card div[style*="color:#be123c"],
+[data-theme="dark"] .task-card div[style*="color: #be123c"] {
+    color: #f43f5e !important;
+}
+
+[data-theme="dark"] .task-card div[style*="color:#64748b"],
+[data-theme="dark"] .task-card div[style*="color: #64748b"] {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #interaction-history {
+    background-image: linear-gradient(var(--bg-surface-2) 33%, rgba(248, 250, 252, 0) 0%);
+    background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] #interaction-history::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] .lead-row:hover {
+    background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .lead-row td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .status-idle {
+    background: var(--bg-surface-2);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] textarea {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] textarea:focus {
+    border-color: var(--accent-color);
+}
+
+[data-theme="dark"] #leadModal .btn-order-view {
+    background: var(--bg-surface-2) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] #leadModal label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #leadModal h2,
+[data-theme="dark"] #leadModal h3 {
+    color: var(--text-main) !important;
+}

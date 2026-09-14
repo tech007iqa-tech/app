@@ -1,0 +1,260 @@
+/* Premium Table View Enhancements */
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.table-container {
+    margin-top: 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.orders-table {
+    border-spacing: 0;
+    width: 100%;
+    min-width: 800px;
+}
+
+.orders-table thead tr {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.orders-table th {
+    display: table-cell !important;
+    padding: 20px 24px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+}
+
+.orders-table th:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.orders-table th::after {
+    content: '';
+    position: absolute;
+    bottom: 12px;
+    left: 24px;
+    width: 20px;
+    height: 2px;
+    background: var(--accent-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.orders-table th:hover::after {
+    transform: scaleX(1);
+}
+
+.order-row {
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+}
+
+.order-row:hover {
+    background-color: #f8fafc !important;
+    transform: scale(0.998);
+}
+
+.order-row td {
+    padding: 22px 24px;
+    vertical-align: middle;
+}
+
+/* Vibrant Status Badges */
+.order-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid transparent;
+}
+
+.status-draft { background: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+.status-active { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+.status-pending { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+.status-paid { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+.status-dispatched { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+.status-canceled { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+.status-finalized { background: #f0fdfa; color: #0f766e; border-color: #ccfbf1; }
+
+/* Interactive Selects */
+.order-status-select {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.order-status-select:hover {
+    border-color: var(--accent-color);
+    background: #f8fafc;
+}
+
+/* Premium Details Button */
+.btn-order-view {
+    text-decoration: none;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #e2e8f0;
+}
+
+.order-row:hover .btn-order-view {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+    color: white;
+    border-color: transparent;
+    transform: translateX(5px);
+    box-shadow: 0 10px 20px -5px rgba(140, 198, 63, 0.4);
+}
+
+/* Premium Tabs System */
+.orders-tabs {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 16px;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.orders-tab-link {
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #64748b;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+}
+
+.orders-tab-link:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.orders-tab-link.active {
+    background: #ffffff;
+    color: var(--text-main);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Selection Highlighting */
+.order-row.selected-row {
+    background-color: rgba(140, 198, 63, 0.08) !important;
+    border-left: 4px solid var(--accent-color) !important;
+}
+
+[data-theme="dark"] .order-row.selected-row {
+    background-color: rgba(163, 230, 53, 0.1) !important;
+    border-left-color: var(--accent-color) !important;
+}
+
+/* Custom Premium Checkboxes */
+.row-select, #selectAll {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.row-select:checked, #selectAll:checked {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.row-select:checked::after, #selectAll:checked::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.row-select:hover, #selectAll:hover {
+    border-color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+[data-theme="dark"] .row-select, [data-theme="dark"] #selectAll {
+    background: var(--bg-surface-2);
+    border-color: var(--border-color);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Mode Overrides for Tabs */
+[data-theme="dark"] .orders-tabs {
+    background: var(--bg-surface-2);
+}
+
+[data-theme="dark"] .orders-tab-link {
+    color: var(--text-dim);
+}
+
+[data-theme="dark"] .orders-tab-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .orders-tab-link.active {
+    background: var(--bg-panel);
+    color: var(--text-main);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

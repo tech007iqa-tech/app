@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committed History - Intake Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/audit.css">
+    <style>
+        .audit-table th {
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .audit-table th:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .sort-indicator {
+            font-size: 0.8rem;
+            margin-left: 4px;
+            font-family: monospace;
+        }
+        .btn-crumb {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: var(--font-family);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            outline: none;
+        }
+        .btn-crumb:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(-1px);
+        }
+        .btn-crumb.active {
+            background: var(--accent-blue) !important;
+            border-color: var(--accent-blue) !important;
+            color: var(--bg-dark) !important;
+            box-shadow: 0 0 12px rgba(0, 168, 255, 0.3);
+        }
+        .btn-crumb.active:hover {
+            background: #33b8ff !important;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span>📜</span> Committed Intake History</h1>
+        <div class="header-actions">
+            <a href="audit.html" class="btn">↩ Back to Audit Terminal</a>
+            <a href="../orders/index.php?view=import_warehouse" class="btn btn-primary" style="background: var(--accent-purple); color: #fff; box-shadow: 0 0 20px rgba(197, 110, 240, 0.2);">📦 Upload to Warehouse Orders</a>
+            <button class="btn btn-secondary" onclick="downloadHistoryCSV()">📥 Download CSV</button>
+        </div>
+    </header>
+
+    <div class="main-container" style="padding: 40px; display: block; max-width: 1400px; margin: 0 auto; width: 100%;">
+        <div class="panel" style="width: 100%;">
+            <div class="data-panel-header" style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; width: 100%;">
+                <h2>SQLite Database - Logged Intakes ("Day in and Day out")</h2>
+                <div class="search-box" style="display: flex; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 16px; width: 350px; gap: 10px; transition: border-color 0.2s;">
+                    <span style="color: var(--text-dim); font-size: 0.95rem;">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search item, location, serial..." oninput="handleSearch()" style="background: transparent; border: none; color: #fff; width: 100%; font-family: var(--font-family); font-size: 0.9rem; outline: none;">
+                </div>
+            </div>
+            <!-- Interactive Location Breadcrumbs / Filter Bar -->
+            <div class="location-filter-bar" id="location-filter-bar" style="margin-top: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--glass-border); border-radius: 12px;">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="table-container" style="max-height: 600px; overflow-y: auto; margin-top: 20px;">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%; cursor: pointer;" onclick="toggleSort('date')">Date <span id="sort-icon-date" class="sort-indicator"></span></th>
+                            <th style="width: 10%; cursor: pointer;" onclick="toggleSort('qty')">QTY <span id="sort-icon-qty" class="sort-indicator"></span></th>
+                            <th style="width: 35%; cursor: pointer;" onclick="toggleSort('item')">Item Name <span id="sort-icon-item" class="sort-indicator"></span></th>
+                            <th style="width: 15%; cursor: pointer;" onclick="toggleSort('serial')">Serial <span id="sort-icon-serial" class="sort-indicator"></span></th>
+                            <th style="width: 10%; cursor: pointer;" onclick="toggleSort('location')">Location <span id="sort-icon-location" class="sort-indicator"></span></th>
+                            <th style="width: 15%; cursor: pointer;" onclick="toggleSort('notes')">Notes <span id="sort-icon-notes" class="sort-indicator"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                                Loading committed records...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        let currentData = [];
+        let sortKey = 'location';
+        let sortAsc = true;
+        let selectedShelfFilter = 'ALL';
+        let selectedLocDetailFilter = 'ALL';
+
+        document.addEventListener('DOMContentLoaded', loadHistoryLog);
+
+        async function loadHistoryLog() {
+            const data = await API.getCommitted();
+            currentData = data || [];
+            renderLocationBreadcrumbs();
+            applyFilterAndSort();
+        }
+
+        function renderLocationBreadcrumbs() {
+            const container = document.getElementById('location-filter-bar');
+            if (!container) return;
+
+            // Extract unique shelves (letters/prefixes) and detailed locations
+            const shelvesSet = new Set();
+            const shelfToLocs = {};
+
+            currentData.forEach(row => {
+                if (row.location) {
+                    const loc = row.location.trim().toUpperCase();
+                    // Match prefix letters (e.g. "E" in "E-1", "A" in "A-2")
+                    const match = loc.match(/^([A-Za-z]+)/);
+                    const shelf = match ? match[1] : '??';
+                    shelvesSet.add(shelf);
+
+                    if (!shelfToLocs[shelf]) {
+                        shelfToLocs[shelf] = new Set();
+                    }
+                    shelfToLocs[shelf].add(loc);
+                }
+            });
+
+            const sortedShelves = Array.from(shelvesSet).sort();
+            container.innerHTML = '';
+
+            // Breadcrumb 1: All Shelves
+            const allBtn = document.createElement('button');
+            allBtn.className = `btn-crumb ${selectedShelfFilter === 'ALL' ? 'active' : ''}`;
+            allBtn.innerHTML = `🌍 All Shelves (${currentData.length})`;
+            allBtn.onclick = () => selectShelf('ALL');
+            container.appendChild(allBtn);
+
+            if (selectedShelfFilter === 'ALL') {
+                // Show list of Shelves
+                sortedShelves.forEach(shelf => {
+                    const sep = document.createElement('span');
+                    sep.textContent = '›';
+                    sep.style.cssText = 'color: var(--text-dim); margin: 0 4px; font-weight: bold; font-size: 1.1rem;';
+                    container.appendChild(sep);
+
+                    // Count items in this shelf
+                    const count = currentData.filter(row => {
+                        const loc = (row.location || '').trim().toUpperCase();
+                        const match = loc.match(/^([A-Za-z]+)/);
+                        return (match ? match[1] : '??') === shelf;
+                    }).length;
+
+                    const shelfBtn = document.createElement('button');
+                    shelfBtn.className = 'btn-crumb';
+
+                    let icon = '⚡';
+                    if (shelf === 'A') icon = '⚡';
+                    else if (shelf === 'B') icon = '🔥';
+                    else if (shelf === 'C') icon = '📦';
+                    else if (shelf === 'E') icon = '🏷️';
+                    else if (shelf === '??') icon = '❓';
+
+                    shelfBtn.innerHTML = `${icon} Shelf ${shelf} (${count})`;
+                    shelfBtn.onclick = () => selectShelf(shelf);
+                    container.appendChild(shelfBtn);
+                });
+            } else {
+                // Show Selected Shelf
+                const sep1 = document.createElement('span');
+                sep1.textContent = '›';
+                sep1.style.cssText = 'color: var(--text-dim); margin: 0 4px; font-weight: bold; font-size: 1.1rem;';
+                container.appendChild(sep1);
+
+                const shelfBtn = document.createElement('button');
+                const shelfCount = currentData.filter(row => {
+                    const loc = (row.location || '').trim().toUpperCase();
+                    const match = loc.match(/^([A-Za-z]+)/);
+                    return (match ? match[1] : '??') === selectedShelfFilter;
+                }).length;
+
+                shelfBtn.className = `btn-crumb ${selectedLocDetailFilter === 'ALL' ? 'active' : ''}`;
+                shelfBtn.innerHTML = `🏢 Shelf ${selectedShelfFilter} (${shelfCount})`;
+                shelfBtn.onclick = () => selectLocDetail('ALL');
+                container.appendChild(shelfBtn);
+
+                // Show sub-locations (e.g. E-1, E-2)
+                const detailedLocs = Array.from(shelfToLocs[selectedShelfFilter] || []).sort();
+                detailedLocs.forEach(loc => {
+                    const sep2 = document.createElement('span');
+                    sep2.textContent = '›';
+                    sep2.style.cssText = 'color: var(--text-dim); margin: 0 4px; font-weight: bold; font-size: 1.1rem;';
+                    container.appendChild(sep2);
+
+                    const count = currentData.filter(row => row.location && row.location.trim().toUpperCase() === loc).length;
+
+                    const locBtn = document.createElement('button');
+                    locBtn.className = `btn-crumb ${selectedLocDetailFilter === loc ? 'active' : ''}`;
+                    locBtn.innerHTML = `📍 ${loc} (${count})`;
+                    locBtn.onclick = () => selectLocDetail(loc);
+                    container.appendChild(locBtn);
+                });
+            }
+        }
+
+        function selectShelf(shelf) {
+            selectedShelfFilter = shelf;
+            selectedLocDetailFilter = 'ALL';
+            renderLocationBreadcrumbs();
+            applyFilterAndSort();
+        }
+
+        function selectLocDetail(loc) {
+            selectedLocDetailFilter = loc;
+            renderLocationBreadcrumbs();
+            applyFilterAndSort();
+        }
+
+        function applyFilterAndSort() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+
+            // Filter by active shelf & detailed location
+            let filtered = currentData;
+            if (selectedShelfFilter !== 'ALL') {
+                filtered = filtered.filter(row => {
+                    const loc = (row.location || '').trim().toUpperCase();
+                    const match = loc.match(/^([A-Za-z]+)/);
+                    const shelf = match ? match[1] : '??';
+                    return shelf === selectedShelfFilter;
+                });
+
+                if (selectedLocDetailFilter !== 'ALL') {
+                    filtered = filtered.filter(row => {
+                        return (row.location || '').trim().toUpperCase() === selectedLocDetailFilter;
+                    });
+                }
+            }
+
+            if (query) {
+                filtered = filtered.filter(row => {
+                    const date = (row.date || '').toLowerCase();
+                    const qty = String(row.qty || '');
+                    const item = (row.item || '').toLowerCase();
+                    const serial = (row.serial || '').toLowerCase();
+                    const location = (row.location || '').toLowerCase();
+                    const notes = (row.notes || '').toLowerCase();
+                    return date.includes(query) || qty.includes(query) || item.includes(query) || serial.includes(query) || location.includes(query) || notes.includes(query);
+                });
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+                let valA = a[sortKey] !== undefined ? a[sortKey] : '';
+                let valB = b[sortKey] !== undefined ? b[sortKey] : '';
+
+                if (sortKey === 'qty') {
+                    valA = parseInt(valA) || 0;
+                    valB = parseInt(valB) || 0;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(filtered);
+            updateSortIcons();
+        }
+
+        function toggleSort(key) {
+            if (sortKey === key) {
+                sortAsc = !sortAsc;
+            } else {
+                sortKey = key;
+                sortAsc = true;
+            }
+            applyFilterAndSort();
+        }
+
+        function handleSearch() {
+            applyFilterAndSort();
+        }
+
+        function updateSortIcons() {
+            const keys = ['date', 'qty', 'item', 'serial', 'location', 'notes'];
+            keys.forEach(k => {
+                const span = document.getElementById(`sort-icon-${k}`);
+                if (!span) return;
+                if (k === sortKey) {
+                    span.textContent = sortAsc ? '▲' : '▼';
+                    span.style.opacity = '1';
+                } else {
+                    span.textContent = '↕';
+                    span.style.opacity = '0.3';
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('history-table-body');
+            if (!tbody) return;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 40px 0;">
+                            No matching committed records found.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                const escapeHTML = (str) => {
+                    if (str === null || str === undefined) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                };
+
+                tr.innerHTML = `
+                    <td>${escapeHTML(row.date)}</td>
+                    <td>${escapeHTML(row.qty)}</td>
+                    <td>${escapeHTML(row.item)}</td>
+                    <td>${escapeHTML(row.serial)}</td>
+                    <td>${escapeHTML(row.location)}</td>
+                    <td>${escapeHTML(row.notes)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+
+        async function downloadHistoryCSV() {
+            // Get currently filtered and sorted dataset
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            let filtered = [...currentData];
+
+            if (selectedShelfFilter !== 'ALL') {
+                filtered = filtered.filter(row => {
+                    const loc = (row.location || '').trim().toUpperCase();
+                    const match = loc.match(/^([A-Za-z]+)/);
+                    const shelf = match ? match[1] : '??';
+                    return shelf === selectedShelfFilter;
+                });
+
+                if (selectedLocDetailFilter !== 'ALL') {
+                    filtered = filtered.filter(row => {
+                        return (row.location || '').trim().toUpperCase() === selectedLocDetailFilter;
+                    });
+                }
+            }
+
+            if (query) {
+                filtered = filtered.filter(row => {
+                    const date = (row.date || '').toLowerCase();
+                    const qty = String(row.qty || '');
+                    const item = (row.item || '').toLowerCase();
+                    const serial = (row.serial || '').toLowerCase();
+                    const location = (row.location || '').toLowerCase();
+                    const notes = (row.notes || '').toLowerCase();
+                    return date.includes(query) || qty.includes(query) || item.includes(query) || serial.includes(query) || location.includes(query) || notes.includes(query);
+                });
+            }
+
+            filtered.sort((a, b) => {
+                let valA = a[sortKey] !== undefined ? a[sortKey] : '';
+                let valB = b[sortKey] !== undefined ? b[sortKey] : '';
+
+                if (sortKey === 'qty') {
+                    valA = parseInt(valA) || 0;
+                    valB = parseInt(valB) || 0;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            if (filtered.length === 0) {
+                showToast('No committed records to download', 'error');
+                return;
+            }
+
+            let csvContent = "Date,QTY,Item,Serial,Location,Notes\n";
+
+            const escapeCSV = (val) => {
+                if (val === null || val === undefined) return '';
+                val = String(val);
+                if (val.indexOf(',') !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1) {
+                    return `"${val.replace(/"/g, '""')}"`;
+                }
+                return val;
+            };
+
+            filtered.forEach(row => {
+                let item = row.item || '';
+                let serial = row.serial || '';
+                if (serial) {
+                    if (item.toLowerCase().indexOf('serial:') === -1) {
+                        item = `${item} (Serial: ${serial})`;
+                    }
+                    serial = '';
+                }
+
+                csvContent += `${escapeCSV(row.date)},${escapeCSV(row.qty)},${escapeCSV(item)},${escapeCSV(serial)},${escapeCSV(row.location)},${escapeCSV(row.notes)}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `committed_intake_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('CSV downloaded successfully!', 'success');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            let icon = type === 'success' ? '✓' : '⚠';
+            toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

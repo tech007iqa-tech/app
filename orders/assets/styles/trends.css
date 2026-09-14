@@ -1,0 +1,421 @@
+/* trends.css */
+.trends-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.trends-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+}
+
+.trends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.trend-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.trend-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-color);
+}
+
+.trend-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--bg-surface-2);
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.trend-stat:hover {
+    background: var(--border-color);
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent-color);
+}
+
+.chart-placeholder {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 24px 12px 12px 12px;
+    background: var(--bg-surface-2);
+    border-radius: var(--border-radius-md);
+    position: relative;
+    border: 1px dashed var(--border-color);
+}
+
+.bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.chart-bar {
+    width: 50%;
+    background: var(--accent-color);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease-in-out;
+    min-height: 4px;
+}
+
+.chart-bar:hover {
+    background: var(--accent-hover);
+}
+
+.bar-label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.tab-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.tab-btn.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Premium Table View for Trends */
+.trends-table-container {
+    margin-top: 15px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+}
+
+.trends-table {
+    border-spacing: 0;
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+.trends-table thead tr {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.trends-table th {
+    display: table-cell !important;
+    padding: 16px 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.9) !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    text-align: left;
+}
+
+.trends-table th:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.trends-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    color: var(--text-main);
+}
+
+.trends-table tbody tr:hover {
+    background-color: var(--bg-surface-2) !important;
+}
+
+.qty-chip {
+    background: var(--accent-color);
+    color: white;
+    font-weight: 800;
+    border-radius: 20px;
+    padding: 4px 12px;
+    display: inline-block;
+}
+
+/* Sorting indicators */
+.trends-table th.sort-asc::after {
+    content: " ▲";
+    font-size: 0.75rem;
+}
+
+.trends-table th.sort-desc::after {
+    content: " ▼";
+    font-size: 0.75rem;
+}
+
+/* Highlight styles */
+.match-highlight {
+    background-color: rgba(140, 198, 63, 0.3) !important;
+    color: var(--text-main) !important;
+    border-radius: 2px;
+    padding: 1px 2px;
+}
+
+/* Scroll Hint for Mobile/Tablet */
+.scroll-hint {
+    display: none;
+    font-size: 0.75rem;
+    color: #64748b;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+[data-theme="dark"] .scroll-hint {
+    background-color: rgba(30, 41, 59, 0.4);
+    border-color: rgba(71, 85, 105, 0.3);
+    color: #94a3b8;
+}
+
+@media (max-width: 1024px) {
+    .scroll-hint {
+        display: inline-flex;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    .trends-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .trends-header > div {
+        width: 100%;
+    }
+
+    #trends-filter {
+        width: 100%;
+    }
+
+    .tab-nav {
+        overflow-x: auto;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        width: 100%;
+        scrollbar-width: none;
+    }
+
+    .tab-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn {
+        flex: 0 0 auto;
+    }
+
+    /* Prevent CSS bar chart blowout on mobile */
+    .chart-placeholder {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 12px;
+    }
+
+    .bar-container {
+        min-width: 45px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trends-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #widget-board {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Pricing Matrix Input Styling */
+.matrix-cell-input {
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.matrix-cell-input:focus {
+    outline: none;
+    border-color: var(--accent-color) !important;
+    background-color: var(--bg-surface) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+}
+
+/* Flatten cards inside the tab content to prevent double-nesting and allow tables to start further left */
+/* Tested Market Component & Input Styling Fixes */
+.trends-table input,
+.trends-table input:not(:placeholder-shown),
+.matrix-cell-input,
+.matrix-cell-input:not(:placeholder-shown) {
+    background-image: none !important;
+    animation: none !important;
+    padding-right: 8px !important;
+    border-color: var(--border-color, #e2e8f0);
+    background-color: var(--bg-surface-2, #f8fafc);
+    box-shadow: none !important;
+}
+
+.matrix-cell-input.input-price {
+    padding-left: 22px !important;
+    padding-right: 8px !important;
+}
+
+.matrix-cell-input.input-st {
+    padding-left: 8px !important;
+    padding-right: 22px !important;
+}
+
+.matrix-cell-input {
+    width: 100%;
+    height: 36px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-surface-2, #f8fafc);
+    color: var(--text-main, #0f172a);
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.matrix-cell-input.inline-text {
+    border-color: transparent;
+    background: transparent;
+}
+
+.matrix-cell-input.inline-text:hover,
+.matrix-cell-input.inline-text:focus {
+    border-color: var(--border-color, #cbd5e1);
+    background: var(--bg-surface-2, #f8fafc);
+}
+
+.matrix-cell-input:focus {
+    outline: none;
+    border-color: #3b82f6 !important;
+    background-color: var(--bg-surface, #ffffff) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+.tested-cat-pill-nav .tab-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Modern Table Aesthetics for Tested Market */
+.trends-table-container {
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    overflow-x: auto;
+    background: var(--bg-surface, #ffffff);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.trends-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+}
+
+.trends-table th {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+    padding: 12px 14px;
+    border-bottom: 2px solid #334155;
+    white-space: nowrap;
+}
+
+.trends-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    vertical-align: middle;
+}
+
+.trends-table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.04);
+}
+
+.trends-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+

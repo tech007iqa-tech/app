@@ -1,0 +1,15 @@
+I need you to configure my local XAMPP Apache server to run over HTTPS with a self-signed SSL certificate that is trusted locally and accessible from my mobile phone.
+
+Please perform the following steps automatically:
+
+1. Find this machine's local IPv4 network address (e.g. by running `ipconfig` to find the active Wi-Fi or Ethernet adapter IP).
+2. Create an OpenSSL configuration file at `C:\xampp\apache\conf\ssl_cert.conf` containing the subjectAltName (SAN) extensions for `localhost`, `127.0.0.1`, and the detected local IP address.
+3. Run the OpenSSL command using XAMPP's binary `C:\xampp\apache\bin\openssl` to generate a 2048-bit self-signed certificate (`server.crt`) and private key (`server.key`) valid for 3650 days, saving them directly into:
+   - `C:\xampp\apache\conf\ssl.crt\server.crt`
+   - `C:\xampp\apache\conf\ssl.key\server.key`
+4. Trust the generated certificate locally by importing it into the Windows Certificate Store for the current user (`Cert:\CurrentUser\Root`) using PowerShell's `Import-Certificate` command.
+5. Inspect `C:\xampp\apache\conf\httpd.conf` to find the active `DocumentRoot` directory.
+6. Edit `C:\xampp\apache\conf\extra\httpd-ssl.conf` to update the `<VirtualHost _default_:443>` configuration:
+   - Match its `DocumentRoot` exactly to the path found in `httpd.conf`.
+   - Update `ServerName` to `localhost:443`.
+7. Once finished, verify the configuration syntax is correct using `httpd.exe -t` and prompt me to restart Apache in the XAMPP Control Panel.

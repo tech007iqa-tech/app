@@ -1,0 +1,372 @@
+/* Checkout Stylesheet for IQA Orders System */
+
+.receipt-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    animation: fadeInDown 0.6s ease;
+    margin: 20px auto;
+}
+
+.header-success {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.icon-check {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 4px 12px rgba(140, 198, 63, 0.3);
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+}
+
+.receipt-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding: 12px 8px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.receipt-table td {
+    padding: 14px 8px;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 0.95rem;
+}
+
+.total-row {
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding-top: 20px !important;
+    border-bottom: none !important;
+}
+
+/* Input Styles relocated from inline */
+.qty-input {
+    width: 105px;
+    text-align: center;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    background: var(--bg-panel);
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.price-input {
+    width: 90px;
+    text-align: right;
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    background: var(--bg-panel);
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.price-input-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+/* Responsive Tablet/Mobile Fixes */
+@media (max-width: 650px) {
+    .receipt-card {
+        padding: 20px;
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .header-success h1 { font-size: 1.3rem; }
+
+    .receipt-table thead { display: none; }
+
+    .receipt-table tr {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20px 0;
+        border-bottom: 2px solid #f1f5f9;
+        gap: 12px;
+    }
+
+    .receipt-table td {
+        display: block;
+        padding: 0;
+        border: none;
+        width: auto !important;
+    }
+
+    /* Stack description on top */
+    .receipt-table td.col-desc {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+
+    .receipt-table td.col-qty,
+    .receipt-table td.col-price {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .receipt-table td.col-total {
+        width: 100% !important;
+        text-align: right !important;
+        padding-top: 10px;
+        margin-top: 5px;
+        border-top: 1px dashed #f1f5f9;
+        font-size: 1.1rem;
+    }
+
+    /* Add labels via flexbox or pseudo if needed, but here simple labels work */
+    .receipt-table td.col-qty::before {
+        content: "Qty";
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+    }
+
+    .receipt-table td.col-price::before {
+        content: "Price";
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        text-align: right;
+    }
+
+    .receipt-table td.col-total::before {
+        content: "Subtotal";
+        float: left;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--text-secondary);
+    }
+
+    .qty-input, .price-input {
+        width: 100%;
+        font-size: 1rem;
+        height: 38px;
+    }
+
+    .price-input-wrapper {
+        justify-content: flex-end;
+    }
+
+    .row-total {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center;
+        width: 100% !important;
+        padding: 24px 0 !important;
+        border-top: 2px solid var(--text-main);
+        gap: 15px;
+    }
+
+    .row-total td {
+        display: block !important;
+        width: auto !important;
+        padding: 0 !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+    }
+
+    .row-total .total-empty {
+        display: none !important;
+    }
+
+    .row-total .total-label {
+        flex: 1;
+        font-size: 1rem !important;
+        color: var(--text-secondary);
+    }
+
+    .row-total .total-qty::before {
+        content: "Total Qty: ";
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+}
+
+.print-only { display: none; }
+
+.manifest-print-footer {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px solid #f1f5f9;
+}
+
+.footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+
+@media print {
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        min-height: auto !important;
+    }
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+
+    .receipt-card {
+        box-shadow: none !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+    .receipt-table { margin-top: 20px; width: 100%; }
+    .receipt-table th { border-bottom: 2px solid #000 !important; color: #000 !important; }
+    .receipt-table td { border-bottom: 1px solid #eee !important; }
+    h1 { font-size: 1.6rem; margin-bottom: 20px; text-align: left !important; }
+
+    .manifest-print-footer {
+        border-top: 2px solid #000 !important;
+        margin-top: 80px;
+    }
+}
+.item-row {
+    transition: background-color 0.2s;
+}
+
+.item-row:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Modal Editor Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh; /* iOS Safari toolbar fix */
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-box {
+    background: white;
+    width: 100%;
+    max-width: 550px;
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto; /* Scrollable inside if keyboard opens */
+    -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+    padding: 35px 25px; /* Adjust padding for mobile */
+    border-radius: 28px;
+    box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.3);
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    opacity: 0;
+}
+
+.modal-overlay.active .modal-box {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.modal-box .form-group label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.modal-box .form-group input,
+.modal-box .form-group textarea {
+    width: 100%;
+    font-size: 16px !important; /* CRITICAL: Prevents iOS Safari from auto-zooming on focus */
+    font-weight: 600;
+}
+
+.modal-box .form-group input {
+    height: 48px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0 15px;
+}
+
+.modal-box .form-group textarea {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+@media (max-width: 500px) {
+    .modal-grid { grid-template-columns: 1fr; }
+    .modal-grid .form-group { grid-column: span 1 !important; }
+}
+
+/* Prevent inputs from inheriting global checkmark background and padding overrides on value validation */
+.qty-input {
+    background-image: none !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    animation: none !important;
+}
+
+.price-input {
+    background-image: none !important;
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+    animation: none !important;
+}

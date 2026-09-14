@@ -1,0 +1,5444 @@
+[
+  {
+    "name": "2-in-1",
+    "display_order": 1,
+    "layout_type": "laptop",
+    "rules": [
+      {
+        "brand_series": "Latitude",
+        "model_number": "3190",
+        "is_2in1": 1,
+        "cpu": "Pentium/Celeron",
+        "price": 72.0,
+        "sale_through": 0.4718,
+        "sold_count": 1179,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3189",
+        "is_2in1": 1,
+        "cpu": "Pentium/Celeron",
+        "price": 79.0,
+        "sale_through": 0.4444,
+        "sold_count": 160,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3140",
+        "is_2in1": 1,
+        "cpu": "N200",
+        "price": 187.0,
+        "sale_through": 0.6364,
+        "sold_count": 12,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3120",
+        "is_2in1": 1,
+        "cpu": "Pentium",
+        "price": 89.0,
+        "sale_through": 0.3333,
+        "sold_count": 213,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "G1",
+        "is_2in1": 1,
+        "cpu": "Pentium/Celeron/i5",
+        "price": 53.0,
+        "sale_through": 0.5769,
+        "sold_count": 601,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "G2",
+        "is_2in1": 1,
+        "cpu": "Pentium/Celeron/i5",
+        "price": 77.0,
+        "sale_through": 0.4286,
+        "sold_count": 66,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "Lenovo",
+        "model_number": "300e(1st/2nd)",
+        "is_2in1": 1,
+        "cpu": "",
+        "price": 41.0,
+        "sale_through": 0.4545,
+        "sold_count": 298,
+        "effective_date": "7/12"
+      },
+      {
+        "brand_series": "Lenovo",
+        "model_number": "Yoga 11e",
+        "is_2in1": 1,
+        "cpu": "",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 712,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Lenovo",
+        "model_number": "Yoga 11e Gen 2",
+        "is_2in1": 1,
+        "cpu": "",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 712,
+        "effective_date": ""
+      }
+    ]
+  },
+  {
+    "name": "11th Gen",
+    "display_order": 2,
+    "layout_type": "laptop",
+    "rules": [
+      {
+        "brand_series": "Precision",
+        "model_number": "7760",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 853.0,
+        "sale_through": 0.1389,
+        "sold_count": 23,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7760",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 592.0,
+        "sale_through": 0.1935,
+        "sold_count": 36,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7760",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 368.0,
+        "sale_through": 0.0488,
+        "sold_count": 6,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7560",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 620.0,
+        "sale_through": 0.2391,
+        "sold_count": 57,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7560",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 427.0,
+        "sale_through": 0.5649,
+        "sold_count": 514,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7560",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 254.0,
+        "sale_through": 0.0335,
+        "sold_count": 6,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5760",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 594.0,
+        "sale_through": 0.1579,
+        "sold_count": 8,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5760",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 436.0,
+        "sale_through": 0.3333,
+        "sold_count": 15,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5760",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 212.0,
+        "sale_through": 0.1667,
+        "sold_count": 6,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5560",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 469.0,
+        "sale_through": 0.189,
+        "sold_count": 66,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5560",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 416.0,
+        "sale_through": 0.4493,
+        "sold_count": 558,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5560",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 279.0,
+        "sale_through": 0.0208,
+        "sold_count": 8,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3561",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 384.0,
+        "sale_through": 0.2162,
+        "sold_count": 25,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3561",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 299.0,
+        "sale_through": 0.43,
+        "sold_count": 191,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3561",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 144.0,
+        "sale_through": 0.117,
+        "sold_count": 23,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3560",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 225.0,
+        "sale_through": 0.4448,
+        "sold_count": 280,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3560",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 171.0,
+        "sale_through": 0.2764,
+        "sold_count": 113,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "17 9710",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 791.0,
+        "sale_through": 0.1875,
+        "sold_count": 6,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "17 9710",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 642.0,
+        "sale_through": 0.2609,
+        "sold_count": 19,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "17 9710",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 310.0,
+        "sale_through": 0.1429,
+        "sold_count": 4,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9510",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 506.0,
+        "sale_through": 0.2264,
+        "sold_count": 25,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 443.0,
+        "sale_through": 0.4056,
+        "sold_count": 89,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 246.0,
+        "sale_through": 0.039,
+        "sold_count": 7,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9305",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 282.0,
+        "sale_through": 0.4423,
+        "sold_count": 52,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9305",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 222.0,
+        "sale_through": 0.3286,
+        "sold_count": 23,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9310",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 341.0,
+        "sale_through": 0.5333,
+        "sold_count": 38,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9310",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 232.0,
+        "sale_through": 0.2222,
+        "sold_count": 6,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9310",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 345.0,
+        "sale_through": 0.6108,
+        "sold_count": 144,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9310",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 233.0,
+        "sale_through": 0.3291,
+        "sold_count": 39,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 263.0,
+        "sale_through": 0.4887,
+        "sold_count": 79,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 228.0,
+        "sale_through": 0.2195,
+        "sold_count": 9,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9420",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 324.0,
+        "sale_through": 0.6652,
+        "sold_count": 79,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9420",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 252.0,
+        "sale_through": 0.2069,
+        "sold_count": 12,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 218.0,
+        "sale_through": 0.3239,
+        "sold_count": 25,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 154.0,
+        "sale_through": 0.2353,
+        "sold_count": 15,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7420",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 200.0,
+        "sale_through": 0.423,
+        "sold_count": 2245,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7420",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 146.0,
+        "sale_through": 0.3095,
+        "sold_count": 715,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7320",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 221.0,
+        "sale_through": 0.4294,
+        "sold_count": 371,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7320",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 179.0,
+        "sale_through": 0.4027,
+        "sold_count": 284,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5521",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 229.0,
+        "sale_through": 0.3966,
+        "sold_count": 102,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5521",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 171.0,
+        "sale_through": 0.2366,
+        "sold_count": 31,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 201.0,
+        "sale_through": 0.3787,
+        "sold_count": 692,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 184.0,
+        "sale_through": 0.4199,
+        "sold_count": 1107,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5421",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 185.0,
+        "sale_through": 0.3308,
+        "sold_count": 51,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5421",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 150.0,
+        "sale_through": 0.5811,
+        "sold_count": 159,
+        "effective_date": "7/5"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5420",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 179.0,
+        "sale_through": 0.3385,
+        "sold_count": 1003,
+        "effective_date": "7/6"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5420",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 155.0,
+        "sale_through": 0.4707,
+        "sold_count": 2147,
+        "effective_date": "7/6"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5320",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 193.0,
+        "sale_through": 0.2862,
+        "sold_count": 244,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5320",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 142.0,
+        "sale_through": 0.3736,
+        "sold_count": 442,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 188.0,
+        "sale_through": 0.3348,
+        "sold_count": 259,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 153.0,
+        "sale_through": 0.5115,
+        "sold_count": 689,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3420",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 177.0,
+        "sale_through": 0.1583,
+        "sold_count": 116,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3420",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 138.0,
+        "sale_through": 0.4303,
+        "sold_count": 576,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3320",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 147.0,
+        "sale_through": 0.0603,
+        "sold_count": 7,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3320",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 122.0,
+        "sale_through": 0.096,
+        "sold_count": 16,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "16",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 384.0,
+        "sale_through": 0.1481,
+        "sold_count": 24,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "15 15t-eb100",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 376.0,
+        "sale_through": 0.6,
+        "sold_count": 3,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "15 15-eb1xxx",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 390.0,
+        "sale_through": 0.25,
+        "sold_count": 1,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "14",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 474.0,
+        "sale_through": 0.2703,
+        "sold_count": 10,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "14",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 349.0,
+        "sale_through": 0.0741,
+        "sold_count": 2,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "13",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 404.0,
+        "sale_through": 0.128,
+        "sold_count": 17,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "13",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 276.0,
+        "sale_through": 0.0185,
+        "sold_count": 2,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 17 G8",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 820.0,
+        "sale_through": 0.0909,
+        "sold_count": 2,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 17 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 489.0,
+        "sale_through": 0.475,
+        "sold_count": 35,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 17 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 431.0,
+        "sale_through": 0.0476,
+        "sold_count": 1,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 15 G8",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 632.0,
+        "sale_through": 0.1034,
+        "sold_count": 15,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 15 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 427.0,
+        "sale_through": 0.4159,
+        "sold_count": 82,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Fury 15 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 280.0,
+        "sale_through": 0.0417,
+        "sold_count": 1,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G8",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 475.0,
+        "sale_through": 0.1667,
+        "sold_count": 12,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 401.0,
+        "sale_through": 0.2545,
+        "sold_count": 26,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Power G8",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 574.0,
+        "sale_through": 0.0588,
+        "sold_count": 7,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Power G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 285.0,
+        "sale_through": 0.3696,
+        "sold_count": 55,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 15 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 253.0,
+        "sale_through": 0.4934,
+        "sold_count": 177,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 15 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 147.0,
+        "sale_through": 0.0361,
+        "sold_count": 3,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 14 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 223.0,
+        "sale_through": 0.3493,
+        "sold_count": 154,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 14 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 148.0,
+        "sale_through": 0.4142,
+        "sold_count": 352,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1040 G8",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 277.0,
+        "sale_through": 0.5734,
+        "sold_count": 913,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1040 G8",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 242.0,
+        "sale_through": 0.4697,
+        "sold_count": 64,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1030 G8",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 289.0,
+        "sale_through": 0.37,
+        "sold_count": 49,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1030 G8",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 224.0,
+        "sale_through": 0.5,
+        "sold_count": 72,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G8",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 273.0,
+        "sale_through": 0.3902,
+        "sold_count": 40,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G8",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 231.0,
+        "sale_through": 0.4727,
+        "sold_count": 45,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 276.0,
+        "sale_through": 0.48,
+        "sold_count": 410,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 210.0,
+        "sale_through": 0.448,
+        "sold_count": 165,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 228.0,
+        "sale_through": 0.457,
+        "sold_count": 795,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 164.0,
+        "sale_through": 0.4974,
+        "sold_count": 995,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 Aero G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 220.0,
+        "sale_through": 0.7222,
+        "sold_count": 19,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 Aero G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 157.0,
+        "sale_through": 0.8,
+        "sold_count": 5,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 255.0,
+        "sale_through": 0.3333,
+        "sold_count": 56,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 219.0,
+        "sale_through": 0.4111,
+        "sold_count": 56,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "435 G8",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 194.0,
+        "sale_through": 0.4194,
+        "sold_count": 18,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "435 G8",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 184.0,
+        "sale_through": 0.4688,
+        "sold_count": 15,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "435 G8",
+        "is_2in1": 1,
+        "cpu": "i3",
+        "price": 131.0,
+        "sale_through": 0.3478,
+        "sold_count": 10,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 210.0,
+        "sale_through": 0.4048,
+        "sold_count": 123,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 176.0,
+        "sale_through": 0.5819,
+        "sold_count": 183,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 192.0,
+        "sale_through": 0.1771,
+        "sold_count": 94,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 154.0,
+        "sale_through": 0.1978,
+        "sold_count": 41,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 204.0,
+        "sale_through": 0.3675,
+        "sold_count": 45,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 161.0,
+        "sale_through": 0.6416,
+        "sold_count": 349,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 173.0,
+        "sale_through": 0.3217,
+        "sold_count": 41,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 150.0,
+        "sale_through": 0.4466,
+        "sold_count": 200,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 210.0,
+        "sale_through": 0.4808,
+        "sold_count": 26,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 185.0,
+        "sale_through": 0.2727,
+        "sold_count": 24,
+        "effective_date": "7/8"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "255 G8",
+        "is_2in1": 0,
+        "cpu": "AMD",
+        "price": 110.0,
+        "sale_through": 0.6303,
+        "sold_count": 105,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "250 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 228.0,
+        "sale_through": 0.6542,
+        "sold_count": 315,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "250 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 195.0,
+        "sale_through": 0.6012,
+        "sold_count": 455,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "245 G8",
+        "is_2in1": 0,
+        "cpu": "AMD",
+        "price": 60.0,
+        "sale_through": 0.4,
+        "sold_count": 2,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "240 G8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 0,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "240 G8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 0,
+        "effective_date": "7/9"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P1 Gen 4",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 1047.0,
+        "sale_through": 0.049,
+        "sold_count": 5,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P1 Gen 4",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 451.0,
+        "sale_through": 0.453,
+        "sold_count": 225,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15v Gen 2",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 398.0,
+        "sale_through": 0.0769,
+        "sold_count": 1,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15v Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 366.0,
+        "sale_through": 0.5385,
+        "sold_count": 30,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15v Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 425.0,
+        "sale_through": 0.0909,
+        "sold_count": 1,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 582.0,
+        "sale_through": 0.0455,
+        "sold_count": 8,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 564.0,
+        "sale_through": 0.215,
+        "sold_count": 25,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15s Gen 2",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 637.0,
+        "sale_through": 0.0642,
+        "sold_count": 11,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15s Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 343.0,
+        "sale_through": 0.661,
+        "sold_count": 353,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15s Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 220.0,
+        "sale_through": 0.0118,
+        "sold_count": 1,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P14s gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 350.0,
+        "sale_through": 0.535,
+        "sold_count": 115,
+        "effective_date": "7/13"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Yoga Gen 2",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 274.0,
+        "sale_through": 0.0909,
+        "sold_count": 13,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Yoga Gen 2",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 270.0,
+        "sale_through": 0.4,
+        "sold_count": 115,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 209.0,
+        "sale_through": 0.1391,
+        "sold_count": 79,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 201.0,
+        "sale_through": 0.1473,
+        "sold_count": 27,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 6",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 357.0,
+        "sale_through": 0.473,
+        "sold_count": 101,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 6",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 244.0,
+        "sale_through": 0.0976,
+        "sold_count": 28,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 9",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 320.0,
+        "sale_through": 0.4413,
+        "sold_count": 435,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 9",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 261.0,
+        "sale_through": 0.1944,
+        "sold_count": 85,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15g Gen 2",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 950.0,
+        "sale_through": 0.25,
+        "sold_count": 1,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15g Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 700.0,
+        "sale_through": 0.2857,
+        "sold_count": 2,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15p Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 378.0,
+        "sale_through": 0.5789,
+        "sold_count": 16,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15p Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 225.0,
+        "sale_through": 0.1111,
+        "sold_count": 1,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 312.0,
+        "sale_through": 0.436,
+        "sold_count": 124,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 206.0,
+        "sale_through": 0.4895,
+        "sold_count": 195,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14s Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 259.0,
+        "sale_through": 0.5462,
+        "sold_count": 643,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14s Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 180.0,
+        "sale_through": 0.4547,
+        "sold_count": 470,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 257.0,
+        "sale_through": 0.3406,
+        "sold_count": 510,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 180.0,
+        "sale_through": 0.2943,
+        "sold_count": 470,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 228.0,
+        "sale_through": 0.3452,
+        "sold_count": 38,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 139.0,
+        "sale_through": 0.2,
+        "sold_count": 24,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 186.0,
+        "sale_through": 0.3706,
+        "sold_count": 66,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 173.0,
+        "sale_through": 0.2432,
+        "sold_count": 27,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Yoga Gen 2",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 199.0,
+        "sale_through": 0.2083,
+        "sold_count": 17,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Yoga Gen 2",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 164.0,
+        "sale_through": 0.3423,
+        "sold_count": 58,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 190.0,
+        "sale_through": 0.1545,
+        "sold_count": 21,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 153.0,
+        "sale_through": 0.2989,
+        "sold_count": 111,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 3",
+        "is_2in1": 0,
+        "cpu": "Ryzen 7",
+        "price": 210.0,
+        "sale_through": 0.4844,
+        "sold_count": 34,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 3",
+        "is_2in1": 0,
+        "cpu": "Ryzen 5",
+        "price": 181.0,
+        "sale_through": 0.2553,
+        "sold_count": 13,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 3",
+        "is_2in1": 0,
+        "cpu": "Ryzen 3",
+        "price": 140.0,
+        "sale_through": 0.0968,
+        "sold_count": 3,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E14 Gen 3",
+        "is_2in1": 0,
+        "cpu": "Ryzen 7",
+        "price": 219.0,
+        "sale_through": 0.2317,
+        "sold_count": 22,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E14 Gen 3",
+        "is_2in1": 0,
+        "cpu": "Ryzen 5",
+        "price": 179.0,
+        "sale_through": 0.3364,
+        "sold_count": 50,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 211.0,
+        "sale_through": 0.3288,
+        "sold_count": 88,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 174.0,
+        "sale_through": 0.3736,
+        "sold_count": 120,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 139.0,
+        "sale_through": 0.0211,
+        "sold_count": 4,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 201.0,
+        "sale_through": 0.1925,
+        "sold_count": 52,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 155.0,
+        "sale_through": 0.4164,
+        "sold_count": 155,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E14 Gen 2",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 117.0,
+        "sale_through": 0.0217,
+        "sold_count": 3,
+        "effective_date": "7/15"
+      }
+    ]
+  },
+  {
+    "name": "10th Gen",
+    "display_order": 3,
+    "layout_type": "laptop",
+    "rules": [
+      {
+        "brand_series": "Precision",
+        "model_number": "7750",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 442.0,
+        "sale_through": 0.426,
+        "sold_count": 114,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7750",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 268.0,
+        "sale_through": 0.0693,
+        "sold_count": 7,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7550",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 356.0,
+        "sale_through": 0.4701,
+        "sold_count": 249,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7550",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 259.0,
+        "sale_through": 0.049,
+        "sold_count": 13,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5750",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 383.0,
+        "sale_through": 0.3226,
+        "sold_count": 26,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5750",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 205.0,
+        "sale_through": 0.0968,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5550",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 324.0,
+        "sale_through": 0.4498,
+        "sold_count": 338,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5550",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 206.0,
+        "sale_through": 0.0308,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3551",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 188.0,
+        "sale_through": 0.4099,
+        "sold_count": 234,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3551",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 137.0,
+        "sale_through": 0.5429,
+        "sold_count": 329,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3550",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 173.0,
+        "sale_through": 0.2034,
+        "sold_count": 48,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3550",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 130.0,
+        "sale_through": 0.2188,
+        "sold_count": 67,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "17 9700",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 574.0,
+        "sale_through": 0.3372,
+        "sold_count": 30,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "17 9700",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 280.0,
+        "sale_through": 0.102,
+        "sold_count": 5,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9500",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 351.0,
+        "sale_through": 0.3982,
+        "sold_count": 144,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9500",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 223.0,
+        "sale_through": 0.058,
+        "sold_count": 8,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9300",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 269.0,
+        "sale_through": 0.3803,
+        "sold_count": 31,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9300",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 196.0,
+        "sale_through": 0.2439,
+        "sold_count": 10,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9300",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 265.0,
+        "sale_through": 0.7222,
+        "sold_count": 70,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9300",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 184.0,
+        "sale_through": 0.4194,
+        "sold_count": 14,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 7390",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 237.0,
+        "sale_through": 0.4765,
+        "sold_count": 89,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 7390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 145.0,
+        "sale_through": 0.4214,
+        "sold_count": 65,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9510",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 230.0,
+        "sale_through": 0.7143,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9510",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 245.0,
+        "sale_through": 0.6,
+        "sold_count": 3,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 209.0,
+        "sale_through": 0.3333,
+        "sold_count": 5,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 177.0,
+        "sale_through": 0.4,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9410",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 248.0,
+        "sale_through": 0.4,
+        "sold_count": 9,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9410",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 206.0,
+        "sale_through": 0.3846,
+        "sold_count": 32,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9410",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 208.0,
+        "sale_through": 0.8529,
+        "sold_count": 51,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "9410",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 0,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7410",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 182.0,
+        "sale_through": 0.4286,
+        "sold_count": 32,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7410",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 151.0,
+        "sale_through": 0.4516,
+        "sold_count": 21,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7410",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 157.0,
+        "sale_through": 0.2601,
+        "sold_count": 223,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7410",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 125.0,
+        "sale_through": 0.2986,
+        "sold_count": 320,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7310",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 172.0,
+        "sale_through": 0.5,
+        "sold_count": 17,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7310",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 122.0,
+        "sale_through": 0.1818,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7310",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 169.0,
+        "sale_through": 0.3194,
+        "sold_count": 54,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7310",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 89.0,
+        "sale_through": 0.3263,
+        "sold_count": 157,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7210",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 168.0,
+        "sale_through": 0.3167,
+        "sold_count": 61,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7210",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 136.0,
+        "sale_through": 0.3759,
+        "sold_count": 70,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5511",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 182.0,
+        "sale_through": 0.378,
+        "sold_count": 83,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5511",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 120.0,
+        "sale_through": 0.3717,
+        "sold_count": 78,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 170.0,
+        "sale_through": 0.2525,
+        "sold_count": 246,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 127.0,
+        "sale_through": 0.4458,
+        "sold_count": 423,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5411",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 153.0,
+        "sale_through": 0.1864,
+        "sold_count": 62,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5411",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 130.0,
+        "sale_through": 0.1264,
+        "sold_count": 42,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5410",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 142.0,
+        "sale_through": 0.102,
+        "sold_count": 129,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5410",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 119.0,
+        "sale_through": 0.3943,
+        "sold_count": 1700,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5310",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 110.0,
+        "sale_through": 0.1892,
+        "sold_count": 107,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5310",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 120.0,
+        "sale_through": 0.4783,
+        "sold_count": 81,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5310",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 142.0,
+        "sale_through": 0.2886,
+        "sold_count": 107,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5310",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 116.0,
+        "sale_through": 0.264,
+        "sold_count": 167,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 136.0,
+        "sale_through": 0.0759,
+        "sold_count": 23,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 121.0,
+        "sale_through": 0.3931,
+        "sold_count": 348,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3410",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 196.0,
+        "sale_through": 0.1125,
+        "sold_count": 151,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3410",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.0,
+        "sale_through": 0.4475,
+        "sold_count": 472,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7591",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 198.0,
+        "sale_through": 0.5238,
+        "sold_count": 11,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7591",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 163.0,
+        "sale_through": 0.6,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7391",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 195.0,
+        "sale_through": 0.5,
+        "sold_count": 7,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7391",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 129.0,
+        "sale_through": 0.4615,
+        "sold_count": 6,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 200.0,
+        "sale_through": 0.4286,
+        "sold_count": 3,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "7490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 99.0,
+        "sale_through": 0.2,
+        "sold_count": 1,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5593",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 176.0,
+        "sale_through": 0.4839,
+        "sold_count": 15,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5593",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 128.0,
+        "sale_through": 0.4103,
+        "sold_count": 18,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 628,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 115.0,
+        "sale_through": 0.3333,
+        "sold_count": 1,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5390",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 60.0,
+        "sale_through": 1.0,
+        "sold_count": 1,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "5390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 170.0,
+        "sale_through": 1.0,
+        "sold_count": 1,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3793",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 206.0,
+        "sale_through": 0.3269,
+        "sold_count": 37,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3793",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 194.0,
+        "sale_through": 0.4167,
+        "sold_count": 10,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3593",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 150.0,
+        "sale_through": 0.2667,
+        "sold_count": 8,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3593",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 118.0,
+        "sale_through": 0.3457,
+        "sold_count": 28,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3493",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 628,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Inspiron",
+        "model_number": "3493",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 99.0,
+        "sale_through": 0.3125,
+        "sold_count": 5,
+        "effective_date": "6/28"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "7500",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 279.0,
+        "sale_through": 0.5455,
+        "sold_count": 19,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "7500",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 205.0,
+        "sale_through": 0.2222,
+        "sold_count": 2,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5501",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 192.0,
+        "sale_through": 0.25,
+        "sold_count": 4,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5501",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 139.0,
+        "sale_through": 0.2727,
+        "sold_count": 3,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 216.0,
+        "sale_through": 0.0556,
+        "sold_count": 1,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 110.0,
+        "sale_through": 0.6111,
+        "sold_count": 24,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5401",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 192.0,
+        "sale_through": 0.25,
+        "sold_count": 4,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Vostro",
+        "model_number": "5401",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 139.0,
+        "sale_through": 0.2727,
+        "sold_count": 3,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "15",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 350.0,
+        "sale_through": 0.3277,
+        "sold_count": 41,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "13",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 314.0,
+        "sale_through": 0.1615,
+        "sold_count": 12,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Spectre",
+        "model_number": "13",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 242.0,
+        "sale_through": 0.0288,
+        "sold_count": 3,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "17 G7 Fury",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 521.0,
+        "sale_through": 0.119,
+        "sold_count": 7,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "17 G7 Fury",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 391.0,
+        "sale_through": 0.35,
+        "sold_count": 60,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G7 Fury",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 410.0,
+        "sale_through": 0.2857,
+        "sold_count": 14,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G7 Fury",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 332.0,
+        "sale_through": 0.4902,
+        "sold_count": 41,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G7 Fury",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 227.0,
+        "sale_through": 0.0769,
+        "sold_count": 2,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G7",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 329.0,
+        "sale_through": 0.2059,
+        "sold_count": 50,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 248.0,
+        "sale_through": 0.45,
+        "sold_count": 38,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Create G7",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 616.0,
+        "sale_through": 0.1,
+        "sold_count": 1,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Create G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 433.0,
+        "sale_through": 0.2941,
+        "sold_count": 6,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Powre G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 252.0,
+        "sale_through": 0.5333,
+        "sold_count": 37,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Powre G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 156.0,
+        "sale_through": 0.1875,
+        "sold_count": 8,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 15 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 199.0,
+        "sale_through": 0.3874,
+        "sold_count": 80,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 15 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 142.0,
+        "sale_through": 0.0873,
+        "sold_count": 12,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 14 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 196.0,
+        "sale_through": 0.1199,
+        "sold_count": 37,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Firefly 14 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 136.0,
+        "sale_through": 0.2464,
+        "sold_count": 198,
+        "effective_date": "6/29"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1040 G7",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 222.0,
+        "sale_through": 0.1828,
+        "sold_count": 412,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1040 G7",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 208.0,
+        "sale_through": 0.2424,
+        "sold_count": 37,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1030 G7",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 223.0,
+        "sale_through": 0.2879,
+        "sold_count": 49,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1030 G7",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 157.0,
+        "sale_through": 0.3333,
+        "sold_count": 48,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 217.0,
+        "sale_through": 0.25,
+        "sold_count": 114,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 170.0,
+        "sale_through": 0.3391,
+        "sold_count": 179,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 175.0,
+        "sale_through": 0.2089,
+        "sold_count": 203,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 137.0,
+        "sale_through": 0.3891,
+        "sold_count": 796,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G7",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 188.0,
+        "sale_through": 0.1429,
+        "sold_count": 11,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G7",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 197.0,
+        "sale_through": 0.2289,
+        "sold_count": 32,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 216.0,
+        "sale_through": 0.1127,
+        "sold_count": 12,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 152.0,
+        "sale_through": 0.2446,
+        "sold_count": 36,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 150.0,
+        "sale_through": 0.1081,
+        "sold_count": 20,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 630,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 630,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 141.0,
+        "sale_through": 0.1967,
+        "sold_count": 100,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "470 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 0.0,
+        "sale_through": 0.0,
+        "sold_count": 630,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "470 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 200.0,
+        "sale_through": 0.2,
+        "sold_count": 1,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 181.0,
+        "sale_through": 0.1405,
+        "sold_count": 37,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 143.0,
+        "sale_through": 0.4118,
+        "sold_count": 188,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 154.0,
+        "sale_through": 0.0797,
+        "sold_count": 12,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 123.0,
+        "sale_through": 0.3439,
+        "sold_count": 111,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 150.0,
+        "sale_through": 0.05,
+        "sold_count": 2,
+        "effective_date": "6/30"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 134.13,
+        "sale_through": 0.1429,
+        "sold_count": 19,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "240 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 162.0,
+        "sale_through": 0.0588,
+        "sold_count": 1,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "240 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 129.0,
+        "sale_through": 0.2381,
+        "sold_count": 5,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "250 G7",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 184.0,
+        "sale_through": 0.2331,
+        "sold_count": 35,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "250 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 148.0,
+        "sale_through": 0.5068,
+        "sold_count": 224,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P1 Gen 3",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 381.0,
+        "sale_through": 0.0568,
+        "sold_count": 5,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P1 Gen 3",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 360.0,
+        "sale_through": 0.2635,
+        "sold_count": 44,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P17 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 444.0,
+        "sale_through": 0.1053,
+        "sold_count": 2,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P17 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 190.0,
+        "sale_through": 0.125,
+        "sold_count": 3,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 672.0,
+        "sale_through": 0.0939,
+        "sold_count": 4,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 330.0,
+        "sale_through": 0.3714,
+        "sold_count": 183,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 339.0,
+        "sale_through": 0.61,
+        "sold_count": 1,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P15s Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 218.0,
+        "sale_through": 0.4667,
+        "sold_count": 138,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P14s Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 180.0,
+        "sale_through": 0.2705,
+        "sold_count": 52,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P14s Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 145.0,
+        "sale_through": 0.0667,
+        "sold_count": 8,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Extreme Gen 3",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 456.0,
+        "sale_through": 0.1714,
+        "sold_count": 6,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Extreme Gen 3",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 381.0,
+        "sale_through": 0.3636,
+        "sold_count": 16,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 5",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 248.0,
+        "sale_through": 0.2744,
+        "sold_count": 105,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 5",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 200.0,
+        "sale_through": 0.3099,
+        "sold_count": 73,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 8",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 230.0,
+        "sale_through": 0.2194,
+        "sold_count": 157,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 8",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 171.0,
+        "sale_through": 0.1236,
+        "sold_count": 70,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Yoga Gen 1",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 152.0,
+        "sale_through": 0.4242,
+        "sold_count": 20,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Yoga Gen 1",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 143.0,
+        "sale_through": 0.5,
+        "sold_count": 28,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 177.0,
+        "sale_through": 0.1909,
+        "sold_count": 29,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X13 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 114.0,
+        "sale_through": 0.1812,
+        "sold_count": 51,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 250.0,
+        "sale_through": 0.0154,
+        "sold_count": 1,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 175.0,
+        "sale_through": 0.0154,
+        "sold_count": 1,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 149.0,
+        "sale_through": 0.0156,
+        "sold_count": 1,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15g Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 448.0,
+        "sale_through": 0.5,
+        "sold_count": 8,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 220.0,
+        "sale_through": 0.3655,
+        "sold_count": 80,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 140.0,
+        "sale_through": 0.4868,
+        "sold_count": 179,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 187.0,
+        "sale_through": 0.3649,
+        "sold_count": 327,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T14 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 143.0,
+        "sale_through": 0.4393,
+        "sold_count": 470,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 168.0,
+        "sale_through": 0.1667,
+        "sold_count": 4,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 122.0,
+        "sale_through": 0.4167,
+        "sold_count": 26,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L14 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 158.0,
+        "sale_through": 0.0492,
+        "sold_count": 3,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L14 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 116.0,
+        "sale_through": 0.4468,
+        "sold_count": 128,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Gen 1 Yoga",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 140.0,
+        "sale_through": 0.4706,
+        "sold_count": 9,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L13 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.0,
+        "sale_through": 0.5,
+        "sold_count": 2,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 164.0,
+        "sale_through": 0.4815,
+        "sold_count": 35,
+        "effective_date": "7/4"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E15 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 125.0,
+        "sale_through": 0.66,
+        "sold_count": 44,
+        "effective_date": "7/4"
+      }
+    ]
+  },
+  {
+    "name": "8th Gen",
+    "display_order": 4,
+    "layout_type": "laptop",
+    "rules": [
+      {
+        "brand_series": "Precision",
+        "model_number": "7730",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 647.25,
+        "sale_through": 0.069,
+        "sold_count": 4,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7730",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 301.05,
+        "sale_through": 0.301,
+        "sold_count": 32,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7730",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 224.97,
+        "sale_through": 0.0351,
+        "sold_count": 2,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7730",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 327.42,
+        "sale_through": 0.2381,
+        "sold_count": 22,
+        "effective_date": "7/15"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7530",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 262.55,
+        "sale_through": 0.0909,
+        "sold_count": 8,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7530",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 191.16,
+        "sale_through": 0.4947,
+        "sold_count": 134,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7530",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 258.61,
+        "sale_through": 0.2075,
+        "sold_count": 23,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5530",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 284.11,
+        "sale_through": 0.1832,
+        "sold_count": 25,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5530",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 213.72,
+        "sale_through": 0.4597,
+        "sold_count": 191,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5530",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 210.5,
+        "sale_through": 0.0185,
+        "sold_count": 2,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5530",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 286.72,
+        "sale_through": 0.1704,
+        "sold_count": 39,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3530",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 139.21,
+        "sale_through": 0.4713,
+        "sold_count": 58,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3530",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 124.46,
+        "sale_through": 0.2453,
+        "sold_count": 14,
+        "effective_date": "7/19"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9575",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 233.34,
+        "sale_through": 0.3293,
+        "sold_count": 27,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9575",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 159.0,
+        "sale_through": 0.0333,
+        "sold_count": 1,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9570",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 344.17,
+        "sale_through": 0.0811,
+        "sold_count": 6,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9570",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 231.03,
+        "sale_through": 0.4628,
+        "sold_count": 91,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "15 9570",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 165.79,
+        "sale_through": 0.1266,
+        "sold_count": 12,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9370",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 168.9,
+        "sale_through": 0.3357,
+        "sold_count": 60,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9370",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 117.35,
+        "sale_through": 0.2992,
+        "sold_count": 38,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9360",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 155.79,
+        "sale_through": 0.0811,
+        "sold_count": 9,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "XPS",
+        "model_number": "13 9360",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 108.3,
+        "sale_through": 0.101,
+        "sold_count": 10,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 121.52,
+        "sale_through": 0.3275,
+        "sold_count": 512,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 114.37,
+        "sale_through": 0.3283,
+        "sold_count": 511,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7390",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 175.06,
+        "sale_through": 0.1017,
+        "sold_count": 35,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7390",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 106.23,
+        "sale_through": 0.3641,
+        "sold_count": 229,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7390",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 134.67,
+        "sale_through": 0.2232,
+        "sold_count": 81,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 107.56,
+        "sale_through": 0.2607,
+        "sold_count": 83,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7290",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 116.75,
+        "sale_through": 0.2168,
+        "sold_count": 40,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "7290",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.9,
+        "sale_through": 0.2928,
+        "sold_count": 84,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5591",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 132.16,
+        "sale_through": 0.4615,
+        "sold_count": 109,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5591",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 106.48,
+        "sale_through": 0.3366,
+        "sold_count": 44,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5590",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 137.24,
+        "sale_through": 0.2705,
+        "sold_count": 138,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5590",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 100.44,
+        "sale_through": 0.437,
+        "sold_count": 408,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5491",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 114.95,
+        "sale_through": 0.2364,
+        "sold_count": 29,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5491",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.81,
+        "sale_through": 0.2418,
+        "sold_count": 23,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 123.23,
+        "sale_through": 0.1247,
+        "sold_count": 99,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 101.28,
+        "sale_through": 0.4505,
+        "sold_count": 643,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5290",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 127.53,
+        "sale_through": 0.1078,
+        "sold_count": 39,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5290",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 123.44,
+        "sale_through": 0.1722,
+        "sold_count": 53,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5290",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 142.25,
+        "sale_through": 0.0308,
+        "sold_count": 2,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "5290",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 102.09,
+        "sale_through": 0.2111,
+        "sold_count": 21,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3590",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 102.31,
+        "sale_through": 0.0823,
+        "sold_count": 16,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3590",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 85.71,
+        "sale_through": 0.2837,
+        "sold_count": 140,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3590",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 93.25,
+        "sale_through": 0.015,
+        "sold_count": 2,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 85.0,
+        "sale_through": 0.81,
+        "sold_count": 1,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 94.64,
+        "sale_through": 0.2194,
+        "sold_count": 72,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3490",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 70.57,
+        "sale_through": 0.048,
+        "sold_count": 7,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3390",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 104.38,
+        "sale_through": 0.5941,
+        "sold_count": 78,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Latitude",
+        "model_number": "3390",
+        "is_2in1": 1,
+        "cpu": "i3",
+        "price": 50.0,
+        "sale_through": 0.069,
+        "sold_count": 2,
+        "effective_date": "7/20"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "17 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 255.03,
+        "sale_through": 0.4032,
+        "sold_count": 28,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "17 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 138.64,
+        "sale_through": 0.1471,
+        "sold_count": 14,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "17 G5",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 305.49,
+        "sale_through": 0.1212,
+        "sold_count": 4,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G5",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 324.16,
+        "sale_through": 0.0246,
+        "sold_count": 3,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 192.81,
+        "sale_through": 0.5239,
+        "sold_count": 413,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 125.48,
+        "sale_through": 0.2013,
+        "sold_count": 32,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15 G5",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 210.2,
+        "sale_through": 0.0815,
+        "sold_count": 11,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G5",
+        "is_2in1": 0,
+        "cpu": "i9",
+        "price": 377.5,
+        "sale_through": 0.037,
+        "sold_count": 2,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 212.26,
+        "sale_through": 0.3306,
+        "sold_count": 67,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "Studio G5",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 223.88,
+        "sale_through": 0.1148,
+        "sold_count": 7,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15u G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 148.14,
+        "sale_through": 0.2879,
+        "sold_count": 38,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "15u G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 123.19,
+        "sale_through": 0.375,
+        "sold_count": 24,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "14u G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 138.76,
+        "sale_through": 0.2982,
+        "sold_count": 17,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "Zbook",
+        "model_number": "14u G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 117.38,
+        "sale_through": 0.4333,
+        "sold_count": 28,
+        "effective_date": "7/21"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "1050 G1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 240.0,
+        "sale_through": 0.3333,
+        "sold_count": 3,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 1040 G5",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 188.05,
+        "sale_through": 0.25,
+        "sold_count": 8,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 1040 G5",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 145.26,
+        "sale_through": 0.4889,
+        "sold_count": 36,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 1030 G3",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 176.46,
+        "sale_through": 0.65,
+        "sold_count": 26,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 1030 G3",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 179.49,
+        "sale_through": 0.5641,
+        "sold_count": 26,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 830 G5",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 143.63,
+        "sale_through": 0.2857,
+        "sold_count": 20,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "x360 830 G5",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 113.27,
+        "sale_through": 0.439,
+        "sold_count": 45,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 179.89,
+        "sale_through": 0.3154,
+        "sold_count": 93,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "850 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 132.54,
+        "sale_through": 0.3533,
+        "sold_count": 54,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 138.53,
+        "sale_through": 0.3567,
+        "sold_count": 211,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "840 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 132.1,
+        "sale_through": 0.5788,
+        "sold_count": 654,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 143.63,
+        "sale_through": 0.2857,
+        "sold_count": 20,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "EliteBook",
+        "model_number": "830 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 115.12,
+        "sale_through": 0.4375,
+        "sold_count": 44,
+        "effective_date": "7/22"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 148.57,
+        "sale_through": 0.1455,
+        "sold_count": 18,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "650 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 109.9,
+        "sale_through": 0.5019,
+        "sold_count": 196,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 130.37,
+        "sale_through": 0.1667,
+        "sold_count": 40,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "640 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 94.6,
+        "sale_through": 0.4802,
+        "sold_count": 160,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "470 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 166.69,
+        "sale_through": 0.2857,
+        "sold_count": 26,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "470 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 183.49,
+        "sale_through": 0.093,
+        "sold_count": 4,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G6",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 147.63,
+        "sale_through": 0.1828,
+        "sold_count": 19,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G6",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 112.69,
+        "sale_through": 0.6047,
+        "sold_count": 268,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 129.96,
+        "sale_through": 0.114,
+        "sold_count": 17,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 96.83,
+        "sale_through": 0.3797,
+        "sold_count": 92,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "450 G5",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 127.95,
+        "sale_through": 0.0112,
+        "sold_count": 2,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G6",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 100.0,
+        "sale_through": 0.0333,
+        "sold_count": 1,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G6",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 110.3,
+        "sale_through": 0.358,
+        "sold_count": 54,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G6",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 95.0,
+        "sale_through": 0.0303,
+        "sold_count": 1,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "440 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 102.45,
+        "sale_through": 0.1918,
+        "sold_count": 15,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G6",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 147.25,
+        "sale_through": 0.0588,
+        "sold_count": 1,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G6",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 109.88,
+        "sale_through": 0.4571,
+        "sold_count": 62,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G5",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 93.48,
+        "sale_through": 0.2174,
+        "sold_count": 5,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ProBook",
+        "model_number": "430 G5",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 98.49,
+        "sale_through": 0.2667,
+        "sold_count": 10,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "HP",
+        "model_number": "250 G7",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 100.39,
+        "sale_through": 0.1667,
+        "sold_count": 35,
+        "effective_date": "7/23"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P72",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 278.33,
+        "sale_through": 0.3,
+        "sold_count": 3,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P72",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 349.59,
+        "sale_through": 0.3,
+        "sold_count": 5,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P52s",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 162.21,
+        "sale_through": 0.2195,
+        "sold_count": 9,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P52s",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 324.99,
+        "sale_through": 0.0294,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P52",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 270.2,
+        "sale_through": 0.3086,
+        "sold_count": 28,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P52",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 314.63,
+        "sale_through": 0.2597,
+        "sold_count": 20,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "P1 Gen 1",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 255.25,
+        "sale_through": 0.0388,
+        "sold_count": 8,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 3",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 160.37,
+        "sale_through": 0.3205,
+        "sold_count": 40,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Yoga Gen 3",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 134.41,
+        "sale_through": 0.3056,
+        "sold_count": 35,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 6",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 198.28,
+        "sale_through": 0.2417,
+        "sold_count": 76,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X1 Carbon Gen 6",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 128.6,
+        "sale_through": 0.164,
+        "sold_count": 37,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 156.38,
+        "sale_through": 0.4318,
+        "sold_count": 23,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 112.2,
+        "sale_through": 0.46,
+        "sold_count": 33,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 144.72,
+        "sale_through": 0.3196,
+        "sold_count": 48,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 115.47,
+        "sale_through": 0.1974,
+        "sold_count": 15,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 133.74,
+        "sale_through": 0.3269,
+        "sold_count": 22,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 91.82,
+        "sale_through": 0.443,
+        "sold_count": 56,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i3",
+        "price": 130.0,
+        "sale_through": 0.0313,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X280",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 173.88,
+        "sale_through": 0.3768,
+        "sold_count": 28,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "X280",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 151.73,
+        "sale_through": 0.3827,
+        "sold_count": 31,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T590",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 175.8,
+        "sale_through": 0.4013,
+        "sold_count": 96,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T590",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 123.82,
+        "sale_through": 0.3466,
+        "sold_count": 68,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T490s",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 151.01,
+        "sale_through": 0.3314,
+        "sold_count": 185,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T490s",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 121.81,
+        "sale_through": 0.3147,
+        "sold_count": 174,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 176.31,
+        "sale_through": 0.1553,
+        "sold_count": 143,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 124.91,
+        "sale_through": 0.3892,
+        "sold_count": 637,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T580",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 210.42,
+        "sale_through": 0.3826,
+        "sold_count": 62,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T580",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 157.89,
+        "sale_through": 0.3836,
+        "sold_count": 67,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T480s",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 202.04,
+        "sale_through": 0.5395,
+        "sold_count": 220,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T480s",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 152.96,
+        "sale_through": 0.5744,
+        "sold_count": 371,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T480",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 254.24,
+        "sale_through": 0.3929,
+        "sold_count": 141,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "T480",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 176.18,
+        "sale_through": 0.5559,
+        "sold_count": 409,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L590",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 102.48,
+        "sale_through": 0.1053,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L590",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 100.1,
+        "sale_through": 0.2963,
+        "sold_count": 9,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L580",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 114.99,
+        "sale_through": 0.0313,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L580",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 86.5,
+        "sale_through": 0.122,
+        "sold_count": 6,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L580",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 119.0,
+        "sale_through": 0.0303,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 274.95,
+        "sale_through": 0.0263,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 100.58,
+        "sale_through": 0.2875,
+        "sold_count": 44,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L490",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 65.0,
+        "sale_through": 0.0465,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L480",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 104.89,
+        "sale_through": 0.4225,
+        "sold_count": 80,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 349.0,
+        "sale_through": 0.0227,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 125.49,
+        "sale_through": 0.3896,
+        "sold_count": 51,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L390 Yoga",
+        "is_2in1": 1,
+        "cpu": "i3",
+        "price": 109.98,
+        "sale_through": 0.0222,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L390",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.14,
+        "sale_through": 0.4,
+        "sold_count": 15,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L390",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 112.0,
+        "sale_through": 0.125,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i7",
+        "price": 161.66,
+        "sale_through": 0.1633,
+        "sold_count": 9,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i5",
+        "price": 112.0,
+        "sale_through": 0.4886,
+        "sold_count": 57,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L380 Yoga",
+        "is_2in1": 1,
+        "cpu": "i3",
+        "price": 60.0,
+        "sale_through": 0.0238,
+        "sold_count": 1,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L380",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 109.88,
+        "sale_through": 0.1905,
+        "sold_count": 8,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "L380",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 85.0,
+        "sale_through": 0.0345,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E590",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 146.15,
+        "sale_through": 0.3125,
+        "sold_count": 31,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E590",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 99.46,
+        "sale_through": 0.4409,
+        "sold_count": 47,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E590",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 106.49,
+        "sale_through": 0.0851,
+        "sold_count": 4,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E490",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 139.99,
+        "sale_through": 0.0588,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E490",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 92.78,
+        "sale_through": 0.2045,
+        "sold_count": 14,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E490",
+        "is_2in1": 0,
+        "cpu": "i3",
+        "price": 134.49,
+        "sale_through": 0.0571,
+        "sold_count": 2,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E580",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 143.7,
+        "sale_through": 0.2133,
+        "sold_count": 17,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E580",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 104.66,
+        "sale_through": 0.3034,
+        "sold_count": 30,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E480",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 143.99,
+        "sale_through": 0.0638,
+        "sold_count": 3,
+        "effective_date": "7/26"
+      },
+      {
+        "brand_series": "ThinkPad",
+        "model_number": "E480",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 113.37,
+        "sale_through": 0.1587,
+        "sold_count": 12,
+        "effective_date": "7/26"
+      }
+    ]
+  },
+  {
+    "name": "6th & 7th",
+    "display_order": 5,
+    "layout_type": "laptop",
+    "rules": [
+      {
+        "brand_series": "Precision",
+        "model_number": "7720",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 226.82,
+        "sale_through": 0.2642,
+        "sold_count": 29,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7720",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 110.0,
+        "sale_through": 0.0294,
+        "sold_count": 2,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7720",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 260.63,
+        "sale_through": 0.1905,
+        "sold_count": 17,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7710",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 196.04,
+        "sale_through": 0.3294,
+        "sold_count": 30,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7710",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 193.99,
+        "sale_through": 0.1111,
+        "sold_count": 6,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7710",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 272.82,
+        "sale_through": 0.1176,
+        "sold_count": 6,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 175.38,
+        "sale_through": 0.2648,
+        "sold_count": 68,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 150.0,
+        "sale_through": 0.75,
+        "sold_count": 1,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7520",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 167.27,
+        "sale_through": 0.0915,
+        "sold_count": 15,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 147.12,
+        "sale_through": 0.31,
+        "sold_count": 77,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 85.49,
+        "sale_through": 0.015,
+        "sold_count": 2,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "7510",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 156.33,
+        "sale_through": 0.1296,
+        "sold_count": 24,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 178.54,
+        "sale_through": 0.2888,
+        "sold_count": 68,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 141.42,
+        "sale_through": 0.0594,
+        "sold_count": 6,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5520",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 176.85,
+        "sale_through": 0.1908,
+        "sold_count": 42,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 139.45,
+        "sale_through": 0.25,
+        "sold_count": 43,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 112.0,
+        "sale_through": 0.0169,
+        "sold_count": 1,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "5510",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 223.91,
+        "sale_through": 0.0833,
+        "sold_count": 7,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3520",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 136.36,
+        "sale_through": 0.3103,
+        "sold_count": 30,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3520",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 100.07,
+        "sale_through": 0.2,
+        "sold_count": 12,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3510",
+        "is_2in1": 0,
+        "cpu": "i7",
+        "price": 111.3,
+        "sale_through": 0.3143,
+        "sold_count": 23,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3510",
+        "is_2in1": 0,
+        "cpu": "i5",
+        "price": 119.44,
+        "sale_through": 0.102,
+        "sold_count": 9,
+        "effective_date": "7/27"
+      },
+      {
+        "brand_series": "Precision",
+        "model_number": "3510",
+        "is_2in1": 0,
+        "cpu": "Xeon",
+        "price": 124.5,
+        "sale_through": 0.0455,
+        "sold_count": 2,
+        "effective_date": "7/27"
+      }
+    ]
+  },
+  {
+    "name": "RAM",
+    "display_order": 6,
+    "layout_type": "ram",
+    "rules": [
+      {
+        "brand_series": "Desktop",
+        "model_number": "4 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 14.65,
+        "sale_through": 0.157,
+        "sold_count": 1,
+        "effective_date": "7/2/2026"
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "4 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 111.82,
+        "sale_through": 0.4348,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "4 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 179.39,
+        "sale_through": 0.8333,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "4 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 504.47,
+        "sale_through": 0.7429,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "8 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 23.53,
+        "sale_through": 0.5159,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "8 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 197.49,
+        "sale_through": 0.75,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "8 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 214.4,
+        "sale_through": 0.6977,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "8 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 1021.5,
+        "sale_through": 0.7324,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "16 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 57.91,
+        "sale_through": 0.4264,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "16 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 521.02,
+        "sale_through": 0.5714,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "16 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 939.6,
+        "sale_through": 0.8,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "16 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 2137.5,
+        "sale_through": 0.5,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "32 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 128.43,
+        "sale_through": 0.2437,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "32 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 1165.7,
+        "sale_through": 1.0,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Desktop",
+        "model_number": "32 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 4800.0,
+        "sale_through": 0.5,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "4 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 10.66,
+        "sale_through": 0.2366,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "4 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 101.37,
+        "sale_through": 0.8108,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "4 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 204.74,
+        "sale_through": 0.7778,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "4 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 513.07,
+        "sale_through": 0.7917,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "8 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 22.5,
+        "sale_through": 0.5924,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "8 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 213.14,
+        "sale_through": 0.7251,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "8 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 412.2,
+        "sale_through": 0.716,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "8 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 1022.87,
+        "sale_through": 0.7556,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "16 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 49.57,
+        "sale_through": 0.6038,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "16 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 483.69,
+        "sale_through": 0.6652,
+        "sold_count": 10,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "16 GB (x20)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 872.11,
+        "sale_through": 0.6111,
+        "sold_count": 20,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "16 GB (x50)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 2257.1,
+        "sale_through": 0.3462,
+        "sold_count": 50,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "32 GB (x1)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 129.44,
+        "sale_through": 0.5325,
+        "sold_count": 1,
+        "effective_date": ""
+      },
+      {
+        "brand_series": "Laptop",
+        "model_number": "32 GB (x10)",
+        "is_2in1": 0,
+        "cpu": "",
+        "price": 1129.08,
+        "sale_through": 0.3333,
+        "sold_count": 10,
+        "effective_date": ""
+      }
+    ]
+  }
+]
