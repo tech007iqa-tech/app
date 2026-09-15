@@ -1,14 +1,48 @@
 /**
- * Trends Chart Visualizations Module
- * Initializes Chart.js graphs for ASP Timeline, Valuation Trends, and CPU Manufacturer Share with real-time dark/light theme adaptation.
+ * Trends Chart Visualizations Module (Accounting & Financial Analytics Edition)
+ * Manages Chart.js graphs for ASP Timeline, Realized Valuation Trends, and CPU Distribution
+ * with safe instance lifecycle, chronological time-series ordering, and real-time theme adaptation.
  */
 
+let aspChartInstance = null;
+let valuationChartInstance = null;
+let cpuBrandChartInstance = null;
+
+function getChartThemeColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const styles = getComputedStyle(document.documentElement);
+    const accent = styles.getPropertyValue('--accent-color').trim() || (isDark ? '#38bdf8' : '#2563eb');
+    const textMain = styles.getPropertyValue('--text-main').trim() || (isDark ? '#f8fafc' : '#0f172a');
+    const textSecondary = styles.getPropertyValue('--text-secondary').trim() || (isDark ? '#94a3b8' : '#64748b');
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)';
+    const surfaceBg = isDark ? '#1e293b' : '#ffffff';
+    return { isDark, accent, textMain, textSecondary, gridColor, surfaceBg };
+}
+
+/**
+ * Initializes or updates CPU Brand Distribution doughnut chart
+ */
 function initializeCpuCharts(cpuData) {
+    if (typeof Chart === 'undefined') {
+        setTimeout(() => initializeCpuCharts(cpuData), 100);
+        return;
+    }
+
     if (!cpuData || cpuData.length === 0) {
         const state = typeof getTrendsState === 'function' ? getTrendsState() : {};
         cpuData = state.cpu_distribution || [];
     }
     if (!cpuData || cpuData.length === 0) return;
+
+    const canvasCpu = document.getElementById('cpuBrandChart');
+    if (!canvasCpu) return;
+
+    const existingChart = Chart.getChart('cpuBrandChart');
+    if (existingChart) existingChart.destroy();
+    if (cpuBrandChartInstance) {
+        cpuBrandChartInstance.destroy();
+        cpuBrandChartInstance = null;
+    }
 
     const labels = cpuData.map(d => d.cpu);
     const quantities = cpuData.map(d => parseInt(d.total_qty || 0, 10));
@@ -41,233 +75,546 @@ function initializeCpuCharts(cpuData) {
         });
     });
 
-    const colors = labels.map(label => categoryColors[label] || '#a1a1aa');
+    const colors = labels.map(label => categoryColors[label] || '#38bdf8');
+    const theme = getChartThemeColors();
+    const ctxCpu = canvasCpu.getContext('2d');
 
-    const ctxCpu = document.getElementById('cpuBrandChart')?.getContext('2d');
-    if (ctxCpu) {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const styles = getComputedStyle(document.documentElement);
-        const textSecondary = styles.getPropertyValue('--text-secondary').trim() || (isDark ? '#cbd5e1' : '#4b5563');
+    cpuBrandChartInstance = new Chart(ctxCpu, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: quantities,
+                backgroundColor: colors,
+                borderWidth: theme.isDark ? 2 : 1,
+                borderColor: theme.isDark ? '#1e293b' : '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: theme.textSecondary,
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' },
+                        padding: 12
+                    }
+                },
+                tooltip: {
+                    backgroundColor: theme.isDark ? '#0f172a' : '#1e293b',
+                    titleColor: '#ffffff',
+                    bodyColor: '#e2e8f0',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const val = context.parsed;
+                            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                            return ' ' + context.label + ': ' + val.toLocaleString() + ' units (' + pct + '%)';
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+}
 
-        const cpuBrandChart = new Chart(ctxCpu, {
-            type: 'doughnut',
+/**
+ * Initializes or updates Accounting & Financial Trends graphs (ASP and Monthly Valuation)
+ */
+function initializePricingCharts(priceData) {
+    if (typeof Chart === 'undefined') {
+        setTimeout(() => initializePricingCharts(priceData), 100);
+        return;
+    }
+
+    if (!priceData || priceData.length === 0) {
+        const state = typeof getTrendsState === 'function' ? getTrendsState() : {};
+        priceData = state.price_history || [];
+    }
+    if (!priceData || priceData.length === 0) return;
+
+    // 1. Sort data chronologically (left to right from oldest to newest month)
+    const chronologicalData = [...priceData].sort((a, b) => (a.sales_month || '').localeCompare(b.sales_month || ''));
+
+    const labels = chronologicalData.map(d => d.sales_month);
+    const avgPrices = chronologicalData.map(d => parseFloat(d.avg_price || 0));
+    const valuations = chronologicalData.map(d => parseFloat(d.total_valuation ?? (d.avg_price * d.total_qty)));
+    const quantities = chronologicalData.map(d => parseInt(d.total_qty || 0, 10));
+
+    const theme = getChartThemeColors();
+
+    // 2. Average Selling Price (ASP) Line Chart
+    const canvasAsp = document.getElementById('aspChart');
+    if (canvasAsp) {
+        const existingAsp = Chart.getChart('aspChart');
+        if (existingAsp) existingAsp.destroy();
+        if (aspChartInstance) {
+            aspChartInstance.destroy();
+            aspChartInstance = null;
+        }
+
+        const ctxAsp = canvasAsp.getContext('2d');
+        const gradientAsp = ctxAsp.createLinearGradient(0, 0, 0, 260);
+        gradientAsp.addColorStop(0, theme.isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(37, 99, 235, 0.25)');
+        gradientAsp.addColorStop(1, theme.isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(37, 99, 235, 0.00)');
+
+        const lineColor = theme.isDark ? '#38bdf8' : '#2563eb';
+
+        aspChartInstance = new Chart(ctxAsp, {
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    data: quantities,
-                    backgroundColor: colors,
-                    borderWidth: isDark ? 2 : 1,
-                    borderColor: isDark ? '#1e293b' : '#ffffff'
+                    label: 'Avg Selling Price ($ / unit)',
+                    data: avgPrices,
+                    borderColor: lineColor,
+                    backgroundColor: gradientAsp,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: lineColor,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBorderWidth: 3
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: textSecondary,
-                            font: { family: 'Outfit, Inter, sans-serif', size: 11 },
-                            padding: 10
-                        }
-                    },
+                    legend: { display: false },
                     tooltip: {
+                        backgroundColor: theme.isDark ? '#0f172a' : '#1e293b',
+                        titleColor: '#ffffff',
+                        titleFont: { family: 'Outfit, Inter, sans-serif', weight: '700', size: 12 },
+                        bodyColor: '#e2e8f0',
+                        bodyFont: { family: 'Outfit, Inter, sans-serif', size: 11 },
+                        padding: 12,
+                        cornerRadius: 10,
                         callbacks: {
                             label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const val = context.parsed;
-                                const pct = ((val / total) * 100).toFixed(1);
-                                return ' ' + context.label + ': ' + val.toLocaleString() + ' units (' + pct + '%)';
+                                const idx = context.dataIndex;
+                                const price = context.parsed.y;
+                                const qty = quantities[idx] || 0;
+                                return [
+                                    ' Realized ASP: $' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / unit',
+                                    ' Volume Realized: ' + qty.toLocaleString() + ' units'
+                                ];
+                            },
+                            afterBody: function(contexts) {
+                                const idx = contexts[0].dataIndex;
+                                if (idx > 0) {
+                                    const prevPrice = avgPrices[idx - 1];
+                                    const currPrice = avgPrices[idx];
+                                    const diff = currPrice - prevPrice;
+                                    const pct = prevPrice > 0 ? ((diff / prevPrice) * 100).toFixed(1) : '0.0';
+                                    const sign = diff >= 0 ? '+' : '';
+                                    return ' MoM Price Δ: ' + sign + '$' + diff.toFixed(2) + ' (' + sign + pct + '%)';
+                                }
+                                return '';
                             }
                         }
                     }
                 },
-                cutout: '65%'
+                scales: {
+                    y: {
+                        grid: { color: theme.gridColor },
+                        ticks: {
+                            color: theme.textSecondary,
+                            font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' },
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: theme.textSecondary,
+                            font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' }
+                        }
+                    }
+                }
             }
         });
+    }
 
-        const observer = new MutationObserver(() => {
-            const isDarkNew = document.documentElement.getAttribute('data-theme') === 'dark';
-            const stylesNew = getComputedStyle(document.documentElement);
-            const textSecNew = stylesNew.getPropertyValue('--text-secondary').trim() || (isDarkNew ? '#cbd5e1' : '#4b5563');
+    // 3. Monthly Gross Valuation & Revenue Bar Chart
+    const canvasVal = document.getElementById('valuationChart');
+    if (canvasVal) {
+        const existingVal = Chart.getChart('valuationChart');
+        if (existingVal) existingVal.destroy();
+        if (valuationChartInstance) {
+            valuationChartInstance.destroy();
+            valuationChartInstance = null;
+        }
 
-            cpuBrandChart.options.plugins.legend.labels.color = textSecNew;
-            cpuBrandChart.data.datasets[0].borderColor = isDarkNew ? '#1e293b' : '#ffffff';
-            cpuBrandChart.data.datasets[0].borderWidth = isDarkNew ? 2 : 1;
-            cpuBrandChart.update();
+        const ctxVal = canvasVal.getContext('2d');
+        const gradientVal = ctxVal.createLinearGradient(0, 0, 0, 260);
+        gradientVal.addColorStop(0, '#10b981'); // Emerald financial color
+        gradientVal.addColorStop(1, '#059669');
+
+        valuationChartInstance = new Chart(ctxVal, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Gross Realized Valuation ($)',
+                    data: valuations,
+                    backgroundColor: gradientVal,
+                    hoverBackgroundColor: '#34d399',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 48
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: theme.isDark ? '#0f172a' : '#1e293b',
+                        titleColor: '#ffffff',
+                        titleFont: { family: 'Outfit, Inter, sans-serif', weight: '700', size: 12 },
+                        bodyColor: '#e2e8f0',
+                        bodyFont: { family: 'Outfit, Inter, sans-serif', size: 11 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const val = context.parsed.y;
+                                const qty = quantities[idx] || 0;
+                                const asp = qty > 0 ? (val / qty) : 0;
+                                return [
+                                    ' Gross Valuation: $' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+                                    ' Invoiced Units: ' + qty.toLocaleString() + ' units (ASP: $' + asp.toFixed(2) + ')'
+                                ];
+                            },
+                            afterBody: function(contexts) {
+                                const idx = contexts[0].dataIndex;
+                                if (idx > 0) {
+                                    const prevVal = valuations[idx - 1];
+                                    const currVal = valuations[idx];
+                                    const diff = currVal - prevVal;
+                                    const pct = prevVal > 0 ? ((diff / prevVal) * 100).toFixed(1) : '0.0';
+                                    const sign = diff >= 0 ? '+' : '';
+                                    return ' MoM Revenue Δ: ' + sign + '$' + diff.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + sign + pct + '%)';
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: theme.gridColor },
+                        ticks: {
+                            color: theme.textSecondary,
+                            font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' },
+                            callback: function(value) {
+                                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'k';
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: theme.textSecondary,
+                            font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' }
+                        }
+                    }
+                }
+            }
         });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     }
 }
 
-function initializePricingCharts(priceData) {
+let comboPricingChartInstance = null;
+
+/**
+ * Initializes or updates Dual-Axis Combo Pricing Chart (Valuation Bars + ASP Trendline)
+ */
+function initializeComboPricingChart(priceData) {
+    if (typeof Chart === 'undefined') {
+        setTimeout(() => initializeComboPricingChart(priceData), 100);
+        return;
+    }
+
     if (!priceData || priceData.length === 0) {
         const state = typeof getTrendsState === 'function' ? getTrendsState() : {};
-        priceData = state.price_history ? [...state.price_history].slice(0, 12).reverse() : [];
+        priceData = state.price_history || [];
     }
     if (!priceData || priceData.length === 0) return;
 
-    const labels = priceData.map(d => d.sales_month);
-    const avgPrices = priceData.map(d => parseFloat(d.avg_price));
-    const valuations = priceData.map(d => parseFloat(d.total_valuation || (d.avg_price * d.total_qty)));
+    const chronologicalData = [...priceData].sort((a, b) => (a.sales_month || '').localeCompare(b.sales_month || ''));
+    const labels = chronologicalData.map(d => d.sales_month);
+    const avgPrices = chronologicalData.map(d => parseFloat(d.avg_price || 0));
+    const valuations = chronologicalData.map(d => parseFloat(d.total_valuation ?? (d.avg_price * d.total_qty)));
+    const quantities = chronologicalData.map(d => parseInt(d.total_qty || 0, 10));
 
-    const getThemeColors = () => {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const styles = getComputedStyle(document.documentElement);
-        const accent = styles.getPropertyValue('--accent-color').trim() || (isDark ? '#38bdf8' : '#0056b3');
-        const textMain = styles.getPropertyValue('--text-main').trim() || (isDark ? '#f8fafc' : '#0f172a');
-        const textSecondary = styles.getPropertyValue('--text-secondary').trim() || (isDark ? '#cbd5e1' : '#4b5563');
-        const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
-        return { accent, textMain, textSecondary, gridColor };
-    };
+    const canvasCombo = document.getElementById('comboPricingChart');
+    if (!canvasCombo) return;
 
-    let colors = getThemeColors();
+    const existingCombo = Chart.getChart('comboPricingChart');
+    if (existingCombo) existingCombo.destroy();
+    if (comboPricingChartInstance) {
+        comboPricingChartInstance.destroy();
+        comboPricingChartInstance = null;
+    }
 
-    // 1. ASP Line Chart
-    const canvasAsp = document.getElementById('aspChart');
-    let aspChart;
-    if (canvasAsp) {
-        const ctxAsp = canvasAsp.getContext('2d');
-        if (ctxAsp) {
-            const gradient = ctxAsp.createLinearGradient(0, 0, 0, 260);
-            gradient.addColorStop(0, colors.accent + '33');
-            gradient.addColorStop(1, colors.accent + '00');
+    const theme = getChartThemeColors();
+    const ctxCombo = canvasCombo.getContext('2d');
 
-            aspChart = new Chart(ctxAsp, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Avg Selling Price ($)',
-                        data: avgPrices,
-                        borderColor: colors.accent,
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: colors.accent,
-                        pointBorderColor: '#fff',
-                        pointHoverRadius: 7,
-                        pointRadius: 4
-                    }]
+    const gradientVal = ctxCombo.createLinearGradient(0, 0, 0, 320);
+    gradientVal.addColorStop(0, 'rgba(16, 185, 129, 0.85)');
+    gradientVal.addColorStop(1, 'rgba(16, 185, 129, 0.25)');
+
+    const gradientAsp = ctxCombo.createLinearGradient(0, 0, 0, 320);
+    gradientAsp.addColorStop(0, theme.isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(37, 99, 235, 0.25)');
+    gradientAsp.addColorStop(1, theme.isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(37, 99, 235, 0.00)');
+
+    const lineColor = theme.isDark ? '#38bdf8' : '#2563eb';
+
+    comboPricingChartInstance = new Chart(ctxCombo, {
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Gross Realized Valuation ($)',
+                    data: valuations,
+                    backgroundColor: gradientVal,
+                    hoverBackgroundColor: '#10b981',
+                    borderRadius: 6,
+                    barPercentage: 0.55,
+                    categoryPercentage: 0.7,
+                    yAxisID: 'yValuation',
+                    order: 2
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Avg Price: $' + context.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: { color: colors.gridColor },
-                            ticks: {
-                                color: colors.textSecondary,
-                                font: { family: 'Outfit, Inter, sans-serif', size: 10 },
-                                callback: function(value) { return '$' + value; }
+                {
+                    type: 'line',
+                    label: 'Realized ASP ($ / unit)',
+                    data: avgPrices,
+                    borderColor: lineColor,
+                    backgroundColor: gradientAsp,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: lineColor,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    yAxisID: 'yAsp',
+                    order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: theme.isDark ? '#0f172a' : '#1e293b',
+                    titleColor: '#ffffff',
+                    titleFont: { family: 'Outfit, Inter, sans-serif', weight: '700', size: 12 },
+                    bodyColor: '#e2e8f0',
+                    bodyFont: { family: 'Outfit, Inter, sans-serif', size: 11 },
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: function(context) {
+                            const idx = context.dataIndex;
+                            const qty = quantities[idx] || 0;
+                            if (context.dataset.yAxisID === 'yValuation') {
+                                const val = context.parsed.y;
+                                return ' 💰 Gross Valuation: $' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + qty.toLocaleString() + ' units)';
+                            } else {
+                                const price = context.parsed.y;
+                                return ' 🏷️ Realized ASP: $' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / unit';
                             }
                         },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: colors.textSecondary,
-                                font: { family: 'Outfit, Inter, sans-serif', size: 10 }
+                        afterBody: function(contexts) {
+                            const idx = contexts[0].dataIndex;
+                            if (idx > 0) {
+                                const prevVal = valuations[idx - 1];
+                                const currVal = valuations[idx];
+                                const diffVal = currVal - prevVal;
+                                const pctVal = prevVal > 0 ? ((diffVal / prevVal) * 100).toFixed(1) : '0.0';
+                                const signVal = diffVal >= 0 ? '+' : '';
+
+                                const prevAsp = avgPrices[idx - 1];
+                                const currAsp = avgPrices[idx];
+                                const diffAsp = currAsp - prevAsp;
+                                const pctAsp = prevAsp > 0 ? ((diffAsp / prevAsp) * 100).toFixed(1) : '0.0';
+                                const signAsp = diffAsp >= 0 ? '+' : '';
+
+                                return [
+                                    ' MoM Valuation Δ: ' + signVal + '$' + diffVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + signVal + pctVal + '%)',
+                                    ' MoM Price Δ: ' + signAsp + '$' + diffAsp.toFixed(2) + ' (' + signAsp + pctAsp + '%)'
+                                ];
                             }
+                            return '';
                         }
                     }
                 }
-            });
-        }
-    }
-
-    // 2. Valuation Bar Chart
-    const canvasVal = document.getElementById('valuationChart');
-    let valuationChart;
-    if (canvasVal) {
-        const ctxVal = canvasVal.getContext('2d');
-        if (ctxVal) {
-            valuationChart = new Chart(ctxVal, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Valuation ($)',
-                        data: valuations,
-                        backgroundColor: '#3b82f6',
-                        hoverBackgroundColor: '#2563eb',
-                        borderRadius: 6,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Valuation: $' + context.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                                }
-                            }
+            },
+            scales: {
+                yValuation: {
+                    type: 'linear',
+                    position: 'left',
+                    grid: { color: theme.gridColor },
+                    ticks: {
+                        color: '#10b981',
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '700' },
+                        callback: function(value) {
+                            if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                            if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'k';
+                            return '$' + value;
                         }
                     },
-                    scales: {
-                        y: {
-                            grid: { color: colors.gridColor },
-                            ticks: {
-                                color: colors.textSecondary,
-                                font: { family: 'Outfit, Inter, sans-serif', size: 10 },
-                                callback: function(value) {
-                                    if (value >= 1000) return '$' + (value / 1000) + 'k';
-                                    return '$' + value;
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: colors.textSecondary,
-                                font: { family: 'Outfit, Inter, sans-serif', size: 10 }
-                            }
+                    title: {
+                        display: true,
+                        text: 'Gross Realized Valuation ($)',
+                        color: '#10b981',
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '700' }
+                    }
+                },
+                yAsp: {
+                    type: 'linear',
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: {
+                        color: lineColor,
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '700' },
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
                         }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Realized ASP ($ / unit)',
+                        color: lineColor,
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '700' }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        color: theme.textSecondary,
+                        font: { family: 'Outfit, Inter, sans-serif', size: 11, weight: '600' }
                     }
                 }
-            });
-        }
-    }
-
-    // Dynamic Theme Observer
-    const observer = new MutationObserver(() => {
-        const newColors = getThemeColors();
-        if (aspChart) {
-            aspChart.options.scales.y.grid.color = newColors.gridColor;
-            aspChart.options.scales.y.ticks.color = newColors.textSecondary;
-            aspChart.options.scales.x.ticks.color = newColors.textSecondary;
-            aspChart.data.datasets[0].borderColor = newColors.accent;
-            aspChart.data.datasets[0].pointBackgroundColor = newColors.accent;
-
-            const ctxAsp = canvasAsp.getContext('2d');
-            const newGrad = ctxAsp.createLinearGradient(0, 0, 0, 260);
-            newGrad.addColorStop(0, newColors.accent + '33');
-            newGrad.addColorStop(1, newColors.accent + '00');
-            aspChart.data.datasets[0].backgroundColor = newGrad;
-
-            aspChart.update();
-        }
-        if (valuationChart) {
-            valuationChart.options.scales.y.grid.color = newColors.gridColor;
-            valuationChart.options.scales.y.ticks.color = newColors.textSecondary;
-            valuationChart.options.scales.x.ticks.color = newColors.textSecondary;
-            valuationChart.update();
+            }
         }
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }
+
+/**
+ * Toggles between Split View and Dual-Axis Combo View on Tab 2
+ */
+function setPricingChartViewMode(mode) {
+    const splitContainer = document.getElementById('pricingSplitViewContainer');
+    const comboContainer = document.getElementById('pricingComboViewContainer');
+    const splitBtn = document.getElementById('chartViewSplitBtn');
+    const comboBtn = document.getElementById('chartViewComboBtn');
+
+    sessionStorage.setItem('pricing_chart_view_mode', mode);
+
+    if (mode === 'combo') {
+        if (splitContainer) splitContainer.style.display = 'none';
+        if (comboContainer) comboContainer.style.display = 'block';
+
+        if (splitBtn) {
+            splitBtn.style.background = 'transparent';
+            splitBtn.style.color = 'var(--text-secondary)';
+            splitBtn.classList.remove('active');
+        }
+        if (comboBtn) {
+            comboBtn.style.background = '#3b82f6';
+            comboBtn.style.color = '#ffffff';
+            comboBtn.classList.add('active');
+        }
+
+        setTimeout(() => {
+            initializeComboPricingChart();
+        }, 50);
+    } else {
+        if (splitContainer) splitContainer.style.display = 'grid';
+        if (comboContainer) comboContainer.style.display = 'none';
+
+        if (splitBtn) {
+            splitBtn.style.background = '#3b82f6';
+            splitBtn.style.color = '#ffffff';
+            splitBtn.classList.add('active');
+        }
+        if (comboBtn) {
+            comboBtn.style.background = 'transparent';
+            comboBtn.style.color = 'var(--text-secondary)';
+            comboBtn.classList.remove('active');
+        }
+
+        setTimeout(() => {
+            initializePricingCharts();
+        }, 50);
+    }
+}
+
+// Observe theme toggle and refresh chart color tokens
+(function initTrendsThemeObserver() {
+    const observer = new MutationObserver(() => {
+        const theme = getChartThemeColors();
+
+        if (aspChartInstance) {
+            aspChartInstance.options.scales.y.grid.color = theme.gridColor;
+            aspChartInstance.options.scales.y.ticks.color = theme.textSecondary;
+            aspChartInstance.options.scales.x.ticks.color = theme.textSecondary;
+            aspChartInstance.update('none');
+        }
+
+        if (valuationChartInstance) {
+            valuationChartInstance.options.scales.y.grid.color = theme.gridColor;
+            valuationChartInstance.options.scales.y.ticks.color = theme.textSecondary;
+            valuationChartInstance.options.scales.x.ticks.color = theme.textSecondary;
+            valuationChartInstance.update('none');
+        }
+
+        if (comboPricingChartInstance) {
+            comboPricingChartInstance.options.scales.yValuation.grid.color = theme.gridColor;
+            comboPricingChartInstance.options.scales.x.ticks.color = theme.textSecondary;
+            comboPricingChartInstance.update('none');
+        }
+
+        if (cpuBrandChartInstance) {
+            cpuBrandChartInstance.options.plugins.legend.labels.color = theme.textSecondary;
+            cpuBrandChartInstance.data.datasets[0].borderColor = theme.isDark ? '#1e293b' : '#ffffff';
+            cpuBrandChartInstance.update('none');
+        }
+    });
+
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();

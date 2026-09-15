@@ -45,7 +45,7 @@ include __DIR__ . '/partials/trends_data.php';
             </p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <select id="trends-filter" onchange="window.location.href='?view=trends&filter='+this.value" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); font-weight: 600;">
+            <select id="trends-filter" onchange="applyTrendsFilter(this.value)" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); font-weight: 600;">
                 <option value="30d" <?= $filter === '30d' ? 'selected' : '' ?>>Last 30 Days</option>
                 <option value="ytd" <?= $filter === 'ytd' ? 'selected' : '' ?>>Year to Date</option>
                 <option value="all" <?= $filter === 'all' ? 'selected' : '' ?>>All Time</option>

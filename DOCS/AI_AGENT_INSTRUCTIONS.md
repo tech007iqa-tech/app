@@ -26,6 +26,12 @@ This document is for future AI coding assistants working on the **IQA Warehouse 
 - **PowerShell Integration**: The Label system uses PowerShell for direct file launching on Windows hosts. Maintain `api/open_windows_file.php` compatibility.
 - **iOS Safari Optimization**: Many warehouse devices are iPads/iPhones. Ensure all CSS uses `48px` touch targets and avoids `:hover` dependent logic for critical actions.
 - **No Global JS Variables**: Scope all JS within modules or `DOMContentLoaded` listeners to prevent collisions.
+- **Trends Table Column Ordering**: In the Model Demand Velocity table (`trends_tab_velocity.php`), **Avg Price** MUST be rendered before the **Details** column. Do NOT reverse this.
+- **Chart.js Hidden Canvas Handling**: In tabbed views, canvases starting with `display: none` report `0x0` dimensions. Always destroy previous instances via `Chart.getChart(id)?.destroy()` and dispatch chart initialization with a ~50ms timeout upon tab switching.
+- **Dual-Axis Performance Switcher & Live Matrix Feedback**: Pricing curves support mode toggling (`setPricingChartViewMode('split' | 'combo')`) persisted to `sessionStorage`. Inline matrix changes trigger `showMatrixSaveToast()` and animate modified cells with `.cell-saved-pulse`.
+- **Customer Profile Intelligence & Empty States**: Company names across Trends tables link to `#customerProfileModal` via `openCustomerProfileModal()`. Search filters display styled empty states (`.global-no-results` / `.no-results-row`) with single-click filter resets.
+- **CSV UTF-8 BOM**: All client-side CSV downloads must include the UTF-8 Byte Order Mark (`\uFEFF`) as the first byte for Excel compatibility.
+- **Leads CRM Sorting & Search Synergy**: Leads table sorting relies on `data-sort-val` attributes on all 9 columns. Multi-word search keywords must highlight via `highlightLeadNodeWords()` without clearing or breaking active status tab filters.
 
 ---
 
@@ -33,3 +39,4 @@ This document is for future AI coding assistants working on the **IQA Warehouse 
 1.  **DB Check**: After any schema change, delete a test DB and let the `Schema Guard` rebuild it.
 2.  **ODT Validation**: Verify generated `.odt` files open in LibreOffice without "Corrupt File" warnings (check XML well-formedness).
 3.  **Responsive Audit**: Test in a mobile-width browser to ensure the Sidebar and Action Grids don't break.
+4.  **Chart & Tab Verification**: Verify Trends charts re-render sharply when switching tabs, and CSV exports open cleanly with proper accents/currency in Excel.

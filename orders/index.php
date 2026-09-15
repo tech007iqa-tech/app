@@ -291,6 +291,10 @@ $page_content = ob_get_clean();
     <?php elseif ($active_key === 'inbound'): ?>
         <script src="assets/js/inbound.js?v=<?= filemtime('assets/js/inbound.js') ?>" defer></script>
     <?php elseif ($active_key === 'trends'): ?>
+        <script src="assets/js/trends/trends_nav.js?v=<?= filemtime('assets/js/trends/trends_nav.js') ?>" defer></script>
+        <script src="assets/js/trends/trends_charts.js?v=<?= filemtime('assets/js/trends/trends_charts.js') ?>" defer></script>
+        <script src="assets/js/trends/trends_widgets.js?v=<?= filemtime('assets/js/trends/trends_widgets.js') ?>" defer></script>
+        <script src="assets/js/trends/trends_modals.js?v=<?= filemtime('assets/js/trends/trends_modals.js') ?>" defer></script>
         <script src="assets/js/trends.js?v=<?= filemtime('assets/js/trends.js') ?>" defer></script>
     <?php elseif ($active_key === 'settings'): ?>
         <script src="assets/js/settings.js?v=<?= filemtime('assets/js/settings.js') ?>" defer></script>

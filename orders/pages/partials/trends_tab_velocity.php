@@ -11,12 +11,15 @@
         <div class="trend-card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-weight: 800; font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    🥇 Table
+                    🥇 Demand Velocity Table
                 </h2>
                 <div style="display: flex; gap: 15px; align-items: center;">
                     <label for="inStockOnly" style="font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--text-main);">
                         <input type="checkbox" id="inStockOnly" class="in-stock-only-checkbox" onchange="filterActiveTable()"> In Stock Only
                     </label>
+                    <button type="button" onclick="exportDemandVelocityCSV()" class="btn-main" style="padding: 6px 14px; font-size: 0.8rem; height: auto; border-radius: 20px; background: var(--accent-color); color: white; display: inline-flex; align-items: center; gap: 6px; box-shadow: none; border: none; cursor: pointer; font-weight: 700;">
+                        <span>📥</span> Export Demand CSV
+                    </button>
                 </div>
             </div>
 
@@ -31,12 +34,12 @@
                             </th>
                             <th onclick="sortTable('table-velocity', 1, 'str')">Brand</th>
                             <th onclick="sortTable('table-velocity', 2, 'str')">Model</th>
-                            <th onclick="sortTable('table-velocity', 3, 'str')">Details</th>
-                            <th onclick="sortTable('table-velocity', 4, 'date')">
+                            <th onclick="sortTable('table-velocity', 3, 'num')">Avg Price</th>
+                            <th onclick="sortTable('table-velocity', 4, 'str')">Details</th>
+                            <th onclick="sortTable('table-velocity', 5, 'date')">
                                 <span class="stock-header">Latest Sold</span>
                                 <span class="order-header" style="display: none;">Customer Order</span>
                             </th>
-                            <th onclick="sortTable('table-velocity', 5, 'num')">Avg Price</th>
                             <th onclick="sortTable('table-velocity', 6, 'num')" class="sort-desc">Units Sold</th>
                         </tr>
                     </thead>
@@ -74,10 +77,26 @@
                             <tr data-search="<?= htmlspecialchars($search_blob) ?>" data-instock="<?= $in_stock ?>" data-brand="<?= htmlspecialchars($item['brand'] ?? '') ?>" data-model="<?= htmlspecialchars($item['model'] ?? '') ?>" data-series="<?= htmlspecialchars($item['series'] ?? '') ?>" data-cpu="<?= htmlspecialchars($item['cpu'] ?? '') ?>">
                                 <td>
                                     <span class="rank-cell" style="font-weight: 900; color: var(--accent-color);">#<?= $idx + 1 ?></span>
-                                    <span class="buyer-cell" style="display: none; font-size: 0.8rem; font-weight: 700; color: var(--accent-color);"><?= htmlspecialchars($item['buyer_names'] ?: '—') ?></span>
+                                    <span class="buyer-cell" style="display: none; font-size: 0.8rem; font-weight: 700; color: var(--accent-color);">
+                                        <?php
+                                        if (!empty($item['buyer_names'])) {
+                                            $buyers = array_map('trim', explode(',', $item['buyer_names']));
+                                            $buyer_links = [];
+                                            foreach ($buyers as $b) {
+                                                if (!empty($b)) {
+                                                    $buyer_links[] = '<a href="#" onclick="openCustomerProfileModal(event, \'\', \'' . htmlspecialchars(addslashes($b), ENT_QUOTES) . '\')" class="customer-profile-link" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;">' . htmlspecialchars($b) . '</a>';
+                                                }
+                                            }
+                                            echo implode(', ', $buyer_links);
+                                        } else {
+                                            echo '—';
+                                        }
+                                        ?>
+                                    </span>
                                 </td>
                                 <td><strong><?= htmlspecialchars($item['brand']) ?></strong></td>
                                 <td><?= htmlspecialchars($item['model']) ?></td>
+                                <td data-sort-val="<?= $item['avg_price'] ?>">$<?= number_format($item['avg_price'], 2) ?></td>
                                 <td>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary);">
                                         <?= htmlspecialchars($item['series'] ?? '') ?>
@@ -136,7 +155,6 @@
                                         ?>
                                     </div>
                                 </td>
-                                <td data-sort-val="<?= $item['avg_price'] ?>">$<?= number_format($item['avg_price'], 2) ?></td>
                                 <td data-sort-val="<?= $item['total_qty'] ?>"><span class="qty-chip" style="box-shadow: none; font-size: 0.75rem; padding: 4px 10px;"><?= $item['total_qty'] ?></span></td>
                             </tr>
                         <?php endforeach; ?>

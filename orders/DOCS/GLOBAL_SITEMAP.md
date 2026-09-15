@@ -41,12 +41,20 @@ These files are buffered and rendered dynamically within `prod/index.php`.
 - `calendar.php`: Interactive monthly/weekly event schedulers.
 - `customer_registry.php`: Main administration panel for viewing registered billing clients.
 - `import_warehouse.php`: Form handling bulk paste copy/paste operations from external Excel spreadsheets.
-- `leads.php`: CRM prospects management, outreach pipelines, and quick logging.
+- `leads.php`: CRM prospects management, outreach pipelines, 9-column bidirectional sorting, urgency tags, search keyword highlighting, and 1-click CSV exports.
 - `new_customer.php`: Form to register a new B2B client company.
 - `new_order.php`: Interactive order B2B batch builder panel.
 - `orders.php`: Overview log of current and finalized orders.
 - `settings.php`: Administrative control panel (includes db schema diagnostics, log viewer, and backup manager).
-- `trends.php`: BI trends analyzer charting CPU types, buying velocity, and price indexes.
+- `trends.php`: BI trends analyzer with modular multi-tab architecture, accounting graphs, CPU metrics, and demand velocity.
+- `partials/`: Modular page components loaded by main views:
+  - `trends_tab_velocity.php`: Model Demand Velocity table (displays Avg Price before Details) with interactive buyer profile links and CSV export.
+  - `trends_tab_pricing.php`: Accounting-grade ASP timeline & Monthly Valuation trend graphs (Split and Dual-Axis Combo views) with reconciliation ledger and CSV export.
+  - `trends_tab_cpu.php`: CPU Family dominance metrics and transaction drills.
+  - `trends_tab_customers.php`: Customer purchasing frequency, volume analytics, and 1-click Customer Intelligence modal links.
+  - `b2b_untested_matrix.php`: Wholesale pricing matrix grid with live save feedback toasts.
+  - `tested_market_tab.php`: Retail/tested market price comparisons with live save feedback toasts.
+  - `trends_actions.php` / `trends_data.php` / `trends_widgets.php` / `trends_modals.php`: Core Trends BI calculation, card layout, customer profile intelligence dialog (`#customerProfileModal`), and manifest preview modals.
 - `warehouse.php`: Main storage registration portal and zone map.
 
 ### AJAX Endpoints (`/prod/api/`)
@@ -74,6 +82,17 @@ These files are buffered and rendered dynamically within `prod/index.php`.
 - `exports/`
   - `labels/`: Stores generated Flat ODT labels ready for local retrieval.
 - `icon/`: System icons and branding.
-- `js/`: Modular javascript loaders matching the views (e.g. `checkout.js`, `warehouse.js`, `customer_registry.js`, `sync.js` [AppSync Engine]).
-- `styles/`: View-specific styling sheets (e.g. `style.css`, `components.css`, `dialogs.css`, `warehouse.css`, `leads.css`).
+- `js/`: Modular javascript loaders matching the views:
+  - `checkout.js`: Manifest builder and checkout verification.
+  - `warehouse.js`: Storage location management and photo gallery triggers.
+  - `customer_registry.js`: Customer account roster and registry editing.
+  - `leads.js`: CRM pipeline interactions, 9-column sorting, urgency badges, live keyword search highlighting, and `exportLeadsCSV()`.
+  - `sync.js`: AppSync Engine for SSE real-time multi-workstation sync.
+  - `trends/`: Modular Trends Engine scripts:
+    - `trends_nav.js`: Tab switching with canvas lifecycle timeout, URL/session state persistence, global empty states, `exportFinancialLedgerCSV()`, and `exportDemandVelocityCSV()`.
+    - `trends_charts.js`: Accounting-grade ASP timeline, Gross Valuation, & Dual-Axis Combo Chart.js lifecycle management with chronological sorting and dual currency formatting.
+    - `trends_matrix.js`: Untested B2B matrix editing and live updates.
+    - `trends_details.js`: CPU pricing detail drills and order manifest previews.
+    - `trends_modals.js`: Customer Profile intelligence dialog (`openCustomerProfileModal`), CPU pricing dialog, Order Preview manifest popup, and live matrix save toasts (`showMatrixSaveToast`).
+- `styles/`: View-specific styling sheets (`style.css`, `components.css`, `dialogs.css`, `warehouse.css`, `leads.css`, `trends.css`).
 - `ts/`: TypeScript source definitions.

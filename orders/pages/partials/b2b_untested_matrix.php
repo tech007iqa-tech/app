@@ -105,7 +105,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                                        step="any"
                                                        class="matrix-cell-input input-price"
                                                        value="<?= $price_val ?>"
-                                                       onchange="updateMatrixCell('<?= htmlspecialchars(addslashes($cat)) ?>', '<?= htmlspecialchars(addslashes($gen)) ?>', '<?= htmlspecialchars(addslashes($g)) ?>', this.value)">
+                                                       onchange="updateMatrixCell('<?= htmlspecialchars(addslashes($cat)) ?>', '<?= htmlspecialchars(addslashes($gen)) ?>', '<?= htmlspecialchars(addslashes($g)) ?>', this.value, this)">
                                             </div>
                                         </td>
                                     <?php endforeach; ?>

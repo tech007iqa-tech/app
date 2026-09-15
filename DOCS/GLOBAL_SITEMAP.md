@@ -43,10 +43,11 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
   - `warehouse.php`: Stock and multi-tier physical storage location management.
   - `inbound.php`: Embedded AI intake terminal.
   - `customer_registry.php`: Canonical B2B account roster.
-  - `leads.php`: CRM interaction hub with real-time SSE sync.
+  - `leads.php`: CRM interaction hub with real-time SSE sync, 9-column sorting, urgency badges, live keyword search highlighting, and 1-click CSV exports.
   - `new_order.php`: Batch order and invoice builder.
   - `checkout.php`: B2B manifest builder and standardized CSV export.
-  - `trends.php`: Historical BI analytics with CPU pricing modals.
+  - `trends.php`: Historical BI analytics with modular multi-tab architecture, CPU pricing modals, accounting-grade charts, and demand velocity.
+  - `partials/`: Modular page views including `trends_tab_velocity.php` (Avg Price before Details, buyer links, CSV export), `trends_tab_pricing.php` (ASP & Valuation Split and Dual-Axis Combo charts, ledger, CSV export), `trends_tab_cpu.php`, `trends_tab_customers.php` (1-click customer intelligence links), `b2b_untested_matrix.php` (live save toasts), `tested_market_tab.php`, `trends_actions.php`, `trends_data.php`, `trends_widgets.php`, `trends_modals.php` (`#customerProfileModal`, `#orderPreviewModal`, `#cpuPricingModal`).
   - `calendar.php`: Outreach scheduler with lead conversion tracking.
   - `settings.php`: Administrative control panel (schema repair, backups, audit logs).
   - `import_warehouse.php`: Batch inventory CSV intake importer.
@@ -57,6 +58,7 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
   - `LocationPhotoProcessor.php`: Location and shelf photo optimization pipeline.
   - `Storage.php`: Storage abstraction layer for SSD and spinning disk archives.
   - `BackupManager.php`: Automated `.tar` archive creation and recovery.
+- `assets/js/trends/`: Modular client-side logic for the Trends module (`trends_nav.js`, `trends_charts.js`, `trends_matrix.js`, `trends_details.js`, `trends_modals.js`).
 
 ---
 

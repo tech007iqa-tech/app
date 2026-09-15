@@ -1,9 +1,14 @@
-/**
- * Trends Navigation & Table Filtering Module
- * Handles tab switching, real-time multi-keyword search filtering, text highlight, and column sorting.
- */
-
 function switchTrendsTab(tabId) {
+    if (!tabId) return;
+
+    // Persist active tab selection
+    try {
+        sessionStorage.setItem('trends_active_tab', tabId);
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tabId);
+        window.history.replaceState({}, '', url.toString());
+    } catch(e) {}
+
     const contents = document.querySelectorAll('.tab-content');
     contents.forEach(c => c.classList.remove('active'));
 
@@ -16,7 +21,35 @@ function switchTrendsTab(tabId) {
     const activeBtn = Array.from(buttons).find(b => b.getAttribute('onclick')?.includes(tabId));
     if (activeBtn) activeBtn.classList.add('active');
 
+    if (tabId === 'tab-pricing') {
+        const mode = sessionStorage.getItem('pricing_chart_view_mode') || 'split';
+        if (typeof setPricingChartViewMode === 'function') {
+            setPricingChartViewMode(mode);
+        } else if (typeof initializePricingCharts === 'function') {
+            const state = typeof getTrendsState === 'function' ? getTrendsState() : {};
+            setTimeout(() => {
+                initializePricingCharts(state.price_history);
+            }, 50);
+        }
+    } else if (tabId === 'tab-cpu') {
+        if (typeof initializeCpuCharts === 'function') {
+            const state = typeof getTrendsState === 'function' ? getTrendsState() : {};
+            setTimeout(() => {
+                initializeCpuCharts(state.cpu_distribution);
+            }, 50);
+        }
+    }
+
     filterActiveTable();
+}
+
+function applyTrendsFilter(filterVal) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'trends');
+    url.searchParams.set('filter', filterVal);
+    const activeTab = document.querySelector('.tab-content.active')?.id || sessionStorage.getItem('trends_active_tab') || 'tab-velocity';
+    url.searchParams.set('tab', activeTab);
+    window.location.href = url.toString();
 }
 
 function filterActiveTable() {
@@ -112,7 +145,7 @@ function filterActiveTable() {
                 const cols = table.querySelectorAll('thead th').length;
                 noResultsRow = document.createElement('tr');
                 noResultsRow.className = 'no-results-row';
-                noResultsRow.innerHTML = `<td colspan="${cols}" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-secondary);">No records match the current filters.</td>`;
+                noResultsRow.innerHTML = `<td colspan="${cols}" style="text-align: center; padding: 35px 20px; color: var(--text-secondary);"><div style="font-size: 1.5rem; margin-bottom: 6px;">🔍</div><div style="font-weight: 600; font-size: 0.9rem;">No records match the current filters.</div></td>`;
                 table.querySelector('tbody').appendChild(noResultsRow);
             }
             noResultsRow.style.display = '';
@@ -126,10 +159,17 @@ function filterActiveTable() {
         if (!globalNoResults) {
             globalNoResults = document.createElement('div');
             globalNoResults.className = 'global-no-results';
-            globalNoResults.style.cssText = 'text-align: center; padding: 40px; font-style: italic; color: var(--text-secondary); background: var(--bg-surface); border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px;';
-            globalNoResults.innerText = 'No records match the search query across any category.';
+            globalNoResults.style.cssText = 'text-align: center; padding: 45px 20px; color: var(--text-secondary); background: var(--bg-surface-2); border-radius: 14px; border: 1px dashed var(--border-color); margin: 25px 0;';
             activeTab.appendChild(globalNoResults);
         }
+        globalNoResults.innerHTML = `
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">No matching records found</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">No rows matched your search criteria across this tab.</div>
+            <button type="button" onclick="clearSearchInput()" style="padding: 7px 16px; border-radius: 8px; background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--accent-color); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                <span>✕</span> Clear Search Filter
+            </button>
+        `;
         globalNoResults.style.display = 'block';
     } else if (globalNoResults) {
         globalNoResults.style.display = 'none';
@@ -255,7 +295,7 @@ function sortTable(tableId, colIndex, type) {
                     valA = rankA ? rankA.textContent.trim().replace('#', '') : '';
                     valB = rankB ? rankB.textContent.trim().replace('#', '') : '';
                 }
-            } else if (colIndex === 4) {
+            } else if (colIndex === 5) {
                 if (isSearchActive) {
                     currentType = 'str';
                     const orderA = cellA.querySelector('.order-cell');
@@ -294,3 +334,113 @@ function sortTable(tableId, colIndex, type) {
 
     rows.forEach(row => tbody.appendChild(row));
 }
+
+/**
+ * 1-Click CSV Export for Financial Valuation & Settlement Ledger (Tab 2)
+ */
+function exportFinancialLedgerCSV() {
+    const table = document.getElementById('table-pricing');
+    if (!table) return;
+
+    const sanitize = (val) => {
+        const str = String(val ?? '').trim();
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+
+    let csv = "Settlement Month,Units Moved,Avg Unit Price,Gross Realized Valuation,MoM Revenue Growth,Share of Period\n";
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(tr => {
+        if (tr.style.display === 'none') return;
+        const cells = tr.querySelectorAll('td');
+        if (cells.length < 6) return;
+
+        const month = cells[0].getAttribute('data-sort-val') || cells[0].textContent.replace(/[^\w-]/g, '');
+        const units = cells[1].getAttribute('data-sort-val') || cells[1].textContent.replace(/[^\d]/g, '');
+        const price = cells[2].getAttribute('data-sort-val') || cells[2].textContent.replace(/[^0-9.]/g, '');
+        const val = cells[3].getAttribute('data-sort-val') || cells[3].textContent.replace(/[^0-9.]/g, '');
+        const momVal = cells[4].getAttribute('data-sort-val');
+        const mom = (momVal && momVal !== '-9999') ? (parseFloat(momVal).toFixed(1) + '%') : '—';
+        const share = parseFloat(cells[5].getAttribute('data-sort-val') || 0).toFixed(1) + '%';
+
+        csv += `${sanitize(month)},${sanitize(units)},${sanitize('$' + parseFloat(price || 0).toFixed(2))},${sanitize('$' + parseFloat(val || 0).toFixed(2))},${sanitize(mom)},${sanitize(share)}\n`;
+    });
+
+    // Append totals footer
+    const tfoot = table.querySelector('tfoot tr');
+    if (tfoot) {
+        const fCells = tfoot.querySelectorAll('td');
+        if (fCells.length >= 6) {
+            const fLabel = fCells[0].textContent.trim();
+            const fUnits = fCells[1].textContent.trim();
+            const fPrice = fCells[2].textContent.trim();
+            const fVal = fCells[3].textContent.trim();
+            const fMom = fCells[4].textContent.trim();
+            const fShare = fCells[5].textContent.trim();
+            csv += `\n${sanitize(fLabel)},${sanitize(fUnits)},${sanitize(fPrice)},${sanitize(fVal)},${sanitize(fMom)},${sanitize(fShare)}\n`;
+        }
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Financial_Ledger_${today}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * 1-Click CSV Export for Model Demand Velocity (Tab 1)
+ */
+function exportDemandVelocityCSV() {
+    const table = document.getElementById('table-velocity');
+    if (!table) return;
+
+    const sanitize = (val) => {
+        const str = String(val ?? '').trim();
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+
+    let csv = "Rank,Brand,Model,Series,CPU,Avg Unit Price,Units Sold,Latest Sold Date,Customer Buyers,Order IDs\n";
+
+    const rows = table.querySelectorAll('tbody tr');
+    let exportIndex = 1;
+    rows.forEach(tr => {
+        if (tr.style.display === 'none') return;
+        const brand = tr.getAttribute('data-brand') || '';
+        const model = tr.getAttribute('data-model') || '';
+        const series = tr.getAttribute('data-series') || '';
+        const cpu = tr.getAttribute('data-cpu') || '';
+
+        const cells = tr.querySelectorAll('td');
+        if (cells.length < 7) return;
+
+        const buyer = cells[0].querySelector('.buyer-cell')?.textContent.trim() || '';
+        const avgPrice = cells[3].getAttribute('data-sort-val') || '';
+        const dateVal = cells[5].getAttribute('data-sort-val') || '';
+        const units = cells[6].getAttribute('data-sort-val') || '';
+        const orderIds = cells[5].querySelector('.order-cell')?.textContent.trim() || '';
+
+        csv += `${exportIndex++},${sanitize(brand)},${sanitize(model)},${sanitize(series)},${sanitize(cpu)},${sanitize('$' + parseFloat(avgPrice || 0).toFixed(2))},${sanitize(units)},${sanitize(dateVal)},${sanitize(buyer)},${sanitize(orderIds)}\n`;
+    });
+
+    const today = new Date().toISOString().split('T')[0];
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Model_Demand_Velocity_${today}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+

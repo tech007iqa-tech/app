@@ -26,6 +26,14 @@ This checklist must be used to evaluate all code changes and contributions to th
 - [ ] **Prevent iOS Auto-Zoom**: Do all text inputs, selects, and textareas use a font size of at least `16px`?
 - [ ] **Design Tokens**: Do CSS properties use variables from `prod/assets/styles/style.css` (HSL variables, glassmorphic filters)?
 - [ ] **Hover Actions**: Ensure critical actions (edit, delete, save, print) do not depend on mouse-hover effects. All tools must be directly accessible on mobile touchscreens.
+- [ ] **Trends Table Column Ordering**: In the Model Demand Velocity table (`trends_tab_velocity.php`), verify that the **Avg Price** column is placed **BEFORE** the **Details** column. Never invert this order.
+- [ ] **Chart.js Hidden Canvas Lifecycle**: When initializing or re-rendering Chart.js instances inside tabbed interfaces (e.g. Trends tabs), always verify if an instance already exists via `Chart.getChart(id)` and destroy it before instantiating. When switching tabs, dispatch chart initialization with a ~50ms timeout to allow DOM reflow from `display: none`.
+- [ ] **Dual-Axis Performance Mode Switcher**: Ensure mode toggling (`setPricingChartViewMode`) smoothly shows/hides `#pricingSplitViewContainer` and `#pricingComboViewContainer`, updates active toggle buttons, and persists to `sessionStorage` (`pricing_chart_view_mode`).
+- [ ] **Live Matrix Inline Save Feedback**: Verify that inline matrix edits in `b2b_untested_matrix.php` and `tested_market_tab.php` trigger `showMatrixSaveToast()` and animate the modified cell with `.cell-saved-pulse`.
+- [ ] **Customer Profile Intelligence Modal (Phase 4)**: Ensure `#customerProfileModal` correctly opens via `openCustomerProfileModal()`, cleans up `Escape` key listeners upon closing, and handles customer linking from Tab 4 (*Customer Insights*), Tab 1 (*Model Demand Buyer Names*), and CPU Pricing modal sales lists.
+- [ ] **Global Empty States (Phase 4)**: Verify that search filters across all Trends tabs display styled empty state cards (`.global-no-results` / `.no-results-row`) with working "Clear Search Filter" buttons.
+- [ ] **CSV Exports & UTF-8 BOM**: All client-side CSV export functions (e.g., `exportFinancialLedgerCSV()`, `exportDemandVelocityCSV()`, `exportLeadsCSV()`) must prepend the UTF-8 Byte Order Mark (`\uFEFF`) to ensure Excel correctly renders all currency symbols and characters.
+- [ ] **Leads CRM Sorting & Search**: Ensure all table columns support bidirectional sort via `data-sort-val` attributes, urgency tags (`🔴 Overdue`, `🟡 Due Today`, `🟢 Upcoming`) are preserved, and search keyword highlighting functions across combined status tabs.
 
 ---
 

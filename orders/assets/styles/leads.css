@@ -61,6 +61,54 @@
 /* CRM Status Colors */
 .status-idle { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
 
+/* Follow-up Call Urgency Badges */
+.call-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+}
+
+.call-badge-overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.call-badge-today {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.call-badge-upcoming {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+[data-theme="dark"] .call-badge-overdue {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .call-badge-today {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .call-badge-upcoming {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
 @media (max-width: 1000px) {
     #leadModal .modal-box {
         flex-direction: column;
@@ -227,3 +275,36 @@
 [data-theme="dark"] #leadModal h3 {
     color: var(--text-main) !important;
 }
+
+/* Leads Table Sortable Column Headers */
+.orders-table th.sortable-th {
+    background: #1e293b !important;
+    color: white !important;
+    padding: 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.orders-table th.sortable-th:hover {
+    background: #334155 !important;
+    color: #38bdf8 !important;
+}
+
+.orders-table th.sortable-th .sort-icon {
+    font-size: 0.65rem;
+    margin-left: 4px;
+    color: #38bdf8;
+    display: inline-block;
+}
+
+.orders-table th.sortable-th.sort-asc,
+.orders-table th.sortable-th.sort-desc {
+    color: #38bdf8 !important;
+}
+

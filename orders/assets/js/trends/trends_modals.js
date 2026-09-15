@@ -249,7 +249,9 @@ function openCpuPricingModal(cpuCategory) {
                         tr.style.borderBottom = '1px solid var(--border-color)';
                         tr.innerHTML = `
                             <td style="padding: 10px 5px; font-size: 0.8rem; white-space: nowrap;">${formattedDate}</td>
-                            <td style="padding: 10px 5px; font-weight: 600; color: var(--accent-color); font-size: 0.85rem;">${localEscapeHTML(sale.company_name)}</td>
+                            <td style="padding: 10px 5px; font-weight: 600; font-size: 0.85rem;">
+                                <a href="#" onclick="openCustomerProfileModal(event, '', '${localEscapeHTML(sale.company_name)}')" class="customer-profile-link" style="color: var(--accent-color); text-decoration: underline; text-underline-offset: 2px;">${localEscapeHTML(sale.company_name)}</a>
+                            </td>
                             <td style="padding: 10px 5px;">
                                 <span style="font-weight: 700;">${localEscapeHTML(sale.brand)} ${localEscapeHTML(sale.model)}</span>
                                 ${desc ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 1px;">${localEscapeHTML(desc)}</div>` : ''}
@@ -291,7 +293,29 @@ function closeCpuPricingModal() {
     }
 }
 
-function updateMatrixCell(category, cpu_gen, grade, price) {
+function showMatrixSaveToast(msg, targetInput) {
+    let toast = document.getElementById('matrixSaveToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'matrixSaveToast';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span style="font-size: 1.1rem;">✓</span> <span>${msg || 'Price updated and saved'}</span>`;
+    toast.classList.add('show');
+
+    if (targetInput) {
+        targetInput.classList.remove('cell-saved-pulse');
+        void targetInput.offsetWidth; // trigger reflow
+        targetInput.classList.add('cell-saved-pulse');
+    }
+
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2000);
+}
+
+function updateMatrixCell(category, cpu_gen, grade, price, targetInput) {
     const parsedPrice = parseFloat(price);
     const sanitizedPrice = isNaN(parsedPrice) ? 0.00 : parsedPrice;
 
@@ -315,6 +339,8 @@ function updateMatrixCell(category, cpu_gen, grade, price) {
     })
     .then(data => {
         if (data.success) {
+            const specLabel = cpu_gen === 'Default' ? '' : ` (${cpu_gen})`;
+            showMatrixSaveToast(`${category}${specLabel} • ${grade} saved ($${sanitizedPrice.toFixed(2)})`, targetInput);
             if (window.IQA_Notify && typeof window.IQA_Notify.success === 'function') {
                 window.IQA_Notify.success(`Successfully updated ${category} - ${cpu_gen === 'Default' ? '' : cpu_gen + ' - '}${grade} to $${sanitizedPrice.toFixed(2)}`);
             }
@@ -334,4 +360,156 @@ function updateMatrixCell(category, cpu_gen, grade, price) {
             alert('Error connecting to server. Please try again.');
         }
     });
+}
+
+let activeCustomerProfileEscHandler = null;
+
+function openCustomerProfileModal(event, customerId, companyName) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const modal = document.getElementById('customerProfileModal');
+    if (!modal) return;
+
+    if (typeof bringModalToFront === 'function') bringModalToFront(modal);
+    modal.style.display = 'flex';
+
+    const loading = document.getElementById('cust-modal-loading');
+    const error = document.getElementById('cust-modal-error');
+    const body = document.getElementById('cust-modal-body');
+
+    if (loading) loading.style.display = 'flex';
+    if (error) error.style.display = 'none';
+    if (body) body.style.display = 'none';
+
+    const localEscapeHTML = (str) => {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+
+    const targetUrl = `index.php?view=trends&action=get_customer_profile&customer_id=${encodeURIComponent(customerId || '')}&company_name=${encodeURIComponent(companyName || '')}`;
+
+    fetch(targetUrl)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.customer) {
+                if (loading) loading.style.display = 'none';
+                if (error) {
+                    error.textContent = '⚠️ ' + (data.error || 'Customer profile not found.');
+                    error.style.display = 'block';
+                }
+                return;
+            }
+
+            const cust = data.customer;
+            const stats = data.stats || {};
+            const recentOrders = data.recent_orders || [];
+
+            // Header Elements
+            const compEl = document.getElementById('cust-modal-company');
+            const idEl = document.getElementById('cust-modal-id');
+            const badgeEl = document.getElementById('cust-modal-status-badge');
+
+            if (compEl) compEl.textContent = cust.company_name || 'Customer Profile';
+            if (idEl) idEl.textContent = cust.customer_id || 'CUST-EXTERNAL';
+            if (badgeEl) {
+                badgeEl.textContent = cust.status || 'Active';
+                if (cust.status === 'Hot Lead') badgeEl.style.background = '#ef4444';
+                else if (cust.status === 'Follow-Up') badgeEl.style.background = '#f59e0b';
+                else badgeEl.style.background = '#10b981';
+            }
+
+            // Stats Elements
+            const spendEl = document.getElementById('cust-modal-spend');
+            const unitsEl = document.getElementById('cust-modal-units');
+            const ordersEl = document.getElementById('cust-modal-orders');
+            const lastDateEl = document.getElementById('cust-modal-last-date');
+
+            if (spendEl) spendEl.textContent = '$' + parseFloat(stats.total_spend || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (unitsEl) unitsEl.textContent = parseInt(stats.total_units || 0).toLocaleString() + ' units';
+            if (ordersEl) ordersEl.textContent = parseInt(stats.total_orders || 0).toLocaleString() + ' orders';
+            if (lastDateEl) lastDateEl.textContent = stats.last_order_date ? stats.last_order_date.substring(0, 10) : '—';
+
+            // Contact Info
+            const contactEl = document.getElementById('cust-modal-contact');
+            const phoneEl = document.getElementById('cust-modal-phone');
+            const emailEl = document.getElementById('cust-modal-email');
+            const firstDateEl = document.getElementById('cust-modal-first-date');
+
+            if (contactEl) contactEl.textContent = cust.contact_person || '—';
+            if (phoneEl) phoneEl.textContent = cust.phone || '—';
+            if (emailEl) emailEl.textContent = cust.email || '—';
+            if (firstDateEl) firstDateEl.textContent = stats.first_order_date ? stats.first_order_date.substring(0, 10) : '—';
+
+            // Action Links
+            const crmBtn = document.getElementById('cust-modal-crm-btn');
+            const orderBtn = document.getElementById('cust-modal-order-btn');
+
+            if (crmBtn) crmBtn.href = `index.php?view=leads&search=${encodeURIComponent(cust.company_name || '')}`;
+            if (orderBtn) orderBtn.href = `index.php?customer_id=${encodeURIComponent(cust.customer_id || '')}`;
+
+            // Recent Orders Table
+            const ordersList = document.getElementById('cust-modal-orders-list');
+            if (ordersList) {
+                ordersList.innerHTML = '';
+                if (recentOrders.length > 0) {
+                    recentOrders.forEach(o => {
+                        const tr = document.createElement('tr');
+                        const orderDate = o.created_at ? o.created_at.substring(0, 10) : '—';
+                        const units = parseInt(o.units_count || 0);
+                        const val = parseFloat(o.order_total || 0);
+                        const statusClass = (o.status === 'paid' || o.status === 'completed') ? 'order-status-paid' : 'order-status-pending';
+
+                        tr.innerHTML = `
+                            <td style="padding: 8px 12px; font-family: monospace; font-weight: 700;">
+                                <a href="#" onclick="openOrderPreviewModal(event, '${localEscapeHTML(o.order_id)}')" class="order-preview-link"><code>${localEscapeHTML(o.order_id)}</code></a>
+                            </td>
+                            <td style="padding: 8px 12px; font-size: 0.85rem; color: var(--text-secondary);">${orderDate}</td>
+                            <td style="padding: 8px 12px; text-align: center; font-weight: 700;">${units.toLocaleString()}</td>
+                            <td style="padding: 8px 12px; text-align: right; font-weight: 800; color: #10b981;">$${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style="padding: 8px 12px; text-align: center;">
+                                <span class="order-badge ${statusClass}" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;">${localEscapeHTML(o.status || 'Active')}</span>
+                            </td>
+                            <td style="padding: 8px 12px; text-align: center;">
+                                <button type="button" onclick="openOrderPreviewModal(event, '${localEscapeHTML(o.order_id)}')" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 6px; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 700; cursor: pointer;">
+                                    View Manifest
+                                </button>
+                            </td>
+                        `;
+                        ordersList.appendChild(tr);
+                    });
+                } else {
+                    ordersList.innerHTML = `<tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--text-secondary); font-style: italic;">No orders recorded yet.</td></tr>`;
+                }
+            }
+
+            if (loading) loading.style.display = 'none';
+            if (body) body.style.display = 'block';
+        })
+        .catch(err => {
+            console.error(err);
+            if (loading) loading.style.display = 'none';
+            if (error) error.style.display = 'block';
+        });
+
+    activeCustomerProfileEscHandler = (e) => {
+        if (e.key === 'Escape') closeCustomerProfileModal();
+    };
+    window.addEventListener('keydown', activeCustomerProfileEscHandler);
+}
+
+function closeCustomerProfileModal() {
+    const modal = document.getElementById('customerProfileModal');
+    if (modal) modal.style.display = 'none';
+    if (activeCustomerProfileEscHandler) {
+        window.removeEventListener('keydown', activeCustomerProfileEscHandler);
+        activeCustomerProfileEscHandler = null;
+    }
 }

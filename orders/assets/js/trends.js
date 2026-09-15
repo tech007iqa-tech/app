@@ -36,8 +36,12 @@ function initTrendsApp() {
 
     // Handle initial tab selection & search listeners
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('tested_cat') || urlParams.get('tab') === 'tab-tested') {
+    const requestedTab = urlParams.get('tab') || sessionStorage.getItem('trends_active_tab');
+
+    if (urlParams.has('tested_cat') || requestedTab === 'tab-tested') {
         if (typeof switchTrendsTab === 'function') switchTrendsTab('tab-tested');
+    } else if (requestedTab && document.getElementById(requestedTab)) {
+        if (typeof switchTrendsTab === 'function') switchTrendsTab(requestedTab);
     } else {
         if (typeof filterActiveTable === 'function') filterActiveTable();
     }
@@ -53,7 +57,12 @@ function initTrendsApp() {
     }
 
     // Initialize Chart.js Graphs
-    if (typeof initializePricingCharts === 'function') initializePricingCharts(state.price_history);
+    const chartMode = sessionStorage.getItem('pricing_chart_view_mode') || 'split';
+    if (typeof setPricingChartViewMode === 'function') {
+        setPricingChartViewMode(chartMode);
+    } else if (typeof initializePricingCharts === 'function') {
+        initializePricingCharts(state.price_history);
+    }
     if (typeof initializeCpuCharts === 'function') initializeCpuCharts(state.cpu_distribution);
 
     // Initialize Summary Cards Widget Board

@@ -31,7 +31,13 @@
                             $search_blob = strtolower($cust['company_name'] . ' ' . $status_text);
                         ?>
                             <tr data-search="<?= htmlspecialchars($search_blob) ?>">
-                                <td><strong><?= htmlspecialchars($cust['company_name'] ?? 'Unknown Company') ?></strong></td>
+                                <td>
+                                    <strong>
+                                        <a href="#" onclick="openCustomerProfileModal(event, '<?= htmlspecialchars(addslashes($cust['customer_id'] ?? ''), ENT_QUOTES) ?>', '<?= htmlspecialchars(addslashes($cust['company_name'] ?? ''), ENT_QUOTES) ?>')" class="customer-profile-link" style="color: var(--accent-color); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;">
+                                            <?= htmlspecialchars($cust['company_name'] ?? 'Unknown Company') ?>
+                                        </a>
+                                    </strong>
+                                </td>
                                 <td data-sort-val="<?= $cust['total_orders'] ?>"><?= $cust['total_orders'] ?> orders</td>
                                 <td data-sort-val="<?= $cust['total_units_bought'] ?>"><span class="qty-chip" style="box-shadow: none; font-size: 0.75rem; padding: 4px 10px;"><?= $cust['total_units_bought'] ?></span></td>
                                 <td data-sort-val="<?= htmlspecialchars($cust['first_order_date']) ?>"><?= substr($cust['first_order_date'], 0, 10) ?></td>

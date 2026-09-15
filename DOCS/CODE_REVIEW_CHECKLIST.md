@@ -20,6 +20,14 @@ When reviewing pull requests or changes in this codebase, ensure the following s
 - [ ] **Palette Check**: If in `/marketing`, does it use the **Teal/Lime** design tokens?
 - [ ] Are CSS variables used for colors and spacing?
 - [ ] Does it handle "Empty States" gracefully?
+- [ ] **Trends Table Column Order**: Model Demand Velocity table must display **Avg Price** before **Details**. Never reverse this.
+- [ ] **Chart.js Hidden Canvas Lifecycle**: Re-render Chart.js on tab switches with `Chart.getChart(id)?.destroy()` and a ~50ms timeout.
+- [ ] **Dual-Axis Performance Mode Switcher**: Ensure mode toggling (`setPricingChartViewMode`) switches between Split and Combo views and persists to `sessionStorage`.
+- [ ] **Live Matrix Inline Save Feedback**: Ensure matrix edits trigger `showMatrixSaveToast()` and animate with `.cell-saved-pulse`.
+- [ ] **Customer Profile Intelligence Modal (Phase 4)**: Ensure `#customerProfileModal` opens via `openCustomerProfileModal()`, cleans up `Escape` listeners, and supports cross-module intelligence links.
+- [ ] **Global Empty States (Phase 4)**: Ensure search filters display styled empty states (`.global-no-results` / `.no-results-row`) with single-click filter resets.
+- [ ] **CSV Exports**: Prepend `\uFEFF` UTF-8 BOM on all client-side CSV downloads for Excel compatibility.
+- [ ] **Leads CRM**: Preserve 9-column bidirectional sort (`data-sort-val`), urgency badges, and multi-word keyword search highlighting.
 
 ## 4. Performance & Portability
 - [ ] Are there any new external dependencies? (Goal is Zero-Dependency).

@@ -176,3 +176,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         }
     }
 }
+
+// 3. Handle Customer Profile Intelligence AJAX Endpoint (Phase 4)
+if (isset($_GET['action']) && $_GET['action'] === 'get_customer_profile') {
+    ob_clean();
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    header('Content-Type: application/json');
+
+    $cust_id = trim($_GET['customer_id'] ?? '');
+    $company_name = trim($_GET['company_name'] ?? '');
+
+    try {
+        $db_cust = Database::customers();
+        $db_orders = Database::orders();
+
+        $customer = null;
+        if (!empty($cust_id)) {
+            $stmt = $db_cust->prepare("SELECT * FROM customers WHERE customer_id = ? LIMIT 1");
+            $stmt->execute([$cust_id]);
+            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$customer && !empty($company_name)) {
+            $stmt = $db_cust->prepare("SELECT * FROM customers WHERE company_name = ? LIMIT 1");
+            $stmt->execute([$company_name]);
+            $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$customer) {
+            // Fallback object if not in customers.db
+            $customer = [
+                'customer_id' => $cust_id ?: 'CUST-EXTERNAL',
+                'company_name' => $company_name ?: ($cust_id ?: 'Unknown Customer'),
+                'contact_person' => '—',
+                'phone' => '—',
+                'email' => '—',
+                'status' => 'Customer'
+            ];
+        }
+
+        $target_id = $customer['customer_id'];
+        $target_name = $customer['company_name'];
+
+        // Compute Lifetime Order Analytics
+        $summary = $db_orders->prepare("
+            SELECT COUNT(DISTINCT orders.order_id) as total_orders,
+                   SUM(items.quantity) as total_units,
+                   ROUND(SUM(items.unit_price * items.quantity), 2) as total_spend,
+                   MIN(orders.created_at) as first_order_date,
+                   MAX(orders.created_at) as last_order_date
+            FROM orders
+            JOIN items ON orders.order_id = items.order_id
+            WHERE (orders.customer_id = ? OR orders.customer_id = ?) AND orders.status = 'paid'
+        ");
+        $summary->execute([$target_id, $target_name]);
+        $stats = $summary->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        // Fetch Recent Order Manifests
+        $orders_stmt = $db_orders->prepare("
+            SELECT orders.order_id, orders.created_at, orders.status,
+                   SUM(items.quantity) as units_count,
+                   ROUND(SUM(items.unit_price * items.quantity), 2) as order_total
+            FROM orders
+            LEFT JOIN items ON orders.order_id = items.order_id
+            WHERE orders.customer_id = ? OR orders.customer_id = ?
+            GROUP BY orders.order_id
+            ORDER BY orders.created_at DESC
+            LIMIT 8
+        ");
+        $orders_stmt->execute([$target_id, $target_name]);
+        $recent_orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Fetch CRM Interaction Logs
+        $interactions = [];
+        try {
+            $int_stmt = $db_cust->prepare("SELECT * FROM interactions WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
+            $int_stmt->execute([$target_id]);
+            $interactions = $int_stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch(Exception $ex) {}
+
+        echo json_encode([
+            'success' => true,
+            'customer' => $customer,
+            'stats' => $stats,
+            'recent_orders' => $recent_orders,
+            'interactions' => $interactions
+        ]);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        exit();
+    }
+}

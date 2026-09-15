@@ -71,8 +71,14 @@ The Warehouse module (`/prod/pages/warehouse.php`) is where you manage physical 
 Manage your sales pipeline and customer interactions in the **Leads** module (`/prod/pages/leads.php`).
 
 ### Managing Leads
-- **Executive Bar**: View real-time KPIs, including active lead counts and total pipeline value.
-- **Priority Call Queue**: The system automatically highlights leads that require a follow-up today based on the `Callback Date`.
+- **Executive Bar**: View real-time KPIs, including active lead counts, closed deals, and total pipeline value.
+- **9-Column Bidirectional Sorting**: Click any table header (*Customer / Lead*, *Status*, *Source*, *Interest*, *Last Order*, *Balance*, *Last Contact*, *Next Call*, *Notes*) to sort ascending or descending. Sorting uses raw numeric/date metadata for perfect accuracy.
+- **Priority Urgency Badges**: Next Call dates automatically display color-coded urgency chips:
+  - `🔴 Overdue`: Follow-up date has passed.
+  - `🟡 Due Today`: Follow-up is scheduled for today.
+  - `🟢 Upcoming`: Scheduled for a future date.
+- **Multi-Word Search Highlighting**: Typing search terms dynamically filters the roster and highlights matching keywords in yellow across all columns while respecting active status tabs (*All*, *Active*, *Hot Leads*, *Follow-Ups*, *Converted*).
+- **1-Click Leads CSV Export**: Click **Export Leads CSV** to download the complete active roster formatted for Excel (UTF-8 BOM).
 - **Activity Timeline**: Log every interaction (Call, Email, Chat) to maintain a complete history of the relationship.
 
 ### Converting Leads to Customers
@@ -104,11 +110,16 @@ The ordering workflow is split into two phases: building the batch and finalizin
 - **Auto-Sync**: Lead callback dates automatically appear as suggested tasks on your calendar.
 - **Conversion Tracking**: Events are tagged as **Converted ✅** if they resulted in a sale, helping you measure outreach effectiveness.
 
-### Historical Trends (`/prod/pages/trends.php`)
-- **BI Analytics**: Visualize sales velocity, pricing curves, and hardware dominance (e.g., which CPU generations are selling fastest).
-- **CPU Pricing Insights**: Click any row under the CPU Family Dominance card to open a pricing breakdown. Inspect minimum, maximum, and average prices alongside recent transaction records.
-- **Order Preview**: Click a transaction code (Order ID) in the pricing dialog to instantly overlay a detailed manifest checklist and valuation.
-- **Custom Queries**: Run historical reports to identify buying trends and optimize your inventory procurement.
+### Historical Trends & BI Intelligence (`/prod/pages/trends.php`)
+- **Modular Tabbed Workspace**: Seamlessly navigate between:
+  - 🥇 **Model Demand Velocity**: Top selling hardware models, total quantity, total gross, and **Avg Price displayed before Details** for rapid quotation. Includes 1-click CSV export (`📥 Export CSV`).
+  - 📉 **Pricing Curves & Accounting**: Executive-grade financial analytics with Average Selling Price (ASP) Timeline and Monthly Gross Valuation Trend graphs, complete with MoM growth chips, executive KPI cards, reconciliation ledger, and 1-click accounting export (`📊 Export Ledger CSV`).
+  - 📊 **Dual-Axis Performance Model Switcher**: Seamlessly toggle between **🔀 Split View** (side-by-side ASP and Gross Valuation cards) and **📊 Dual-Axis Combo** (correlating gross revenue on the left axis against weighted ASP on the right axis with synchronized multi-metric hover tooltips). Mode preference automatically persists.
+  - ⚡ **CPU Family Dominance**: Market share breakdowns across Intel Core and AMD Ryzen CPU generations with transaction drill modals.
+  - 👥 **Customer Analytics**: Top buying accounts by volume and total lifetime spend.
+  - 📋 **Untested B2B & Tested Market**: Real-time wholesale and retail pricing matrices with live micro-feedback confirmation toasts (`✓ Saved`) and cell glow animations upon editing.
+- **Persistent Tab Selection**: Active tabs remain selected across date filter adjustments and page refreshes via URL parameters and session storage.
+- **CPU Pricing Insights & Manifest Preview**: Click any CPU row or transaction order ID to preview full item checklists, serials, and unit valuations.
 
 ---
 

@@ -119,22 +119,22 @@ if (UI::is_ajax()) {
             $search_blob = strtolower($lead['company_name'] . " " . $status . " " . $lead['lead_source'] . " " . $lead['interest'] . " " . $lead['customer_id']);
             ?>
             <tr class="lead-row" data-id="<?= htmlspecialchars($lead['customer_id']) ?>" data-search="<?= htmlspecialchars($search_blob) ?>" data-status="<?= $status ?>" style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                <td style="padding: 16px;">
+                <td data-sort-val="<?= htmlspecialchars($lead['company_name']) ?>" style="padding: 16px;">
                     <div style="font-weight: 800; color: var(--text-main); font-size: 0.95rem;"><?= htmlspecialchars($lead['company_name']) ?></div>
                     <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace; margin-top: 2px;"><?= htmlspecialchars($lead['customer_id']) ?></div>
                 </td>
-                <td style="padding: 16px;">
+                <td data-sort-val="<?= htmlspecialchars($lead['account_status'] ?: 'Lead') ?>" style="padding: 16px;">
                     <span class="order-badge <?= $status_class ?>" style="min-width: 80px; text-align: center; font-size:0.65rem;">
                         <?= htmlspecialchars($lead['account_status'] ?: 'Lead') ?>
                     </span>
                 </td>
-                <td style="padding: 16px; font-size: 0.8rem; font-weight:600; color: #64748b;">
+                <td data-sort-val="<?= htmlspecialchars($lead['lead_source'] ?: '') ?>" style="padding: 16px; font-size: 0.8rem; font-weight:600; color: #64748b;">
                     <?= htmlspecialchars($lead['lead_source'] ?: '-') ?>
                 </td>
-                <td style="padding: 16px; font-size: 0.8rem; color: #64748b;">
+                <td data-sort-val="<?= htmlspecialchars($lead['interest'] ?: '') ?>" style="padding: 16px; font-size: 0.8rem; color: #64748b;">
                     <?= htmlspecialchars($lead['interest'] ?: '-') ?>
                 </td>
-                <td style="padding: 16px;">
+                <td data-sort-val="<?= htmlspecialchars($lead['last_purchase'] ?: '') ?>" style="padding: 16px;">
                     <?php if ($lead['last_order_id']): ?>
                         <a href="checkout.php?customer_id=<?= urlencode($lead['customer_id']) ?>&order_id=<?= urlencode($lead['last_order_id']) ?>" style="text-decoration: none;">
                             <div style="font-weight: 700; color: var(--accent-color); font-size:0.85rem; font-family:monospace;"><?= htmlspecialchars($lead['last_order_id']) ?></div>
@@ -144,27 +144,43 @@ if (UI::is_ajax()) {
                         <span style="color:#cbd5e1;">-</span>
                     <?php endif; ?>
                 </td>
-                <td style="padding: 16px; font-weight: 800; color: var(--text-main); font-size:0.9rem;">
+                <td data-sort-val="<?= (float)($lead['total_balance'] ?? 0) ?>" style="padding: 16px; font-weight: 800; color: var(--text-main); font-size:0.9rem;">
                     <?= isset($lead['total_balance']) && $lead['total_balance'] > 0 ? '$' . number_format($lead['total_balance'], 2) : '<span style="color:#cbd5e1;">$0.00</span>' ?>
                 </td>
-                <td style="padding: 16px;">
+                <td data-sort-val="<?= htmlspecialchars($lead['message_date'] ?: '') ?>" style="padding: 16px;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: #475569;">
                         <?= $lead['message_date'] ? date('M d, Y', strtotime($lead['message_date'])) : '-' ?>
                     </div>
                     <div style="font-size: 0.7rem; color: #94a3b8; font-weight:800; text-transform:uppercase; margin-top: 2px;"><?= htmlspecialchars($lead['contact_method'] ?: '') ?></div>
                 </td>
-                <td style="padding: 16px;">
-                    <?php if ($lead['callback_date']):
-                        $is_urgent = ($lead['callback_date'] <= date('Y-m-d'));
+                <td data-sort-val="<?= htmlspecialchars($lead['callback_date'] ?: '') ?>" style="padding: 16px;">
+                    <?php
+                    $callback = $lead['callback_date'] ?? '';
+                    if (!empty($callback)):
+                        $cb_date = date('Y-m-d', strtotime($callback));
+                        $today_date = date('Y-m-d');
+                        if ($cb_date < $today_date) {
+                            $badge_class = 'call-badge-overdue';
+                            $status_label = '🔴 Overdue';
+                        } elseif ($cb_date === $today_date) {
+                            $badge_class = 'call-badge-today';
+                            $status_label = '🟡 Due Today';
+                        } else {
+                            $badge_class = 'call-badge-upcoming';
+                            $status_label = '🟢 Upcoming';
+                        }
                     ?>
-                        <div style="font-size: 0.85rem; font-weight: 800; color: <?= $is_urgent ? '#be123c' : '#64748b' ?>;">
-                            <?= date('M d, Y', strtotime($lead['callback_date'])) ?>
+                        <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+                            <span class="call-badge <?= $badge_class ?>"><?= $status_label ?></span>
+                            <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-main);">
+                                <?= date('M d, Y', strtotime($callback)) ?>
+                            </div>
                         </div>
                     <?php else: ?>
-                        <span style="color:#cbd5e1;">-</span>
+                        <span style="color:#cbd5e1;">—</span>
                     <?php endif; ?>
                 </td>
-                <td style="padding: 16px; max-width: 200px;">
+                <td data-sort-val="<?= htmlspecialchars($lead['internal_notes'] ?: '') ?>" style="padding: 16px; max-width: 200px;">
                     <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
                         <?= htmlspecialchars($lead['internal_notes'] ?: '-') ?>
                     </div>
@@ -229,6 +245,9 @@ if (UI::is_ajax()) {
             <button onclick="openAddLeadModal()" class="btn-main" style="margin:0; background:var(--accent-color); color:white; white-space:nowrap; height:42px; padding:0 20px; font-size:0.85rem; border:none; box-shadow:var(--shadow-sm);">
                 <span>+ Add New Lead</span>
             </button>
+            <button type="button" onclick="exportLeadsCSV()" class="btn-main" style="margin:0; background:#334155; color:white; white-space:nowrap; height:42px; padding:0 16px; font-size:0.85rem; border:none; box-shadow:var(--shadow-sm); display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                <span>📥</span> Export CSV
+            </button>
             <div class="orders-tabs leads-tabs-container">
                 <a href="#" class="orders-tab-link active" onclick="filterByStatus('all')">All Accounts</a>
                 <a href="#" class="orders-tab-link" onclick="filterByStatus('lead')">Leads</a>
@@ -241,15 +260,15 @@ if (UI::is_ajax()) {
         <table class="orders-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1400px;">
             <thead>
                 <tr style="background: #1e293b !important;">
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Customer / Lead</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Status</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Source</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Interest</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Last Order</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Balance</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Last Contact</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Next Call</th>
-                    <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border:none;">Notes</th>
+                    <th onclick="sortLeadsTable(0, 'str')" class="sortable-th" title="Sort by Customer / Lead">Customer / Lead <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(1, 'str')" class="sortable-th" title="Sort by Status">Status <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(2, 'str')" class="sortable-th" title="Sort by Source">Source <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(3, 'str')" class="sortable-th" title="Sort by Interest">Interest <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(4, 'date')" class="sortable-th" title="Sort by Last Order">Last Order <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(5, 'num')" class="sortable-th" title="Sort by Balance">Balance <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(6, 'date')" class="sortable-th" title="Sort by Last Contact">Last Contact <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(7, 'date')" class="sortable-th" title="Sort by Next Call">Next Call <span class="sort-icon"></span></th>
+                    <th onclick="sortLeadsTable(8, 'str')" class="sortable-th" title="Sort by Notes">Notes <span class="sort-icon"></span></th>
                     <th style="background: #1e293b !important; color: white !important; padding: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; text-align: right; border:none;">Actions</th>
                 </tr>
             </thead>
@@ -261,22 +280,22 @@ if (UI::is_ajax()) {
                         $search_blob = strtolower($lead['company_name'] . " " . $status . " " . $lead['lead_source'] . " " . $lead['interest'] . " " . $lead['customer_id']);
                     ?>
                     <tr class="lead-row" data-id="<?= htmlspecialchars($lead['customer_id']) ?>" data-search="<?= htmlspecialchars($search_blob) ?>" data-status="<?= $status ?>" style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                        <td style="padding: 16px;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['company_name']) ?>" style="padding: 16px;">
                             <div style="font-weight: 800; color: var(--text-main); font-size: 0.95rem;"><?= htmlspecialchars($lead['company_name']) ?></div>
                             <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace; margin-top: 2px;"><?= htmlspecialchars($lead['customer_id']) ?></div>
                         </td>
-                        <td style="padding: 16px;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['account_status'] ?: 'Lead') ?>" style="padding: 16px;">
                             <span class="order-badge <?= $status_class ?>" style="min-width: 80px; text-align: center; font-size:0.65rem;">
                                 <?= htmlspecialchars($lead['account_status'] ?: 'Lead') ?>
                             </span>
                         </td>
-                        <td style="padding: 16px; font-size: 0.8rem; font-weight:600; color: #64748b;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['lead_source'] ?: '') ?>" style="padding: 16px; font-size: 0.8rem; font-weight:600; color: #64748b;">
                             <?= htmlspecialchars($lead['lead_source'] ?: '-') ?>
                         </td>
-                        <td style="padding: 16px; font-size: 0.8rem; color: #64748b;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['interest'] ?: '') ?>" style="padding: 16px; font-size: 0.8rem; color: #64748b;">
                             <?= htmlspecialchars($lead['interest'] ?: '-') ?>
                         </td>
-                        <td style="padding: 16px;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['last_purchase'] ?: '') ?>" style="padding: 16px;">
                             <?php if ($lead['last_order_id']): ?>
                                 <a href="checkout.php?customer_id=<?= urlencode($lead['customer_id']) ?>&order_id=<?= urlencode($lead['last_order_id']) ?>" style="text-decoration: none;">
                                     <div style="font-weight: 700; color: var(--accent-color); font-size:0.85rem; font-family:monospace;"><?= htmlspecialchars($lead['last_order_id']) ?></div>
@@ -286,27 +305,43 @@ if (UI::is_ajax()) {
                                 <span style="color:#cbd5e1;">-</span>
                             <?php endif; ?>
                         </td>
-                        <td style="padding: 16px; font-weight: 800; color: var(--text-main); font-size:0.9rem;">
+                        <td data-sort-val="<?= (float)($lead['total_balance'] ?? 0) ?>" style="padding: 16px; font-weight: 800; color: var(--text-main); font-size:0.9rem;">
                             <?= isset($lead['total_balance']) && $lead['total_balance'] > 0 ? '$' . number_format($lead['total_balance'], 2) : '<span style="color:#cbd5e1;">$0.00</span>' ?>
                         </td>
-                        <td style="padding: 16px;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['message_date'] ?: '') ?>" style="padding: 16px;">
                             <div style="font-size: 0.85rem; font-weight: 700; color: #475569;">
                                 <?= $lead['message_date'] ? date('M d, Y', strtotime($lead['message_date'])) : '-' ?>
                             </div>
                             <div style="font-size: 0.7rem; color: #94a3b8; font-weight:800; text-transform:uppercase; margin-top: 2px;"><?= htmlspecialchars($lead['contact_method'] ?: '') ?></div>
                         </td>
-                        <td style="padding: 16px;">
-                            <?php if ($lead['callback_date']):
-                                $is_urgent = ($lead['callback_date'] <= date('Y-m-d'));
+                        <td data-sort-val="<?= htmlspecialchars($lead['callback_date'] ?: '') ?>" style="padding: 16px;">
+                            <?php
+                            $callback = $lead['callback_date'] ?? '';
+                            if (!empty($callback)):
+                                $cb_date = date('Y-m-d', strtotime($callback));
+                                $today_date = date('Y-m-d');
+                                if ($cb_date < $today_date) {
+                                    $badge_class = 'call-badge-overdue';
+                                    $status_label = '🔴 Overdue';
+                                } elseif ($cb_date === $today_date) {
+                                    $badge_class = 'call-badge-today';
+                                    $status_label = '🟡 Due Today';
+                                } else {
+                                    $badge_class = 'call-badge-upcoming';
+                                    $status_label = '🟢 Upcoming';
+                                }
                             ?>
-                                <div style="font-size: 0.85rem; font-weight: 800; color: <?= $is_urgent ? '#be123c' : '#64748b' ?>;">
-                                    <?= date('M d, Y', strtotime($lead['callback_date'])) ?>
+                                <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+                                    <span class="call-badge <?= $badge_class ?>"><?= $status_label ?></span>
+                                    <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-main);">
+                                        <?= date('M d, Y', strtotime($callback)) ?>
+                                    </div>
                                 </div>
                             <?php else: ?>
-                                <span style="color:#cbd5e1;">-</span>
+                                <span style="color:#cbd5e1;">—</span>
                             <?php endif; ?>
                         </td>
-                        <td style="padding: 16px; max-width: 200px;">
+                        <td data-sort-val="<?= htmlspecialchars($lead['internal_notes'] ?: '') ?>" style="padding: 16px; max-width: 200px;">
                             <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
                                 <?= htmlspecialchars($lead['internal_notes'] ?: '-') ?>
                             </div>

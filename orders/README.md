@@ -35,8 +35,11 @@ All modules are unified under a single responsive dashboard in `index.php`. Acce
 
 ### 🎯 CRM & Relationship Hub (`orders/pages/leads.php`)
 *Outreach Pipeline & Lead Status Tracking*
-- **Executive Bar**: High-level real-time KPI overview showing Active Leads count and overall Pipeline Gross Value.
-- **Priority Call Queue**: Highlights critical accounts needing callbacks today.
+- **Executive Bar**: High-level real-time KPI overview showing Active Leads count, Closed Deals, and overall Pipeline Gross Value.
+- **9-Column Sorting**: Bidirectional sorting on every column (*Customer / Lead*, *Status*, *Source*, *Interest*, *Last Order*, *Balance*, *Last Contact*, *Next Call*, *Notes*) with raw `data-sort-val` attributes.
+- **Priority Call Queue & Urgency**: Highlights critical accounts with color-coded follow-up urgency tags (`🔴 Overdue`, `🟡 Due Today`, `🟢 Upcoming`).
+- **Live Search Highlighting & Tab Filter**: Instant yellow keyword matching that coexists with active status tabs (*Hot Leads*, *Follow-Ups*, etc.).
+- **1-Click CSV Export**: Downloads the complete active leads roster formatted with UTF-8 BOM for Microsoft Excel.
 - **Activity Timeline**: Vertical stream mapping interactions (📞 Call, 📧 Email, 💬 Chat).
 - **Real-Time SSE Sync**: Server-Sent Events database change stream synchronizing changes across all workstations under 500ms.
 - **One-Tap Conversion**: Promotes high-priority leads to customers and automatically redirects to a fresh order batch intake sheet.
@@ -48,10 +51,13 @@ All modules are unified under a single responsive dashboard in `index.php`. Acce
 - **Conversion Badging**: Tags calendar events as **Converted ✅** or **Window Shopping 👀** based on sales correlation.
 
 ### 📈 Historical Trends Engine (`orders/pages/trends.php`)
-*Business Intelligence Analytics*
-- **BI Charts**: Uncapped historical queries parsing sales velocities, pricing curves, GPU/CPU generation dominance, and customer buying trends.
-- **CPU Pricing Details**: Interactive modal detailing price ranges, averages, and transaction history for CPU lines.
-- **Order Preview Manifest**: Interactive inline modal allowing users to preview full order manifests from transaction records.
+*Business Intelligence & Financial Analytics*
+- **Modular Sub-Module Architecture**: Multi-tab views with persistent tab state across filter requests.
+- **Model Demand Velocity Table**: Displays top selling hardware models with **Avg Price positioned before Details** for rapid quoting, plus 1-click CSV export.
+- **Executive Accounting Graphs**: Chronologically sorted Average Selling Price (ASP) Timeline and Monthly Gross Valuation Trend charts featuring MoM growth chips, executive KPI summary cards, reconciliation ledger footer, and 1-click CSV export.
+- **Dual-Axis Performance Model Switcher**: Seamless view toggling between **🔀 Split View** (side-by-side cards) and **📊 Dual-Axis Combo** (left axis: gross valuation, right axis: ASP per unit) with synchronized multi-metric hover tooltips.
+- **Live Matrix Micro-Feedback**: Inline price edits in B2B Untested Matrix and Tested Market Reference trigger instant status toasts (`✓ Saved`) and cell glow animations.
+- **CPU Pricing Details & Manifest Preview**: Interactive modal detailing price ranges, averages, and full interactive order manifest checklists.
 
 ### ⚙️ System Settings & Tools (`orders/pages/settings.php`)
 *Administrative Control Panel*

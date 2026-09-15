@@ -90,8 +90,44 @@ Many warehouse managers perform hardware audits using iPads. To prevent styling 
 
 ---
 
+## 📈 Trends Center Architecture & Rules (`view=trends`)
+- **Model Demand Velocity Table Order**: The column order must strictly be: `Rank/Customer`, `Brand`, `Model`, `Avg Price`, `Details`, `Latest Sold/Customer Order`, `Units Sold`. Avg Price must always appear before Details.
+- **Chart.js Instance Lifecycle**: Always destroy active chart instances (`Chart.getChart('aspChart')`, `Chart.getChart('valuationChart')`, `Chart.getChart('comboPricingChart')`, `Chart.getChart('cpuBrandChart')`) before initializing new instances to prevent canvas collision errors upon tab activation and theme changes.
+- **Tab State & Filter Persistence**: Tab navigation must sync with `sessionStorage` (`trends_active_tab`) and the URL search parameter (`?view=trends&tab=...`). Changing the date filter dropdown must invoke `applyTrendsFilter()` to preserve the user's active tab.
+- **Dual-Axis Performance Model & View Switcher (Phase 3)**:
+  - Tab 2 (*Pricing Curves*) supports dynamic mode toggling via `setPricingChartViewMode('split' | 'combo')`.
+  - Mode selection is persisted in `sessionStorage` (`pricing_chart_view_mode`) and hydrated on load.
+  - `comboPricingChart` plots Gross Realized Valuation bars on Left Axis (`yValuation`) and Realized ASP curve on Right Axis (`yAsp`) with synchronized dual metrics.
+- **Live Matrix Micro-Feedback & Cell Glow (Phase 3)**:
+  - In `tab-matrix` (*B2B Untested*) and `tab-tested` (*Tested Market Reference*), inline cell changes call `showMatrixSaveToast(msg, targetInput)` in `trends_modals.js`.
+  - The edited cell dynamically animates with `.cell-saved-pulse` and a floating confirmation toast (`#matrixSaveToast`) confirms the saved value.
+- **Financial Timeline Ordering**: Time-series charts must sort chronologically from left to right (oldest to newest month), while the audit table maintains reverse-chronological order for rapid auditing.
+- **1-Click CSV Exports**:
+  - **Tab 2 Financial Ledger**: `exportFinancialLedgerCSV()` exports all ledger rows, MoM growth %, share %, and the period totals footer with UTF-8 BOM encoding.
+  - **Tab 1 Demand Velocity**: `exportDemandVelocityCSV()` exports all model velocity ranks, pricing, inventory stock, buyer names, and order IDs.
+- **Cross-Module Customer Profile & Order History Intelligence (Phase 4)**:
+  - Client company names in Tab 4 (*Customer Insights*), Tab 1 (*Model Demand Buyer Names*), and CPU Pricing modal sales lists are clickable (`.customer-profile-link`) to open `#customerProfileModal`.
+  - The modal dynamically queries `index.php?view=trends&action=get_customer_profile` in `trends_actions.php` to fetch lifetime spend, total units bought, completed order count, account tenure, recent transaction manifests, and CRM contact details.
+  - Features quick-action launch buttons: `View in CRM` (`index.php?view=leads&search=...`) and `New Order Batch` (`index.php?customer_id=...`), plus individual manifest 1-click preview triggers.
+- **Global Empty-State Polish (Phase 4)**:
+  - Both table-level (`.no-results-row`) and tab-level (`.global-no-results`) empty states display styled search icons, clear typography, and a "Clear Search Filter" button (`clearSearchInput()`).
+
+---
+
+## 🎯 Leads & CRM Architecture & Rules (`view=leads`)
+- **Table Sorting**: All 9 data columns (`Customer / Lead`, `Status`, `Source`, `Interest`, `Last Order`, `Balance`, `Last Contact`, `Next Call`, `Notes`) must be sortable using `sortLeadsTable(colIndex, type)` with raw unformatted values in `data-sort-val`.
+- **Follow-Up Urgency Tagging**: The `Next Call` column must dynamically display visual status chips:
+  - 🔴 **Overdue** (`callback_date < today`)
+  - 🟡 **Due Today** (`callback_date == today`)
+  - 🟢 **Upcoming** (`callback_date > today`)
+- **Real-Time Text Highlighting**: Real-time multi-term search keyword highlighting must be preserved across company names, notes, contact channels, and statuses via `highlightLeadNodeWords()`.
+- **1-Click Leads CSV Export**: `exportLeadsCSV()` exports active and filtered accounts with company names, status, urgency, balance, contact dates, and internal notes.
+
+---
+
 ## 🔍 Token-Saving Shortcuts for AI Agents
 - **Working Zones Grid**: `warehouse.php` implements a drill-down architecture where parent zones control the sub-locations visible. Use the state parameters `sector` and `active_zone_name` to filter and render sub-locations.
 - **CPU pricing popups**: `trends.php` uses companion JS functions `openCpuPricingModal` and `openOrderPreviewModal` that query standard AJAX endpoints. Keep dialog HTML blocks at the bottom of the PHP file layout.
 - **Config & DB Check**: Look directly at `prod/core/database.php` and `prod/core/Schema.php` for table blueprints and schema changes.
 - **Pathing reference**: Relative path references are calculated relative to `prod/index.php`. Use `__DIR__` in PHP includes to ensure correct file inclusion.
+

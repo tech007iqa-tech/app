@@ -27,11 +27,11 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 
 ### 📊 Order Manager (`/orders`)
 *B2B Relationship & Batch Fulfillment*
-- **CRM Hub**: Advanced lead tracking with interaction timelines and status priority. Real-time, timer-free Server-Sent Events (SSE) synchronization across all workstations.
+- **CRM Hub**: Advanced lead tracking with interaction timelines and status priority. Real-time, timer-free Server-Sent Events (SSE) synchronization across all workstations. Features 9-column bidirectional table sorting (`data-sort-val`), dynamic urgency badges (`🔴 Overdue`, `🟡 Due Today`, `🟢 Upcoming`), live keyword search highlighting, and 1-click UTF-8 BOM CSV exports.
+- **Historical Trends & BI Analytics**: Modular tabbed workspace featuring Model Demand Velocity (Avg Price displayed before Details, buyer links, 1-click CSV export), accounting-grade ASP timeline & Monthly Valuation trend graphs (with MoM growth chips, executive KPI summary cards, reconciliation ledger footer, and 1-click CSV export), Dual-Axis Performance Model switcher (Split View vs. Dual-Axis Combo with Left/Right Y-axes), Customer Profile & Order History Intelligence Dialog with lifetime spend, units liquidated, completed orders, tenure, and recent manifest preview modals, live matrix save confirmation toasts & cell glow animations, and CPU pricing insight modals.
 - **Batch Logistics**: Manage complex hardware orders with real-time stock allocation.
 - **Warehouse Working Zones & Gates**: Nested zone mapping (e.g. Zone A, Zone B, General) with drill-down to specific locations/shelves.
 - **Inventory Consolidation**: Automated deduplication and quantity merging for identical warehouse items within the same location.
-- **CPU Pricing Insights**: Interactive pricing details modal with CPU model averages, ranges, and linked transaction logs.
 - **Global Registry**: Searchable customer database with session-persistent filters.
 
 ### 🛠️ Technician Control Center (`/tech`)
