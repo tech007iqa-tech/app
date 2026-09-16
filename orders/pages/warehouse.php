@@ -31,12 +31,20 @@ $stmt_locs = $conn_wh->query("
         (SELECT COUNT(*) FROM inventory i WHERE i.location_code = l.location_code) as item_count,
         ls.color as status_color
     FROM locations l
-    LEFT JOIN location_statuses ls ON l.status = ls.name
+    LEFT JOIN (
+        SELECT name, color FROM location_statuses GROUP BY name
+    ) ls ON l.status = ls.name
     ORDER BY l.location_code ASC
 ");
 $existing_locs = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
 
-$all_statuses = $conn_wh->query("SELECT * FROM location_statuses ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$all_statuses = $conn_wh->query("
+    SELECT MIN(id) AS id, name, color, is_default 
+    FROM location_statuses 
+    WHERE location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL'
+    GROUP BY name 
+    ORDER BY is_default DESC, name ASC
+")->fetchAll(PDO::FETCH_ASSOC);
 $sectors = $conn_wh->query("SELECT * FROM sectors")->fetchAll(PDO::FETCH_ASSOC);
 
 // 3. Fetch Inventory Items
@@ -100,7 +108,7 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
                 $active_l_color = '#94a3b8';
                 $active_l_status = 'Idle';
                 if ($selected_loc) {
-                    $active_l_stmt = $conn_wh->prepare("SELECT l.*, ls.color FROM locations l LEFT JOIN location_statuses ls ON l.status = ls.name WHERE l.location_code = ?");
+                    $active_l_stmt = $conn_wh->prepare("SELECT l.*, ls.color FROM locations l LEFT JOIN (SELECT name, color FROM location_statuses GROUP BY name) ls ON l.status = ls.name WHERE l.location_code = ?");
                     $active_l_stmt->execute([$selected_loc]);
                     $active_l = $active_l_stmt->fetch(PDO::FETCH_ASSOC);
                     if ($active_l) {

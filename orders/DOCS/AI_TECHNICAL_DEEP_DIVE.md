@@ -1,4 +1,4 @@
-# 🧠 AI Technical Deep Dive 9/5/2026 10:52 PM
+# 🧠 AI Technical Deep Dive 9/16/2026 11:26 AM
 
 This document details the database schemas, query abstractions, concurrency controls, document generation formulas, and security patterns implemented in the **IQA Warehouse Systems**.
 
@@ -201,6 +201,19 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
 ---
 
 ## ⚠️ Recent Critical Fixes & Features (September 2026)
+*   **Modular Media & Photography System (September 16, 2026)**:
+    *   **Core Engine (`core/MediaManager.php`)**: Built GD-based WebP converter (`1920px` max, ~200-300KB web view; `160x160px` thumbnail crop, ~8-15KB), EXIF auto-orientation, `YYYY/MM/` date-partitioned storage hierarchy, and cascading file + DB deletions.
+    *   **Live Camera Viewfinder (`assets/js/camera_uploader.js` & `pages/partials/warehouse/camera_modal.php`)**: HTML5 `navigator.mediaDevices.getUserMedia` live viewfinder, front/rear camera switcher, shutter snap with flash effect, freeze-frame preview/retake workflow, and drag-and-drop file upload zone.
+    *   **Universal Upload/Delete APIs (`api/media_upload.php` & `api/media_delete.php`)**: Secure endpoints supporting multipart files and Base64 canvas snapshots, foreign key pre-validation on `locations` table to avoid SQLite constraint violations, and AJAX UI deletion with card fade-out.
+    *   **Monthly Partition Archiving (`core/BackupManager.php`)**: Added `exportMonthlyArchive()` and `getMonthlyArchiveBreakdown()` for date-partitioned `.tar` backups.
+*   **Warehouse Location Status Deduplication (September 16, 2026)**:
+    *   **Global Status Isolation**: Fixed `$all_statuses` query in `pages/warehouse.php` to strictly query global statuses (`location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL'`) with `GROUP BY name`.
+    *   **Grouped Color Subquery**: Replaced raw join with `(SELECT name, color FROM location_statuses GROUP BY name)` to prevent duplicate location cards.
+    *   **Dynamic Shelf Custom Status Handling**: Updated `warehouse_modals.js` (`openRenameModal()`) to dynamically inject the shelf's custom status into the dropdown if missing, and clean it up upon modal closure.
+*   **Shelf Audit & Sync UX Overhaul (September 16, 2026)**:
+    *   Removed redundant bulk "Purge Selected (Record as Sold)" button from the "Shelf Audit & Sync" modal (`inventory_modal.php`).
+    *   Replaced text "Sold / Purge" button with compact trash icon (`🗑️`).
+    *   Changed tab icon from `🗑️` to `🔄` to emphasize reconciliation over deletion.
 *   **Trends Center & Financial Analytics Engine (`/orders/index.php?view=trends`)**:
     *   **Model Demand Velocity Table Ordering**: Enforced column order: `Rank/Customer` (0, `num/str`), `Brand` (1, `str`), `Model` (2, `str`), `Avg Price` (3, `num`), `Details` (4, `str`), `Latest Sold/Order` (5, `date/str`), `Units Sold` (6, `num`).
     *   **Financial Graphs (Tab 2 Pricing Curves)**: Restored Chart.js rendering for **Average Selling Price (ASP) Timeline** and **Monthly Gross Realized Valuation**. Time-series points sort chronologically (left-to-right) with financial tooltips showing Realized ASP, Invoiced Units, Gross Revenue, and MoM variance.

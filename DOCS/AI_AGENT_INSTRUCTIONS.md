@@ -1,4 +1,4 @@
-# 🤖 AI Agent Instructions & Architecture Guidelines 9/5/2026 10:52 PM
+# 🤖 AI Agent Instructions & Architecture Guidelines 9/16/2026 11:26 AM
 
 ## 🎯 Overview
 This document is for future AI coding assistants working on the **IQA Warehouse Systems**. This project is a lean, high-performance ecosystem designed for speed and reliability in a physical warehouse environment.
@@ -12,6 +12,7 @@ This document is for future AI coding assistants working on the **IQA Warehouse 
 4.  **Schema Guard**: Always maintain the "Self-Healing" pattern. If you add a column, update the `schema_guard.php` (Labels) or the database initialization logic (Orders).
 5.  **Flat XML (FODT)**: Do NOT use ZipArchive for label generation. Generate Flat XML ODT files as they are portable and dependency-free.
 6.  **Premium UI**: Every UI element must feel premium. Use HSL colors, glassmorphism, smooth transitions, and high contrast for warehouse visibility.
+7.  **Modular Media & Ingest-Time Optimization**: Never compress images on HTTP demand (Zip-on-Demand). Always convert incoming camera/photo uploads to WebP on ingest (~200-300KB web view, 160x160 thumb) and partition on disk by `YYYY/MM/`.
 
 ---
 
@@ -19,12 +20,16 @@ This document is for future AI coding assistants working on the **IQA Warehouse 
 - **Absolute Paths**: Always use `__DIR__` for PHP requires to ensure portability across XAMPP environments.
 - **Audit Logging**: Every mutation (Insert/Update/Delete) MUST trigger an audit entry. Use the `log_audit_event()` helper.
 - **Technical Fingerprinting**: Before adding new hardware, check for exact technical duplicates to prevent inventory clutter.
+- **Media Ingestion & Cascading Deletion**: All photo uploads must be processed via `MediaManager::processUpload()` or `processBase64()`. Deletions must cascade across physical disk files (archive, optimized, thumb) and database records (`location_photos`).
 
 ---
 
 ## 🚨 Critical Constraints
 - **PowerShell Integration**: The Label system uses PowerShell for direct file launching on Windows hosts. Maintain `api/open_windows_file.php` compatibility.
 - **iOS Safari Optimization**: Many warehouse devices are iPads/iPhones. Ensure all CSS uses `48px` touch targets and avoids `:hover` dependent logic for critical actions.
+- **Camera & Live Viewfinder Access**: Use `navigator.mediaDevices.getUserMedia` with fallback to native file pickers (`<input type="file" capture="environment">`). Support front/rear camera toggling with stream teardown via `track.stop()`.
+- **Warehouse Location Status Isolation**: Global status dropdowns must filter to `location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL'` with `GROUP BY name` to prevent custom per-shelf statuses from polluting the global options. Joins on `location_statuses` for colors must use grouped subqueries to avoid duplicating location rows.
+- **Foreign Key Safety on Uploads**: When uploading photos for a shelf/location, ensure the `locations` record exists (`INSERT OR IGNORE INTO locations (location_code, status) VALUES (?, 'Idle')`) before inserting into `location_photos` to prevent SQLite foreign key constraint failures.
 - **No Global JS Variables**: Scope all JS within modules or `DOMContentLoaded` listeners to prevent collisions.
 - **Trends Table Column Ordering**: In the Model Demand Velocity table (`trends_tab_velocity.php`), **Avg Price** MUST be rendered before the **Details** column. Do NOT reverse this.
 - **Chart.js Hidden Canvas Handling**: In tabbed views, canvases starting with `display: none` report `0x0` dimensions. Always destroy previous instances via `Chart.getChart(id)?.destroy()` and dispatch chart initialization with a ~50ms timeout upon tab switching.
@@ -39,4 +44,5 @@ This document is for future AI coding assistants working on the **IQA Warehouse 
 1.  **DB Check**: After any schema change, delete a test DB and let the `Schema Guard` rebuild it.
 2.  **ODT Validation**: Verify generated `.odt` files open in LibreOffice without "Corrupt File" warnings (check XML well-formedness).
 3.  **Responsive Audit**: Test in a mobile-width browser to ensure the Sidebar and Action Grids don't break.
-4.  **Chart & Tab Verification**: Verify Trends charts re-render sharply when switching tabs, and CSV exports open cleanly with proper accents/currency in Excel.
+4.  **Media & Camera Verification**: Test photo uploads with both multi-part file uploads and live camera snapshots. Verify WebP conversion, thumbnail generation, disk cleanup on delete, and `YYYY/MM/` date partitioning.
+5.  **Chart & Tab Verification**: Verify Trends charts re-render sharply when switching tabs, and CSV exports open cleanly with proper accents/currency in Excel.

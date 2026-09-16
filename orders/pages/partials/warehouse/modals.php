@@ -79,47 +79,8 @@
     </div>
 </div>
 
-<?php if ($is_spreadsheet && $selected_loc): ?>
-<!-- Upload Location Photo Modal -->
-<div id="upload-photo-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2200; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="card" style="width: 100%; max-width: 450px; padding: 1.5rem; animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: #ffffff; color: #1e293b; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="margin: 0; font-size: 1.25rem;">📸 Upload Photo for <?= htmlspecialchars($selected_loc) ?></h3>
-            <button type="button" onclick="document.getElementById('upload-photo-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">×</button>
-        </div>
-
-        <form action="" method="POST" enctype="multipart/form-data" class="standard-form">
-            <?= UI::csrf_field() ?>
-            <input type="hidden" name="action" value="upload_location_photo">
-            <input type="hidden" name="location_code" value="<?= htmlspecialchars($selected_loc) ?>">
-            <input type="hidden" name="sector" value="<?= htmlspecialchars($selected_sector) ?>">
-            <input type="hidden" name="redirect_to" value="location">
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Photo</label>
-                <input type="file" name="photo" accept="image/*" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body);">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Layer / Category</label>
-                <select name="category" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body); color: var(--text-main);">
-                    <option value="Layer 1 (Bottom)">Layer 1 (Bottom)</option>
-                    <option value="Layer 2">Layer 2</option>
-                    <option value="Layer 3">Layer 3</option>
-                    <option value="Layer 4">Layer 4</option>
-                    <option value="Layer 5 (Top)">Layer 5 (Top)</option>
-                    <option value="Row View">Row / Overall View</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <button type="submit" class="btn-action" style="flex: 2; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Upload Photo</button>
-                <button type="button" onclick="document.getElementById('upload-photo-modal').style.display='none'" class="btn-action" style="flex: 1; padding: 10px; background: var(--text-dim); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-<?php endif; ?>
+<!-- Universal Camera & Photo Uploader Modal Component -->
+<?php include __DIR__ . '/camera_modal.php'; ?>
 
 <?php if (!empty($active_zone_name)): ?>
 <!-- Zone Photos Modal -->
@@ -128,7 +89,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
             <h3 style="margin: 0; font-size: 1.25rem;">📸 Photos for Zone: <?= htmlspecialchars($active_zone_name) ?></h3>
             <div style="display: flex; gap: 10px;">
-                <button type="button" onclick="document.getElementById('zone-upload-photo-modal').style.display='flex'" class="btn-action" style="background: var(--accent-color); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Upload New Photo</button>
+                <button type="button" onclick="CameraUploader.open({ locationCode: '<?= !empty($zone_locs) ? htmlspecialchars($zone_locs[0]) : '' ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', availableLocations: <?= json_encode($zone_locs ?? []) ?>, onSuccess: () => window.location.reload() })" class="btn-action" style="background: var(--accent-color); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">📷 Capture / Upload Photo</button>
                 <button type="button" onclick="document.getElementById('zone-photos-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">×</button>
             </div>
         </div>
@@ -160,81 +121,13 @@
                             </div>
                             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 6px;">
                                 <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.85rem; text-decoration: none;">📥</a>
-                                <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this photo?');">
-                                    <?= UI::csrf_field() ?>
-                                    <input type="hidden" name="action" value="delete_location_photo">
-                                    <input type="hidden" name="photo_id" value="<?= $photo['id'] ?>">
-                                    <input type="hidden" name="location_code" value="<?= htmlspecialchars($photo['location_code']) ?>">
-                                    <input type="hidden" name="sector" value="<?= htmlspecialchars($photo['sector']) ?>">
-                                    <input type="hidden" name="redirect_to" value="zone">
-                                    <input type="hidden" name="active_zone" value="<?= htmlspecialchars($active_zone_name) ?>">
-                                    <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.85rem;" title="Delete Photo">🗑️</button>
-                                </form>
+                                <button type="button" onclick="deleteLocationPhotoAjax(<?= $photo['id'] ?>, this)" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.85rem;" title="Delete Photo">🗑️</button>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
-    </div>
-</div>
-
-<!-- Zone Upload Photo Modal -->
-<div id="zone-upload-photo-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2200; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="card" style="width: 100%; max-width: 450px; padding: 1.5rem; animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: #ffffff; color: #1e293b; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="margin: 0; font-size: 1.25rem;">Upload Photo for Zone: <?= htmlspecialchars($active_zone_name) ?></h3>
-            <button type="button" onclick="document.getElementById('zone-upload-photo-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">×</button>
-        </div>
-
-        <form action="" method="POST" enctype="multipart/form-data" class="standard-form">
-            <?= UI::csrf_field() ?>
-            <input type="hidden" name="action" value="upload_location_photo">
-            <input type="hidden" name="redirect_to" value="zone">
-            <input type="hidden" name="active_zone" value="<?= htmlspecialchars($active_zone_name) ?>">
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Location / Shelf</label>
-                <select name="location_code" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body); color: var(--text-main);">
-                    <?php if (!empty($zone_locs)): ?>
-                        <?php foreach ($zone_locs as $zl): ?>
-                            <option value="<?= htmlspecialchars($zl) ?>"><?= htmlspecialchars($zl) ?></option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sector</label>
-                <select name="sector" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body); color: var(--text-main);">
-                    <?php foreach ($sectors as $s): ?>
-                        <option value="<?= htmlspecialchars($s['name']) ?>" <?= $selected_sector === $s['name'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Photo</label>
-                <input type="file" name="photo" accept="image/*" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body);">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Layer / Category</label>
-                <select name="category" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body); color: var(--text-main);">
-                    <option value="Layer 1 (Bottom)">Layer 1 (Bottom)</option>
-                    <option value="Layer 2">Layer 2</option>
-                    <option value="Layer 3">Layer 3</option>
-                    <option value="Layer 4">Layer 4</option>
-                    <option value="Layer 5 (Top)">Layer 5 (Top)</option>
-                    <option value="Row View">Row / Overall View</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <button type="submit" class="btn-action" style="flex: 2; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Upload Photo</button>
-                <button type="button" onclick="document.getElementById('zone-upload-photo-modal').style.display='none'" class="btn-action" style="flex: 1; padding: 10px; background: var(--text-dim); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
-            </div>
-        </form>
     </div>
 </div>
 <?php endif; ?>

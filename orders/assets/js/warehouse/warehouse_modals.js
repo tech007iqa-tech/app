@@ -77,7 +77,20 @@ function openRenameModal(locData) {
     if (oldLocInput) oldLocInput.value = loc;
     if (deleteLocInput) deleteLocInput.value = loc;
     if (newLocInput) newLocInput.value = loc;
-    if (statusSelect) statusSelect.value = status;
+    if (statusSelect) {
+        const tempOpt = statusSelect.querySelector('option[data-temp-custom="true"]');
+        if (tempOpt) tempOpt.remove();
+
+        statusSelect.value = status;
+        if (status && statusSelect.value !== status) {
+            const opt = document.createElement('option');
+            opt.value = status;
+            opt.textContent = `${status} (Current Custom)`;
+            opt.setAttribute('data-temp-custom', 'true');
+            statusSelect.appendChild(opt);
+            statusSelect.value = status;
+        }
+    }
 
     if (modal) modal.style.display = 'flex';
     if (newLocInput) newLocInput.focus();
@@ -246,4 +259,40 @@ function initStickyTableHeaders() {
             ticking = true;
         }
     });
+}
+
+async function deleteLocationPhotoAjax(photoId, btnEl) {
+    if (!confirm('Delete this photo?')) return;
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value 
+        || document.getElementById('warehouse-metadata')?.dataset.csrf || '';
+
+    try {
+        const response = await fetch('api/media_delete.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                photo_id: photoId,
+                csrf_token: csrfToken
+            })
+        });
+
+        const result = await response.json();
+        if (response.ok && result.success) {
+            const card = btnEl.closest('.photo-card-mini, .photo-card-mini-zone');
+            if (card) {
+                card.style.transition = 'all 0.25s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.85)';
+                setTimeout(() => card.remove(), 250);
+            }
+        } else {
+            alert(result.error || 'Failed to delete photo.');
+        }
+    } catch (err) {
+        console.error('Delete error:', err);
+        alert('An error occurred while deleting photo.');
+    }
 }

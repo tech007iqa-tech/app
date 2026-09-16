@@ -1,4 +1,4 @@
-# 🗺️ Global System Sitemap - IQA Warehouse Systems 9/5/2026 10:52 PM
+# 🗺️ Global System Sitemap - IQA Warehouse Systems 9/16/2026 11:26 AM
 
 This sitemap outlines the comprehensive multi-module ecosystem of the IQA Warehouse Systems.
 
@@ -36,7 +36,7 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
 ---
 
 ## 📊 Module: Orders & CRM (`/orders/`)
-*Focus: B2B relationship management, warehouse locations, and batch order fulfillment.*
+*Focus: B2B relationship management, warehouse locations, modular media/camera pipeline, and batch order fulfillment.*
 
 - `index.php`: Front router (routes views via `?view=` query parameter).
 - `pages/`:
@@ -47,18 +47,27 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
   - `new_order.php`: Batch order and invoice builder.
   - `checkout.php`: B2B manifest builder and standardized CSV export.
   - `trends.php`: Historical BI analytics with modular multi-tab architecture, CPU pricing modals, accounting-grade charts, and demand velocity.
-  - `partials/`: Modular page views including `trends_tab_velocity.php` (Avg Price before Details, buyer links, CSV export), `trends_tab_pricing.php` (ASP & Valuation Split and Dual-Axis Combo charts, ledger, CSV export), `trends_tab_cpu.php`, `trends_tab_customers.php` (1-click customer intelligence links), `b2b_untested_matrix.php` (live save toasts), `tested_market_tab.php`, `trends_actions.php`, `trends_data.php`, `trends_widgets.php`, `trends_modals.php` (`#customerProfileModal`, `#orderPreviewModal`, `#cpuPricingModal`).
+  - `partials/`: Modular page views including `camera_modal.php` (Live HTML5 viewfinder, lens toggle, snap/preview, file drop zone), `inventory_modal.php` (Shelf audit, compact purge actions, deduplication), `trends_tab_velocity.php` (Avg Price before Details, buyer links, CSV export), `trends_tab_pricing.php` (ASP & Valuation Split and Dual-Axis Combo charts, ledger, CSV export), `trends_tab_cpu.php`, `trends_tab_customers.php` (1-click customer intelligence links), `b2b_untested_matrix.php` (live save toasts), `tested_market_tab.php`, `trends_actions.php`, `trends_data.php`, `trends_widgets.php`, `trends_modals.php` (`#customerProfileModal`, `#orderPreviewModal`, `#cpuPricingModal`).
   - `calendar.php`: Outreach scheduler with lead conversion tracking.
   - `settings.php`: Administrative control panel (schema repair, backups, audit logs).
   - `import_warehouse.php`: Batch inventory CSV intake importer.
+- `api/`:
+  - `media_upload.php`: Universal REST upload endpoint for multipart files and Base64 live canvas snapshots.
+  - `media_delete.php`: REST endpoint for cascading photo deletion (disk assets and DB metadata).
 - `core/`:
   - `database.php`: Cross-DB PDO singleton with self-healing schema migrations.
   - `auth.php`: Role-based security (`Admin`, `Operator`, `Front Desk`).
   - `Schema.php`: Database table blueprints and migration rules.
-  - `LocationPhotoProcessor.php`: Location and shelf photo optimization pipeline.
-  - `Storage.php`: Storage abstraction layer for SSD and spinning disk archives.
-  - `BackupManager.php`: Automated `.tar` archive creation and recovery.
-- `assets/js/trends/`: Modular client-side logic for the Trends module (`trends_nav.js`, `trends_charts.js`, `trends_matrix.js`, `trends_details.js`, `trends_modals.js`).
+  - `MediaManager.php`: High-performance GD WebP image optimization, EXIF rotation, `YYYY/MM/` date partitioning, and cascading deletion engine.
+  - `LocationPhotoProcessor.php`: Legacy location and shelf photo optimization pipeline.
+  - `Storage.php`: Storage abstraction layer for SSD and spinning disk archives with subfolder resolution.
+  - `BackupManager.php`: Automated `.tar` archive creation, monthly partition exports, and recovery.
+- `assets/js/`:
+  - `camera_uploader.js`: Universal live camera viewfinder, lens switcher, snapshot capture, and drag & drop photo upload engine.
+  - `warehouse/warehouse_modals.js`: Warehouse modal controllers, shelf audits, and AJAX photo deletion.
+  - `trends/`: Modular client-side logic for the Trends module (`trends_nav.js`, `trends_charts.js`, `trends_matrix.js`, `trends_details.js`, `trends_modals.js`).
+- `DOCS/`:
+  - `MODULAR_CAMERA_SYSTEM.md`: 5-Phase modular camera, media engine, and date-partitioned storage documentation.
 
 ---
 

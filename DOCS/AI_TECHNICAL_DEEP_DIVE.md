@@ -1,4 +1,4 @@
-# 🧠 AI Technical Deep Dive & Handover 9/5/2026 10:52 PM
+# 🧠 AI Technical Deep Dive & Handover 9/16/2026 11:26 AM
 
 This document serves as a "shortcut" for AI agents to understand the underlying logic of the IQA Warehouse Systems without reading every single file.
 
@@ -37,11 +37,29 @@ Every module has a `schema_guard.php` or `Schema::runMigrations()` setup.
 *   **Method**: Uses `str_replace()` on a `.fodt` (Flat XML) template.
 *   **Benefit**: No `ZipArchive` dependency. Files are portable and work immediately with LibreOffice.
 
-### 4. iOS / Warehouse Optimization
+### 4. Modular Media Engine & Date-Partitioned Storage (`MediaManager.php`)
+*   **Ingest-Time WebP Conversion**: Photos uploaded from cameras or file inputs are converted directly to WebP on ingestion. The engine generates a web-optimized image (`1920px` max, ~200-300KB) and a thumbnail (`160x160px` square center crop, ~8-15KB). Raw images are safely archived.
+*   **Zero Zip-on-Demand Lag**: Because images are WebP compressed upon ingest, the system avoids heavy runtime zip compression.
+*   **`YYYY/MM/` Partitioning**: Files are stored in dated directories (`assets/location_photos/2026/09/`) to prevent single-directory inode bottlenecks.
+*   **Cascading Deletion**: Deleting a photo cascades across original, optimized, and thumbnail files on disk and removes the corresponding record from `location_photos`.
+
+### 5. iOS / Warehouse Optimization
 *   **Touch Targets**: Buttons are strictly `48px` minimum height.
 *   **Colors**: High-contrast light themes for operational modules; vibrant Teal/Lime for Marketing.
 
 ## ⚠️ Recent Critical Fixes & Features (September 2026)
+*   **Modular Media & Live Camera System (September 16, 2026)**:
+    *   **Live Viewfinder & Camera Switching (`camera_uploader.js` & `camera_modal.php`)**: Implemented HTML5 `getUserMedia` streaming with dynamic front/environment camera switching, shutter snap flash effect, freeze-frame preview/retake workflow, and tabbed drag-and-drop file upload zone.
+    *   **Universal REST APIs (`orders/api/media_upload.php` & `media_delete.php`)**: Handles multipart file uploads and Base64 canvas snapshots. Includes foreign key pre-validation on `locations` table to avoid SQLite constraint violations. Deletion API cascades across physical disk files and `location_photos` rows with AJAX UI card removal.
+    *   **Cold Storage Partitioning (`BackupManager.php`)**: Added `exportMonthlyArchive()` and `getMonthlyArchiveBreakdown()` for creating `.tar` backups of specific monthly photo partitions.
+*   **Warehouse Location Status Deduplication (September 16, 2026)**:
+    *   **Global Status Isolation**: Fixed `$all_statuses` query in `orders/pages/warehouse.php` to strictly query global statuses (`location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL'`) with `GROUP BY name`, preventing custom shelf statuses from polluting the global dropdown.
+    *   **Grouped Color Subquery**: Replaced raw join with `(SELECT name, color FROM location_statuses GROUP BY name)` to prevent duplicate location cards.
+    *   **Dynamic Shelf Custom Status Handling**: Updated `warehouse_modals.js` (`openRenameModal()`) to dynamically inject the shelf's custom status into the dropdown if missing, and clean it up upon modal closure.
+*   **Shelf Audit & Sync UX Overhaul (September 16, 2026)**:
+    *   Removed redundant bulk "Purge Selected (Record as Sold)" button from the "Shelf Audit & Sync" modal (`inventory_modal.php`).
+    *   Replaced text "Sold / Purge" button with compact trash icon (`🗑️`).
+    *   Changed tab icon from `🗑️` to `🔄` to emphasize reconciliation over deletion.
 *   **Trends Center & Financial Analytics Engine (`/orders/index.php?view=trends`)**:
     *   **Model Demand Velocity Table Ordering**: Enforced column order: `Rank/Customer` (0, `num/str`), `Brand` (1, `str`), `Model` (2, `str`), `Avg Price` (3, `num`), `Details` (4, `str`), `Latest Sold/Order` (5, `date/str`), `Units Sold` (6, `num`).
     *   **Financial Graphs (Tab 2 Pricing Curves)**: Restored Chart.js rendering for **Average Selling Price (ASP) Timeline** and **Monthly Gross Realized Valuation**. Time-series points sort chronologically (left-to-right) with financial tooltips showing Realized ASP, Invoiced Units, Gross Revenue, and MoM variance.

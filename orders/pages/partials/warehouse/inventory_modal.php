@@ -58,7 +58,7 @@ if (!empty($selected_loc)) {
             </button>
             <button type="button" id="tab-btn-deplete" class="inv-tab-btn" onclick="switchInventoryTab('deplete')"
                 style="padding:12px 20px; font-weight:700; font-size:0.85rem; border:none; background:transparent; border-bottom:3px solid transparent; color:var(--text-secondary, #64748b); cursor:pointer; display:flex; align-items:center; gap:8px; border-top-left-radius:8px; border-top-right-radius:8px; transition:all 0.2s;">
-                <span>🗑️</span> Shelf Audit & Sync <span id="modal-inv-count-badge" style="background:#e2e8f0; color:#334155; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:800;"><?= count($items) ?></span>
+                <span>🔄</span> Shelf Audit & Sync <span id="modal-inv-count-badge" style="background:#e2e8f0; color:#334155; font-size:0.7rem; padding:2px 6px; border-radius:10px; font-weight:800;"><?= count($items) ?></span>
             </button>
         </div>
 
@@ -254,17 +254,11 @@ if (!empty($selected_loc)) {
                     </button>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap;">
-                    <div style="position:relative; flex:1; min-width:200px;">
+                <div style="margin-bottom:14px;">
+                    <div style="position:relative; width:100%;">
                         <input type="text" id="modal-deplete-filter" placeholder="Filter shelf items..." onkeyup="filterModalDepleteList(this.value)"
                             style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border-color, #cbd5e1); padding:0 10px 0 32px; font-size:0.85rem; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a);">
                         <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:0.5; font-size:0.85rem;">🔍</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button type="button" onclick="batchPurgeSelectedModalItems()" class="btn-danger-purge"
-                            style="height:38px; padding:0 14px; border-radius:8px; border:none; background:#ef4444; color:white; font-weight:800; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(239,68,68,0.25);">
-                            <span>🗑️</span> Purge Selected (Record as Sold)
-                        </button>
                     </div>
                 </div>
 
@@ -280,7 +274,7 @@ if (!empty($selected_loc)) {
                                 <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b);">Item / Hardware Specs</th>
                                 <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:80px;">Shelf Qty</th>
                                 <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:120px;">Step Qty</th>
-                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:right; width:110px;">Actions</th>
+                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:right; width:60px;"></th>
                             </tr>
                         </thead>
                         <tbody id="modal-deplete-table-body">
@@ -333,9 +327,9 @@ if (!empty($selected_loc)) {
                                     </td>
                                     <td style="padding:10px; text-align:right;">
                                         <button type="button" onclick="purgeModalItem(<?= $it['id'] ?>, '<?= htmlspecialchars(addslashes($it['brand'] . ' ' . $it['model'])) ?>')"
-                                            style="padding:6px 10px; border-radius:6px; border:none; background:#fee2e2; color:#b91c1c; font-weight:800; font-size:0.75rem; cursor:pointer; transition:all 0.15s;"
+                                            style="width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; background:#fee2e2; color:#b91c1c; font-size:0.95rem; cursor:pointer; transition:all 0.15s;"
                                             onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Record as Sold & Remove">
-                                            🏷️ Sold / Purge
+                                            🗑️
                                         </button>
                                     </td>
                                 </tr>

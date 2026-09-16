@@ -474,8 +474,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
         $name = trim($_POST['status_name']);
         $color = $_POST['status_color'] ?? '#64748b';
         if (!empty($name)) {
-            $stmt = $conn_wh->prepare("INSERT OR IGNORE INTO location_statuses (name, color) VALUES (?, ?)");
+            $stmt = $conn_wh->prepare("INSERT OR IGNORE INTO location_statuses (name, color, is_default, location_code) VALUES (?, ?, 0, NULL)");
             $stmt->execute([$name, $color]);
+        }
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'name' => $name, 'color' => $color]);
+            exit();
         }
         header("Location: index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&msg=status_added");
         exit();
@@ -589,10 +594,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
         $active_zone = $_POST['active_zone'] ?? '';
 
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-            require_once __DIR__ . '/../../../core/LocationPhotoProcessor.php';
+            require_once __DIR__ . '/../../core/MediaManager.php';
             try {
-                $processor = new LocationPhotoProcessor($conn_wh);
-                $processor->processUpload(
+                $mediaManager = new MediaManager($conn_wh);
+                $mediaManager->processUpload(
                     $_FILES['photo']['tmp_name'],
                     $_FILES['photo']['name'],
                     $loc,
@@ -625,26 +630,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
 
         if ($photo_id > 0) {
             try {
-                $stmt = $conn_wh->prepare("SELECT * FROM location_photos WHERE id = ?");
-                $stmt->execute([$photo_id]);
-                $photo = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($photo) {
-                    require_once __DIR__ . '/../../../core/Storage.php';
-                    $ssdDriver = StorageManager::getDriver('ssd_local');
-                    $archiveDriver = StorageManager::getDriver('spinning_disk');
-
-                    $archiveDriver->delete($photo['archive_path']);
-                    $ssdDriver->delete(basename($photo['optimized_path']));
-                    $ssdDriver->delete(basename($photo['thumbnail_path']));
-
-                    $stmt_del = $conn_wh->prepare("DELETE FROM location_photos WHERE id = ?");
-                    $stmt_del->execute([$photo_id]);
-
-                    $msg = 'photo_deleted';
-                } else {
-                    $msg = 'photo_not_found';
-                }
+                require_once __DIR__ . '/../../core/MediaManager.php';
+                $mediaManager = new MediaManager($conn_wh);
+                $deleted = $mediaManager->deletePhoto($photo_id);
+                $msg = $deleted ? 'photo_deleted' : 'photo_not_found';
             } catch (Exception $e) {
                 $msg = 'photo_error&err=' . urlencode($e->getMessage());
             }

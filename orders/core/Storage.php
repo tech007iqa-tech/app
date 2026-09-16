@@ -16,31 +16,47 @@ class LocalDiskDriver implements StorageDriver {
 
     public function __construct($basePath, $urlPrefix = '') {
         $this->basePath = rtrim(str_replace('\\', '/', $basePath), '/') . '/';
-        $this->urlPrefix = $urlPrefix;
+        $this->urlPrefix = !empty($urlPrefix) ? rtrim(str_replace('\\', '/', $urlPrefix), '/') . '/' : '';
+    }
+
+    private function sanitizeRelPath($filename) {
+        $clean = str_replace('\\', '/', $filename);
+        $clean = preg_replace('#/+#', '/', $clean);
+        // Strip out leading slash or dangerous relative parent traversal
+        $clean = ltrim($clean, '/');
+        $clean = str_replace('../', '', $clean);
+        if (!empty($this->urlPrefix) && strpos($clean, $this->urlPrefix) === 0) {
+            $clean = substr($clean, strlen($this->urlPrefix));
+        }
+        return $clean;
     }
 
     public function put($filename, $sourcePath) {
-        if (!is_dir($this->basePath)) {
-            if (!mkdir($this->basePath, 0755, true)) {
-                throw new Exception("Unable to create storage directory: " . $this->basePath);
+        $relPath = $this->sanitizeRelPath($filename);
+        $target = $this->basePath . $relPath;
+        $dir = dirname($target);
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, 0755, true)) {
+                throw new Exception("Unable to create storage directory: " . $dir);
             }
         }
-        $target = $this->basePath . basename($filename);
-        if (!copy($sourcePath, $target)) {
+        if (!@copy($sourcePath, $target)) {
             throw new Exception("Failed to write file to: " . $target);
         }
         return true;
     }
 
     public function getFullPath($filename) {
-        return $this->basePath . basename($filename);
+        $relPath = $this->sanitizeRelPath($filename);
+        return $this->basePath . $relPath;
     }
 
     public function getUrl($filename) {
+        $relPath = $this->sanitizeRelPath($filename);
         if (empty($this->urlPrefix)) {
-            return 'assets/location_photos/' . basename($filename);
+            return 'assets/location_photos/' . $relPath;
         }
-        return $this->urlPrefix . basename($filename);
+        return $this->urlPrefix . $relPath;
     }
 
     public function delete($filename) {

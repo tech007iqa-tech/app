@@ -272,6 +272,7 @@ $page_content = ob_get_clean();
         <script src="assets/js/new_order.js?v=<?= filemtime('assets/js/new_order.js') ?>" defer></script>
         <script src="assets/js/import_work_order.js?v=<?= filemtime('assets/js/import_work_order.js') ?>" defer></script>
     <?php elseif ($active_key === 'warehouse'): ?>
+        <script src="assets/js/camera_uploader.js?v=<?= filemtime('assets/js/camera_uploader.js') ?>" defer></script>
         <script src="assets/js/warehouse/warehouse_gate.js?v=<?= filemtime('assets/js/warehouse/warehouse_gate.js') ?>" defer></script>
         <script src="assets/js/warehouse/warehouse_form.js?v=<?= filemtime('assets/js/warehouse/warehouse_form.js') ?>" defer></script>
         <script src="assets/js/warehouse/warehouse_spreadsheet.js?v=<?= filemtime('assets/js/warehouse/warehouse_spreadsheet.js') ?>" defer></script>

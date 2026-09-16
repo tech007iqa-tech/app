@@ -238,4 +238,68 @@ class BackupManager {
 
         return $success;
     }
+
+    /**
+     * Packages a specific month's photos (e.g. '2026/09') into a cold storage .tar archive.
+     */
+    public function exportMonthlyArchive($yearMonth, $outputTarPath) {
+        $yearMonth = str_replace('\\', '/', trim($yearMonth, '/\\'));
+        if (file_exists($outputTarPath)) {
+            @unlink($outputTarPath);
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT * FROM location_photos 
+            WHERE archive_path LIKE ? OR strftime('%Y/%m', created_at) = ?
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$yearMonth . '/%', $yearMonth]);
+        $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($photos)) {
+            return false;
+        }
+
+        $tempDir = sys_get_temp_dir() . '/wh_monthly_backup_' . str_replace('/', '_', $yearMonth) . '_' . uniqid();
+        if (!mkdir($tempDir, 0755, true)) {
+            throw new Exception("Failed to create temporary export directory.");
+        }
+
+        try {
+            file_put_contents($tempDir . '/monthly_metadata.json', json_encode($photos, JSON_PRETTY_PRINT));
+
+            $archiveDriver = StorageManager::getDriver('spinning_disk');
+            foreach ($photos as $photo) {
+                $sourceFullPath = $archiveDriver->getFullPath($photo['archive_path']);
+                if (file_exists($sourceFullPath)) {
+                    $targetFile = $tempDir . '/' . basename($photo['archive_path']);
+                    @copy($sourceFullPath, $targetFile);
+                }
+            }
+
+            $tar = new PharData($outputTarPath);
+            $tar->buildFromDirectory($tempDir);
+        } finally {
+            $this->recursiveRemoveDir($tempDir);
+        }
+
+        return file_exists($outputTarPath);
+    }
+
+    /**
+     * Gets a breakdown of photo counts and dates by month.
+     */
+    public function getMonthlyArchiveBreakdown() {
+        $stmt = $this->db->query("
+            SELECT 
+                strftime('%Y/%m', created_at) AS month_key,
+                COUNT(*) AS photo_count,
+                MIN(created_at) AS first_photo,
+                MAX(created_at) AS last_photo
+            FROM location_photos
+            GROUP BY strftime('%Y/%m', created_at)
+            ORDER BY month_key DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

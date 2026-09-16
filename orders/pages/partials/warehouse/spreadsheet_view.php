@@ -82,23 +82,16 @@
                                 </div>
                                 <div style="display: flex; justify-content: center; gap: 8px; margin-top: 4px;">
                                     <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.75rem; text-decoration: none;">📥</a>
-                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this photo?');">
-                                        <?= UI::csrf_field() ?>
-                                        <input type="hidden" name="action" value="delete_location_photo">
-                                        <input type="hidden" name="photo_id" value="<?= $photo['id'] ?>">
-                                        <input type="hidden" name="location_code" value="<?= htmlspecialchars($selected_loc) ?>">
-                                        <input type="hidden" name="sector" value="<?= htmlspecialchars($selected_sector) ?>">
-                                        <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.75rem;" title="Delete Photo">🗑️</button>
-                                    </form>
+                                    <button type="button" onclick="deleteLocationPhotoAjax(<?= $photo['id'] ?>, this)" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.75rem;" title="Delete Photo">🗑️</button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
 
                     <!-- Add Photo trigger -->
-                    <button type="button" onclick="document.getElementById('upload-photo-modal').style.display='flex'" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
-                        <span style="font-size: 1.5rem;">➕</span>
-                        <span style="font-size: 0.75rem; font-weight: 600;">Add Photo</span>
+                    <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($selected_loc) ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', onSuccess: () => window.location.reload() })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
+                        <span style="font-size: 1.5rem;">📷</span>
+                        <span style="font-size: 0.75rem; font-weight: 600;">Camera / Add</span>
                     </button>
                 </div>
             </div>
