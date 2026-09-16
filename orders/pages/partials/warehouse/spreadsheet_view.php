@@ -3,19 +3,49 @@
  * Warehouse Spreadsheet Mode View
  * In-cell editable grid layout with location photo gallery, auto-calculating totals, and rapid keyboard intake.
  */
+
+$is_zone_overview = (!empty($active_zone_name) && empty($selected_loc));
+$show_location_col = empty($selected_loc) || $selected_loc === 'GLOBAL' || $is_zone_overview;
+
+// Find default shelf for blank intake row
+$default_shelf = $selected_loc ?: '';
+if (empty($default_shelf) && !empty($active_zone_name)) {
+    if (!empty($existing_locs)) {
+        foreach ($existing_locs as $el) {
+            if (($el['working_zone_name'] ?? 'General') === $active_zone_name) {
+                $default_shelf = $el['location_code'];
+                break;
+            }
+        }
+    }
+    if (empty($default_shelf)) {
+        if (preg_match('/Zone\s+([a-zA-Z0-9]+)/i', $active_zone_name, $m)) {
+            $default_shelf = strtoupper($m[1]) . '-1';
+        } else {
+            $default_shelf = $active_zone_name . '-1';
+        }
+    }
+}
 ?>
 <!-- Metadata helper for JS -->
 <div id="warehouse-metadata"
      data-csrf="<?= htmlspecialchars(Security::getToken()) ?>"
      data-sector="<?= htmlspecialchars($selected_sector) ?>"
-     data-location-code="<?= htmlspecialchars($selected_loc) ?>"
+     data-location-code="<?= htmlspecialchars($selected_loc ?: $default_shelf) ?>"
+     data-zone="<?= htmlspecialchars($active_zone_name ?? '') ?>"
      style="display:none;"></div>
 
 <!-- Inventory List (Spreadsheet Mode) -->
 <section class="inventory-feed" style="width: 100%; max-width: none;">
     <div class="inventory-feed-header">
         <div class="inventory-summary-title">
-            <h2><?= htmlspecialchars($selected_sector) ?> Inventory</h2>
+            <h2>
+                <?php if ($is_zone_overview): ?>
+                    Zone <?= htmlspecialchars($active_zone_name) ?> &mdash; <?= htmlspecialchars($selected_sector) ?> Inventory
+                <?php else: ?>
+                    <?= htmlspecialchars($selected_sector) ?> Inventory
+                <?php endif; ?>
+            </h2>
             <?php
             $total_qty = 0;
             foreach ($items as $it) {
@@ -46,112 +76,117 @@
                 . (!empty($active_zone_name) ? '&zone=' . urlencode($active_zone_name) : '');
             ?>
             <button type="button" onclick="window.location.href='<?= htmlspecialchars($import_bulk_url) ?>'"
-                class="btn-export" style="background: #1e293b; color: white; border: none;" title="Bulk import into <?= htmlspecialchars($selected_loc ?: 'Warehouse') ?>">
+                class="btn-export" style="background: #1e293b; color: white; border: none;" title="Bulk import into <?= htmlspecialchars($selected_loc ?: ($active_zone_name ? 'Zone ' . $active_zone_name : 'Warehouse')) ?>">
                 📥 Import Bulk
             </button>
-
         </div>
     </div>
 
     <div class="scroll-hint">↔️ Swipe horizontally to edit/view all columns</div>
 
-    <!-- Collapsible Location Photo Gallery Widget -->
-    <div style="margin-bottom: 1.5rem; margin-top: 0.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); overflow: hidden;">
-        <details style="padding: 1rem; cursor: pointer;">
-            <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; list-style: none;">
-                <span>📸 Location Photos for <?= htmlspecialchars($selected_loc) ?> (<?= htmlspecialchars($selected_sector) ?>)</span>
-                <span class="photo-count" style="font-size: 0.85rem; background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 12px;"><?= count($location_photos) ?> Photos</span>
-            </summary>
+    <?php if ($selected_loc && $selected_loc !== 'GLOBAL'): ?>
+        <!-- Collapsible Location Photo Gallery Widget for single shelf -->
+        <div style="margin-bottom: 1.5rem; margin-top: 0.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); overflow: hidden;">
+            <details style="padding: 1rem; cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                    <span>📸 Location Photos for <?= htmlspecialchars($selected_loc) ?> (<?= htmlspecialchars($selected_sector) ?>)</span>
+                    <span class="photo-count" style="font-size: 0.85rem; background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 12px;"><?= count($location_photos) ?> Photos</span>
+                </summary>
 
-            <div style="margin-top: 1rem;">
-                <!-- Gallery Grid -->
-                <div class="photo-grid-horizontal" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; align-items: center;">
-                    <?php if (empty($location_photos)): ?>
-                        <div style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No photographs uploaded for this shelf yet.</div>
-                    <?php else: ?>
-                        <?php foreach ($location_photos as $photo): ?>
-                            <div class="photo-card-mini" style="flex: 0 0 100px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-body); position: relative;">
-                                <div class="img-preview-container" style="position: relative; width: 100%; height: 75px; overflow: hidden; border-radius: 6px;">
-                                    <img src="<?= htmlspecialchars($photo['thumbnail_path']) ?>" alt="<?= htmlspecialchars($photo['original_filename']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                                    <div class="hover-preview" style="display: none; position: fixed; z-index: 2100; width: 450px; height: 350px; background: rgba(0,0,0,0.95); border: 2px solid var(--accent-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; pointer-events: none;">
-                                        <img src="<?= htmlspecialchars($photo['optimized_path']) ?>" style="width: 100%; height: 100%; object-fit: contain;">
+                <div style="margin-top: 1rem;">
+                    <!-- Gallery Grid -->
+                    <div class="photo-grid-horizontal" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; align-items: center;">
+                        <?php if (empty($location_photos)): ?>
+                            <div style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No photographs uploaded for this shelf yet.</div>
+                        <?php else: ?>
+                            <?php foreach ($location_photos as $photo): ?>
+                                <div class="photo-card-mini" style="flex: 0 0 100px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-body); position: relative;">
+                                    <div class="img-preview-container" style="position: relative; width: 100%; height: 75px; overflow: hidden; border-radius: 6px;">
+                                        <img src="<?= htmlspecialchars($photo['thumbnail_path']) ?>" alt="<?= htmlspecialchars($photo['original_filename']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div class="hover-preview" style="display: none; position: fixed; z-index: 2100; width: 450px; height: 350px; background: rgba(0,0,0,0.95); border: 2px solid var(--accent-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; pointer-events: none;">
+                                            <img src="<?= htmlspecialchars($photo['optimized_path']) ?>" style="width: 100%; height: 100%; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.7rem; font-weight: 700; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<?= htmlspecialchars($photo['category']) ?>">
+                                        <?= htmlspecialchars($photo['category']) ?>
+                                    </div>
+                                    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 4px;">
+                                        <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.75rem; text-decoration: none;">📥</a>
+                                        <button type="button" onclick="deleteLocationPhotoAjax(<?= $photo['id'] ?>, this)" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.75rem;" title="Delete Photo">🗑️</button>
                                     </div>
                                 </div>
-                                <div style="font-size: 0.7rem; font-weight: 700; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<?= htmlspecialchars($photo['category']) ?>">
-                                    <?= htmlspecialchars($photo['category']) ?>
-                                </div>
-                                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 4px;">
-                                    <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.75rem; text-decoration: none;">📥</a>
-                                    <button type="button" onclick="deleteLocationPhotoAjax(<?= $photo['id'] ?>, this)" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.75rem;" title="Delete Photo">🗑️</button>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
 
-                    <!-- Add Photo trigger -->
-                    <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($selected_loc) ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', onSuccess: () => window.location.reload() })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
-                        <span style="font-size: 1.5rem;">📷</span>
-                        <span style="font-size: 0.75rem; font-weight: 600;">Camera / Add</span>
-                    </button>
+                        <!-- Add Photo trigger -->
+                        <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($selected_loc) ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', onSuccess: () => window.location.reload() })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
+                            <span style="font-size: 1.5rem;">📷</span>
+                            <span style="font-size: 0.75rem; font-weight: 600;">Camera / Add</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </details>
-    </div>
+            </details>
+        </div>
+    <?php endif; ?>
 
     <div class="spreadsheet-table-wrapper">
         <table class="spreadsheet-table">
             <thead>
                 <?php if ($selected_sector === 'Laptops'): ?>
                 <tr>
+                    <?php if ($show_location_col): ?><th style="width: 8%;">Shelf</th><?php endif; ?>
                     <th style="width: 10%;">Brand</th>
                     <th style="width: 10%;">Model</th>
                     <th style="width: 10%;">Series</th>
                     <th style="width: 8%;">CPU</th>
-                    <th style="width: 8%;">Gen</th>
-                    <th style="width: 8%;">RAM</th>
-                    <th style="width: 10%;">Storage</th>
-                    <th style="width: 8%;">Battery</th>
-                    <th style="width: 10%;">Condition</th>
-                    <th style="width: 12%;">Notes</th>
+                    <th style="width: 7%;">Gen</th>
+                    <th style="width: 7%;">RAM</th>
+                    <th style="width: 9%;">Storage</th>
+                    <th style="width: 7%;">Battery</th>
+                    <th style="width: 9%;">Condition</th>
+                    <th style="width: 11%;">Notes</th>
                     <th style="width: 8%;">Price</th>
                     <th style="width: 6%;">Qty</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php elseif ($selected_sector === 'Gaming'): ?>
                 <tr>
+                    <?php if ($show_location_col): ?><th style="width: 8%;">Shelf</th><?php endif; ?>
                     <th style="width: 10%;">Brand</th>
                     <th style="width: 10%;">Model</th>
                     <th style="width: 10%;">Category</th>
-                    <th style="width: 10%;">Specs/Series</th>
-                    <th style="width: 8%;">CPU</th>
-                    <th style="width: 8%;">GPU</th>
-                    <th style="width: 8%;">RAM</th>
-                    <th style="width: 10%;">Storage</th>
-                    <th style="width: 10%;">Condition</th>
-                    <th style="width: 12%;">Notes</th>
+                    <th style="width: 9%;">Specs/Series</th>
+                    <th style="width: 7%;">CPU</th>
+                    <th style="width: 7%;">GPU</th>
+                    <th style="width: 7%;">RAM</th>
+                    <th style="width: 9%;">Storage</th>
+                    <th style="width: 9%;">Condition</th>
+                    <th style="width: 11%;">Notes</th>
                     <th style="width: 8%;">Price</th>
                     <th style="width: 6%;">Qty</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php elseif ($selected_sector === 'Desktops'): ?>
                 <tr>
+                    <?php if ($show_location_col): ?><th style="width: 10%;">Shelf</th><?php endif; ?>
                     <th style="width: 12%;">Brand</th>
                     <th style="width: 15%;">Model</th>
                     <th style="width: 18%;">CPU/Gen/Brand</th>
                     <th style="width: 12%;">Condition</th>
-                    <th style="width: 25%;">Notes</th>
+                    <th style="width: 23%;">Notes</th>
                     <th style="width: 10%;">Price</th>
                     <th style="width: 8%;">Qty</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php else: ?>
                 <tr>
+                    <?php if ($show_location_col): ?><th style="width: 10%;">Shelf</th><?php endif; ?>
                     <th style="width: 12%;">Brand</th>
                     <th style="width: 15%;">Model</th>
                     <th style="width: 15%;">Device Type</th>
                     <th style="width: 15%;">Voltage/Specs</th>
                     <th style="width: 12%;">Condition</th>
-                    <th style="width: 20%;">Notes</th>
+                    <th style="width: 18%;">Notes</th>
                     <th style="width: 10%;">Price</th>
                     <th style="width: 8%;">Qty</th>
                     <th style="width: 6%;"></th>
@@ -167,7 +202,14 @@
                         data-model="<?= htmlspecialchars($item['model']) ?>"
                         data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
                         data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
-                        data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+                        data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+
+                        <?php if ($show_location_col): ?>
+                            <td class="editable-cell" data-field="location_code">
+                                <input type="text" class="cell-input text-center" value="<?= htmlspecialchars($item['location_code'] ?? '') ?>" list="zone-shelves-list" style="font-weight: 800; color: #2563eb;" title="Shelf Location">
+                            </td>
+                        <?php endif; ?>
+
                         <td class="editable-cell" data-field="brand">
                             <input type="text" class="cell-input" value="<?= htmlspecialchars($item['brand']) ?>" list="brand-options" placeholder="...">
                         </td>
@@ -248,7 +290,7 @@
                                     <input type="hidden" name="action" value="delete_inventory">
                                     <input type="hidden" name="item_id" value="<?= $item['id'] ?>">
                                     <input type="hidden" name="sector" value="<?= htmlspecialchars($selected_sector) ?>">
-                                    <input type="hidden" name="location_code" value="<?= htmlspecialchars($selected_loc) ?>">
+                                    <input type="hidden" name="location_code" value="<?= htmlspecialchars($item['location_code'] ?? $selected_loc) ?>">
                                     <?= UI::csrf_field() ?>
                                     <button type="submit" class="btn-delete" title="Delete Row">🗑</button>
                                 </form>
@@ -257,8 +299,14 @@
                     </tr>
                 <?php endforeach; ?>
 
-                <!-- Permanent blank row at the bottom -->
+                <!-- Permanent blank row at the bottom for rapid intake -->
                 <tr class="summary-row new-blank-row" data-id="new">
+                    <?php if ($show_location_col): ?>
+                        <td class="editable-cell" data-field="location_code">
+                            <input type="text" class="cell-input text-center" list="zone-shelves-list" placeholder="Shelf..." value="<?= htmlspecialchars($default_shelf) ?>" style="font-weight: 800; color: #2563eb;" title="Intake Shelf">
+                        </td>
+                    <?php endif; ?>
+
                     <td class="editable-cell" data-field="brand">
                         <input type="text" class="cell-input" list="brand-options" placeholder="Brand...">
                     </td>
@@ -343,6 +391,7 @@
                     if ($selected_sector === 'Laptops') $total_cols_sp = 13;
                     elseif ($selected_sector === 'Gaming') $total_cols_sp = 13;
                     elseif ($selected_sector === 'Desktops') $total_cols_sp = 8;
+                    if ($show_location_col) $total_cols_sp += 1;
                     ?>
                     <td colspan="<?= $total_cols_sp - 3 ?>" style="padding: 15px;">
                         <div class="search-container footer-search" style="max-width: 300px; margin: 0;">
@@ -371,6 +420,13 @@
         </table>
     </div>
 </section>
+
+<!-- Shelves options datalist for auto-fill -->
+<datalist id="zone-shelves-list">
+    <?php foreach ($existing_locs as $el): ?>
+        <option value="<?= htmlspecialchars($el['location_code']) ?>"><?= htmlspecialchars($el['working_zone_name'] ? $el['working_zone_name'] : 'General') ?></option>
+    <?php endforeach; ?>
+</datalist>
 
 <!-- Hidden datalists for cells -->
 <datalist id="cpu-options-list">

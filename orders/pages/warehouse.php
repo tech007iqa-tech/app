@@ -10,11 +10,15 @@ include 'core/auth.php'; // Session is already started and checked
 $current_user = $_SESSION['username'];
 $selected_sector = $_GET['sector'] ?? 'Laptops';
 $selected_loc = $_GET['loc'] ?? null;
-$is_spreadsheet = ($selected_loc && $selected_loc !== 'GLOBAL');
+$active_zone_name = $_GET['zone'] ?? null;
 
-// Fetch Location Photos if active in spreadsheet mode
+// Determine modes
+$is_zone_view = (!empty($active_zone_name) && empty($selected_loc));
+$is_spreadsheet = ($selected_loc && $selected_loc !== 'GLOBAL') || $is_zone_view;
+
+// Fetch Location Photos if active in single shelf spreadsheet mode
 $location_photos = [];
-if ($is_spreadsheet && $selected_loc) {
+if ($selected_loc && $selected_loc !== 'GLOBAL') {
     try {
         $stmt_lp = $conn_wh->prepare("SELECT * FROM location_photos WHERE location_code = ? AND sector = ? ORDER BY category ASC, created_at DESC");
         $stmt_lp->execute([$selected_loc, $selected_sector]);
@@ -51,7 +55,6 @@ $sectors = $conn_wh->query("SELECT * FROM sectors")->fetchAll(PDO::FETCH_ASSOC);
 $items = [];
 if ($selected_loc) {
     if ($selected_loc === 'GLOBAL') {
-        $active_zone_name = $_GET['zone'] ?? null;
         if ($active_zone_name) {
             if ($selected_sector === 'Master') {
                 $stmt_i = $conn_wh->prepare("SELECT * FROM inventory WHERE location_code IN (SELECT location_code FROM locations WHERE working_zone_name = ?) ORDER BY sector ASC, id DESC");
@@ -83,6 +86,16 @@ if ($selected_loc) {
         }
         $items = $stmt_i->fetchAll(PDO::FETCH_ASSOC);
     }
+} elseif ($active_zone_name) {
+    // Inside a Zone view without single shelf filter: load all items in this working zone
+    if ($selected_sector === 'Master') {
+        $stmt_i = $conn_wh->prepare("SELECT * FROM inventory WHERE location_code IN (SELECT location_code FROM locations WHERE working_zone_name = ?) ORDER BY sector ASC, id DESC");
+        $stmt_i->execute([$active_zone_name]);
+    } else {
+        $stmt_i = $conn_wh->prepare("SELECT * FROM inventory WHERE sector = ? AND location_code IN (SELECT location_code FROM locations WHERE working_zone_name = ?) ORDER BY id DESC");
+        $stmt_i->execute([$selected_sector, $active_zone_name]);
+    }
+    $items = $stmt_i->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $highlight_id = $_GET['last_id'] ?? null;
@@ -117,20 +130,20 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
                         $parent_zone = $active_l['working_zone_name'] ?? 'General';
                     }
                 }
-                $active_zone_name = $_GET['zone'] ?? $parent_zone;
+                $effective_zone = $active_zone_name ?? $parent_zone;
                 ?>
                 <div class="warehouse-breadcrumbs">
                     <a href="index.php?view=warehouse">Warehouse</a>
                     <?php if ($selected_loc): ?>
                         <span class="separator">/</span>
-                        <?php if ($active_zone_name): ?>
-                            <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?>&zone=<?= urlencode($active_zone_name) ?>"><?= htmlspecialchars($active_zone_name) ?></a>
+                        <?php if ($effective_zone): ?>
+                            <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?>&zone=<?= urlencode($effective_zone) ?>"><?= htmlspecialchars($effective_zone) ?></a>
                             <span class="separator">/</span>
                         <?php endif; ?>
                         <span class="current-crumb"><?= htmlspecialchars($selected_loc) ?></span>
-                    <?php elseif ($active_zone_name): ?>
+                    <?php elseif ($effective_zone): ?>
                         <span class="separator">/</span>
-                        <span class="current-crumb"><?= htmlspecialchars($active_zone_name) ?></span>
+                        <span class="current-crumb"><?= htmlspecialchars($effective_zone) ?></span>
                     <?php endif; ?>
                 </div>
 
@@ -143,7 +156,7 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
                                 <?= htmlspecialchars($active_l_status) ?>
                             </div>
                         </div>
-                        <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?><?= $active_zone_name ? '&zone=' . urlencode($active_zone_name) : '' ?>" class="loc-active-badge">
+                        <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?><?= $effective_zone ? '&zone=' . urlencode($effective_zone) : '' ?>" class="loc-active-badge">
                             <span class="loc-pin">📍</span>
                             <span class="loc-text"><?= htmlspecialchars($selected_loc) ?></span>
                             <span class="loc-change">Change</span>
@@ -184,16 +197,45 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
     </div>
     <?= UI::csrf_field() ?>
 
-    <?php if (!$selected_loc): ?>
-        <!-- 5. Gate View (Zones / Shelves Grid) -->
+    <?php if ($is_zone_view): ?>
+        <!-- Zone Gate Shelves Navigation & Dashboard at Top -->
         <?php include __DIR__ . '/partials/warehouse/gate_view.php'; ?>
+    </div> <!-- Close top .warehouse-container -->
+    </div> <!-- Close top .container -->
+
+    <!-- Standalone Data Container for Zone Inventory Table -->
+    <div class="container order-view warehouse-data-container" style="margin-top: 30px;">
+        <div class="warehouse-container">
+            <!-- Sector Navigation Tabs for Zone -->
+            <div class="sector-nav" style="margin-top: 5px;">
+                <?php foreach ($sectors as $s):
+                    $sector_url = "index.php?view=warehouse&sector=" . urlencode($s['name']) . "&zone=" . urlencode($active_zone_name);
+                ?>
+                    <a href="<?= $sector_url ?>"
+                        class="sector-card <?= $selected_sector === $s['name'] ? 'active' : '' ?>"
+                        data-sector="<?= htmlspecialchars($s['name']) ?>">
+                        <span class="sector-icon"><?= $s['icon'] ?></span>
+                        <span class="sector-name"><?= htmlspecialchars($s['name']) ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Zone Spreadsheet Inventory Table -->
+            <div class="warehouse-layout spreadsheet-mode" style="margin-top: 20px;">
+                <?php include __DIR__ . '/partials/warehouse/spreadsheet_view.php'; ?>
+            </div>
+        </div>
+    <?php elseif (!$selected_loc): ?>
+        <!-- Root Gate View (Zones / All Locations Toggle) -->
+        <?php include __DIR__ . '/partials/warehouse/gate_view.php'; ?>
+
     <?php else: ?>
-        <!-- 6. Sector Navigation Tabs -->
+        <!-- Single Shelf or Global View -->
         <div class="sector-nav">
             <?php foreach ($sectors as $s):
                 $sector_url = "index.php?view=warehouse&sector=" . urlencode($s['name']) . "&loc=" . urlencode($selected_loc);
-                if (!empty($active_zone_name)) {
-                    $sector_url .= "&zone=" . urlencode($active_zone_name);
+                if (!empty($effective_zone)) {
+                    $sector_url .= "&zone=" . urlencode($effective_zone);
                 }
             ?>
                 <a href="<?= $sector_url ?>"
@@ -205,7 +247,7 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
             <?php endforeach; ?>
         </div>
 
-        <!-- 7. Main Content Layout Grid -->
+        <!-- Main Content Layout Grid -->
         <div class="warehouse-layout <?= $is_spreadsheet ? 'spreadsheet-mode' : '' ?>">
             <?php if ($is_spreadsheet): ?>
                 <?php include __DIR__ . '/partials/warehouse/spreadsheet_view.php'; ?>

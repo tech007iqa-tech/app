@@ -99,8 +99,12 @@ function initWarehouseSpreadsheetEvents() {
                 const price = sourceRow.querySelector('[data-field="price"] .cell-input')?.value || '0';
                 const condition = sourceRow.querySelector('[data-field="condition"] .cell-input')?.value || 'Used';
                 const notes = sourceRow.querySelector('[data-field="notes"] .cell-input')?.value || '';
+                const locCode = sourceRow.querySelector('[data-field="location_code"] .cell-input')?.value || '';
 
                 const newRow = templateRow.cloneNode(true);
+                if (locCode && newRow.querySelector('[data-field="location_code"] .cell-input')) {
+                    newRow.querySelector('[data-field="location_code"] .cell-input').value = locCode;
+                }
                 newRow.querySelector('[data-field="brand"] .cell-input').value = brand;
                 newRow.querySelector('[data-field="model"] .cell-input').value = model;
                 newRow.querySelector('[data-field="quantity"] .cell-input').value = qty;
@@ -226,7 +230,11 @@ async function createWarehouseRowFromBlank(row) {
     }
 
     const sector = metadata.getAttribute('data-sector') || 'Laptops';
-    const locationCode = metadata.getAttribute('data-location-code');
+    let locationCode = metadata.getAttribute('data-location-code');
+    const locInput = row.querySelector('[data-field="location_code"] .cell-input');
+    if (locInput && locInput.value.trim()) {
+        locationCode = locInput.value.trim();
+    }
     const csrfToken = metadata.getAttribute('data-csrf');
 
     const brandInput = row.querySelector('[data-field="brand"] .cell-input');

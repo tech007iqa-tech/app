@@ -201,6 +201,12 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
 ---
 
 ## ⚠️ Recent Critical Fixes & Features (September 2026)
+*   **Warehouse Gate Modularization & Zone Spreadsheet View (September 16, 2026)**:
+    *   **Zone Integrated Spreadsheet Engine (`pages/partials/warehouse/spreadsheet_view.php`)**: Embedded full in-cell Excel-style spreadsheet directly inside parent Zone views (`?view=warehouse&zone=[Name]`), rendering all stock across all shelves in the active zone with sector navigation tabs.
+    *   **Dynamic Shelf Location Column & Auto-fill**: Added real-time editable `Shelf` column with datalist autocomplete (`#zone-shelves-list`), inline shelf reassignment via `api/update_inventory_field.php`, and smart default shelf pre-fill on the bottom blank intake row.
+    *   **Modular Component Architecture (`pages/partials/warehouse/`)**: Decomposed monolithic gate view into focused partials: `zone_cards_grid.php` (parent zones with aggregated shelf/item statistics and alert chips), `locations_grid.php` (reusable physical shelf grid supporting single-zone and warehouse-wide cross-zone modes with parent zone tags), and `dashboard_card.php` (modular action launchpad for Global, Zone, and All-Location contexts).
+    *   **Segmented Gate Mode Switcher**: Added responsive toggle (`switchGateViewMode('zones' | 'all_locations')`) in `warehouse_gate.js` and `warehouse.css` persisting preference in `sessionStorage` (`wh_gate_view_mode`), allowing instant switching between hierarchical working zones and a flat searchable grid of all warehouse storage shelves.
+    *   **Cross-Zone Search & Multi-Criteria Sorting**: Upgraded `warehouse_gate.js` with instant multi-attribute filtering (shelf code + parent zone name) and 6 sorting modes (A-Z, Z-A, Status Group, Most Items, Emptiest, and Parent Zone).
 *   **Modular Media & Photography System (September 16, 2026)**:
     *   **Core Engine (`core/MediaManager.php`)**: Built GD-based WebP converter (`1920px` max, ~200-300KB web view; `160x160px` thumbnail crop, ~8-15KB), EXIF auto-orientation, `YYYY/MM/` date-partitioned storage hierarchy, and cascading file + DB deletions.
     *   **Live Camera Viewfinder (`assets/js/camera_uploader.js` & `pages/partials/warehouse/camera_modal.php`)**: HTML5 `navigator.mediaDevices.getUserMedia` live viewfinder, front/rear camera switcher, shutter snap with flash effect, freeze-frame preview/retake workflow, and drag-and-drop file upload zone.

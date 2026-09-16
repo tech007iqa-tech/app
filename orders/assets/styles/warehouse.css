@@ -679,6 +679,49 @@
     transform: scale(1.05);
 }
 
+/* Gate View Mode Toggle & Location Cards */
+.gate-view-toggle {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.gate-toggle-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+}
+
+.gate-toggle-btn.active {
+    background: #ffffff;
+    color: var(--text-main);
+    font-weight: 800;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.gate-toggle-btn:hover:not(.active) {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.loc-zone-badge {
+    transition: background-color 0.2s;
+}
+
+.loc-item:hover .loc-zone-badge {
+    background: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+
 /* Form Sidebar Refinements */
 .warehouse-sidebar .form-group label {
     font-size: 0.75rem;

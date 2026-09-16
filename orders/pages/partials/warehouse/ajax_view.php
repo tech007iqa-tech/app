@@ -26,7 +26,11 @@ if (UI::is_ajax()) {
                 </div>
             </td>
         </tr>
-        <?php foreach ($items as $item):
+        <?php
+        $is_zone_overview = (!empty($active_zone_name) && empty($selected_loc));
+        $show_location_col = empty($selected_loc) || $selected_loc === 'GLOBAL' || $is_zone_overview;
+
+        foreach ($items as $item):
             $specs = json_decode($item['specs_json'], true) ?: [];
 
             if ($is_spreadsheet): ?>
@@ -35,7 +39,14 @@ if (UI::is_ajax()) {
                     data-model="<?= htmlspecialchars($item['model']) ?>"
                     data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
                     data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
-                    data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+                    data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+
+                    <?php if ($show_location_col): ?>
+                        <td class="editable-cell" data-field="location_code">
+                            <input type="text" class="cell-input text-center" value="<?= htmlspecialchars($item['location_code'] ?? '') ?>" list="zone-shelves-list" style="font-weight: 800; color: #2563eb;" title="Shelf Location">
+                        </td>
+                    <?php endif; ?>
+
                     <td class="editable-cell" data-field="brand">
                         <input type="text" class="cell-input" value="<?= htmlspecialchars($item['brand']) ?>" list="brand-options" placeholder="...">
                     </td>
@@ -299,6 +310,11 @@ if (UI::is_ajax()) {
         <?php if ($is_spreadsheet): ?>
             <!-- Permanent blank row at the bottom in spreadsheet AJAX response -->
             <tr class="summary-row new-blank-row" data-id="new">
+                <?php if ($show_location_col): ?>
+                    <td class="editable-cell" data-field="location_code">
+                        <input type="text" class="cell-input text-center" list="zone-shelves-list" placeholder="Shelf..." value="<?= htmlspecialchars($default_shelf ?? '') ?>" style="font-weight: 800; color: #2563eb;" title="Intake Shelf">
+                    </td>
+                <?php endif; ?>
                 <td class="editable-cell" data-field="brand">
                     <input type="text" class="cell-input" list="brand-options" placeholder="Brand...">
                 </td>

@@ -38,7 +38,7 @@ if ($item_id <= 0 || empty($field)) {
 }
 
 // Main columns
-$main_columns = ['brand', 'model', 'quantity', 'price'];
+$main_columns = ['brand', 'model', 'quantity', 'price', 'location_code'];
 
 // Allowed specs keys
 $allowed_specs_keys = [
@@ -61,6 +61,12 @@ try {
             $value = (int)$value;
         } elseif ($field === 'price') {
             $value = (float)Security::sanitize_float($value);
+        } elseif ($field === 'location_code') {
+            $value = trim($value);
+            if (!empty($value)) {
+                $stmt_loc = $conn_wh->prepare("INSERT OR IGNORE INTO locations (location_code, status) VALUES (?, 'Idle')");
+                $stmt_loc->execute([$value]);
+            }
         } else {
             $value = trim($value);
         }
