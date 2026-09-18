@@ -45,9 +45,9 @@ $existing_locs = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
 $all_statuses = $conn_wh->query("
     SELECT MIN(id) AS id, name, color, is_default 
     FROM location_statuses 
-    WHERE location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL'
+    WHERE is_default = 1
     GROUP BY name 
-    ORDER BY is_default DESC, name ASC
+    ORDER BY name ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 $sectors = $conn_wh->query("SELECT * FROM sectors")->fetchAll(PDO::FETCH_ASSOC);
 

@@ -160,10 +160,14 @@ async function addNewStatusType() {
     const color = colorInput ? colorInput.value : '#64748b';
     if (!name) return;
 
+    const oldLoc = document.getElementById('rename-old-loc')?.value || '';
     const formData = new FormData();
     formData.append('action', 'add_location_status');
     formData.append('status_name', name);
     formData.append('status_color', color);
+    if (oldLoc) {
+        formData.append('location_code', oldLoc);
+    }
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
     formData.append('csrf_token', csrfToken);
 
@@ -177,7 +181,8 @@ async function addNewStatusType() {
             if (select) {
                 const opt = document.createElement('option');
                 opt.value = name;
-                opt.textContent = name;
+                opt.textContent = `${name} (Custom)`;
+                opt.setAttribute('data-temp-custom', 'true');
                 select.appendChild(opt);
                 select.value = name;
             }

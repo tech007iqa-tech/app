@@ -182,6 +182,8 @@ async function handleWarehouseCellSave(input) {
     if (!metadata) return;
     const csrfToken = metadata.getAttribute('data-csrf');
 
+    const activeZone = metadata.getAttribute('data-zone') || '';
+
     try {
         const response = await fetch('api/update_inventory_field.php', {
             method: 'POST',
@@ -192,7 +194,8 @@ async function handleWarehouseCellSave(input) {
                 csrf_token: csrfToken,
                 item_id: rowId,
                 field: field,
-                value: val
+                value: val,
+                zone: activeZone
             })
         });
 
@@ -230,6 +233,7 @@ async function createWarehouseRowFromBlank(row) {
     }
 
     const sector = metadata.getAttribute('data-sector') || 'Laptops';
+    const activeZone = metadata.getAttribute('data-zone') || '';
     let locationCode = metadata.getAttribute('data-location-code');
     const locInput = row.querySelector('[data-field="location_code"] .cell-input');
     if (locInput && locInput.value.trim()) {
@@ -243,7 +247,7 @@ async function createWarehouseRowFromBlank(row) {
     const model = modelInput?.value.trim() || '';
 
     if (!brand || !model) {
-        const msg = 'Please enter both Brand and Model to add this inventory item.';
+        const msg = 'To intake a new inventory item, please enter both Brand and Model. (To create an empty shelf, use "+ Add Shelf" in the grid above).';
         if (window.IQA_Notify) {
             window.IQA_Notify.warning(msg);
         } else {
@@ -279,6 +283,9 @@ async function createWarehouseRowFromBlank(row) {
     formData.set('csrf_token', csrfToken);
     formData.set('sector', sector);
     formData.set('location_code', locationCode);
+    if (activeZone) {
+        formData.set('zone', activeZone);
+    }
     formData.set('brand', brand);
     formData.set('model', model);
     formData.set('quantity', qty);

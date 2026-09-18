@@ -16,20 +16,25 @@ $grid_id = $grid_id ?? 'gate-loc-grid';
 ?>
 <div class="loc-grid" id="<?= htmlspecialchars($grid_id) ?>">
     <!-- Quick Add Shelf Card -->
-    <div class="loc-item new-loc" style="padding: 10px;">
-        <form method="POST" action="" style="width:100%;">
+    <div class="loc-item new-loc" style="padding: 12px 10px; cursor: pointer;" onclick="const inp = this.querySelector('input[name=\'shelf_name\']'); if(inp && document.activeElement !== inp) { inp.focus(); }">
+        <form method="POST" action="" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; margin:0;">
             <input type="hidden" name="action" value="add_sub_zone">
             <input type="hidden" name="parent_zone" value="<?= htmlspecialchars($parent_zone_for_new) ?>">
             <?= UI::csrf_field() ?>
             <?php
                 $prefix_placeholder = '';
-                if (!empty($active_zone_name) && preg_match('/Zone\s+([a-zA-Z0-9]+)/i', $active_zone_name, $m)) {
-                    $prefix_placeholder = strtoupper($m[1]) . '-';
+                if (!empty($active_zone_name)) {
+                    if (preg_match('/(?:Zone|Row|zFloor)?\s*([a-zA-Z0-9]+)$/i', $active_zone_name, $m)) {
+                        $prefix_placeholder = strtoupper($m[1]) . '-';
+                    }
                 }
             ?>
-            <input type="text" name="shelf_name" placeholder="+ New Location <?= $prefix_placeholder ? '(e.g. ' . htmlspecialchars($prefix_placeholder) . '1)' : '' ?>" required
+            <span style="font-size:1.1rem; line-height:1; color:var(--accent-color); font-weight:900;">＋</span>
+            <input type="text" name="shelf_name" placeholder="+ Add Shelf" required
                 value="<?= htmlspecialchars($prefix_placeholder) ?>"
-                style="width:100%; border:none; background:transparent; text-align:center; font-weight:800; outline:none; font-size:0.85rem;">
+                title="Enter location code (e.g. <?= htmlspecialchars($prefix_placeholder ?: 'A-') ?>1) and press Enter"
+                style="width:100%; border:none; background:transparent; text-align:center; font-weight:800; outline:none; font-size:0.85rem; color:var(--text-main); padding:2px 0;">
+            <span style="font-size:0.58rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em;">Press ↵ Enter</span>
         </form>
     </div>
 

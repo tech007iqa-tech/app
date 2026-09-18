@@ -463,8 +463,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
         $shelf_name = trim($_POST['shelf_name']);
         $parent_zone = $_POST['parent_zone'] ?? 'General';
         if (!empty($shelf_name)) {
-            $stmt = $conn_wh->prepare("INSERT OR IGNORE INTO locations (location_code, status, working_zone_name) VALUES (?, 'Idle', ?)");
-            $stmt->execute([$shelf_name, $parent_zone]);
+            $stmt_check = $conn_wh->prepare("SELECT COUNT(*) FROM locations WHERE location_code = ?");
+            $stmt_check->execute([$shelf_name]);
+            if ($stmt_check->fetchColumn() > 0) {
+                $stmt = $conn_wh->prepare("UPDATE locations SET working_zone_name = ?, updated_at = CURRENT_TIMESTAMP WHERE location_code = ?");
+                $stmt->execute([$parent_zone, $shelf_name]);
+            } else {
+                $stmt = $conn_wh->prepare("INSERT INTO locations (location_code, status, working_zone_name) VALUES (?, 'Idle', ?)");
+                $stmt->execute([$shelf_name, $parent_zone]);
+            }
         }
         header("Location: index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&zone=" . urlencode($parent_zone) . "&msg=shelf_added");
         exit();

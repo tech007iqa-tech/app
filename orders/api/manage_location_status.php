@@ -17,9 +17,9 @@ $CANONICAL_DEFAULTS = ['working', 'audit', 'shipping', 'in-review', 'warehoused'
 
 function getStatusPayload($conn_wh, $loc = null) {
     $globals = $conn_wh->query("SELECT MIN(rowid) AS id, name, color, is_default, location_code FROM location_statuses 
-        WHERE location_code IS NULL OR location_code = '' OR location_code = 'GLOBAL' 
+        WHERE is_default = 1 
         GROUP BY name
-        ORDER BY is_default DESC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($globals as &$g) {
         $g['is_global'] = true;

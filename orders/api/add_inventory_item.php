@@ -46,9 +46,32 @@ try {
         exit;
     }
 
-    // Ensure location exists
-    $stmt_loc = $conn_wh->prepare("INSERT OR IGNORE INTO locations (location_code, status) VALUES (?, 'Idle')");
-    $stmt_loc->execute([$loc]);
+    // Infer or resolve working zone for this location
+    $zone = trim($data['zone'] ?? '');
+    if (empty($zone)) {
+        if (preg_match('/^(?:Zone\s*[-_]?)?([a-zA-Z0-9]+)/iu', $loc, $matches)) {
+            $prefix = strtoupper($matches[1]);
+            $stmt_check_zone = $conn_wh->prepare("SELECT name FROM working_zones WHERE UPPER(name) = ? OR UPPER(name) LIKE ? OR UPPER(name) LIKE ? LIMIT 1");
+            $stmt_check_zone->execute([$prefix, '% ' . $prefix, '%' . $prefix]);
+            $found_zone = $stmt_check_zone->fetchColumn();
+            if ($found_zone) {
+                $zone = $found_zone;
+            }
+        }
+    }
+
+    // Ensure location exists with appropriate working zone
+    $stmt_check = $conn_wh->prepare("SELECT working_zone_name FROM locations WHERE location_code = ?");
+    $stmt_check->execute([$loc]);
+    $existing_wz = $stmt_check->fetchColumn();
+
+    if ($existing_wz === false) {
+        $stmt_loc = $conn_wh->prepare("INSERT INTO locations (location_code, status, working_zone_name) VALUES (?, 'Idle', ?)");
+        $stmt_loc->execute([$loc, !empty($zone) ? $zone : null]);
+    } elseif (empty($existing_wz) && !empty($zone)) {
+        $stmt_up_loc = $conn_wh->prepare("UPDATE locations SET working_zone_name = ?, updated_at = CURRENT_TIMESTAMP WHERE location_code = ?");
+        $stmt_up_loc->execute([$zone, $loc]);
+    }
 
     // Dynamic Specs mapping based on sector
     $specs = [];

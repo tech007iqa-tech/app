@@ -5,12 +5,14 @@
  */
 ?>
 <div class="loc-grid" id="gate-zones-grid">
-    <div class="loc-item new-loc" style="padding: 10px;">
-        <form method="POST" action="" style="width:100%;">
+    <div class="loc-item new-loc" style="padding: 12px 10px; cursor: pointer;" onclick="const inp = this.querySelector('input[name=\'zone_name\']'); if(inp && document.activeElement !== inp) { inp.focus(); }">
+        <form method="POST" action="" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; margin:0;">
             <input type="hidden" name="action" value="add_working_zone">
             <?= UI::csrf_field() ?>
-            <input type="text" name="zone_name" placeholder="+ New Working Zone" required
-                style="width:100%; border:none; background:transparent; text-align:center; font-weight:800; outline:none; font-size:0.85rem;">
+            <span style="font-size:1.1rem; line-height:1; color:var(--accent-color); font-weight:900;">＋</span>
+            <input type="text" name="zone_name" placeholder="+ Add Zone" required
+                style="width:100%; border:none; background:transparent; text-align:center; font-weight:800; outline:none; font-size:0.85rem; color:var(--text-main); padding:2px 0;">
+            <span style="font-size:0.58rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em;">Press ↵ Enter</span>
         </form>
     </div>
 
