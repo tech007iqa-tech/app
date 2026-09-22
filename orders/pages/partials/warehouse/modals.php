@@ -89,7 +89,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
             <h3 style="margin: 0; font-size: 1.25rem;">📸 Photos for Zone: <?= htmlspecialchars($active_zone_name) ?></h3>
             <div style="display: flex; gap: 10px;">
-                <button type="button" onclick="CameraUploader.open({ locationCode: '<?= !empty($zone_locs) ? htmlspecialchars($zone_locs[0]) : '' ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', availableLocations: <?= json_encode($zone_locs ?? []) ?>, onSuccess: () => window.location.reload() })" class="btn-action" style="background: var(--accent-color); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">📷 Capture / Upload Photo</button>
+                <button type="button" onclick="CameraUploader.open({ locationCode: '<?= !empty($zone_locs) ? htmlspecialchars($zone_locs[0], ENT_QUOTES, 'UTF-8') : '' ?>', sector: '<?= htmlspecialchars($selected_sector ?? '', ENT_QUOTES, 'UTF-8') ?>', availableLocations: <?= htmlspecialchars(json_encode(array_values($zone_locs ?? [])), ENT_QUOTES, 'UTF-8') ?>, onSuccess: () => window.location.reload() })" class="btn-action" style="background: var(--accent-color); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">📷 Capture / Upload Photo</button>
                 <button type="button" onclick="document.getElementById('zone-photos-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">×</button>
             </div>
         </div>
