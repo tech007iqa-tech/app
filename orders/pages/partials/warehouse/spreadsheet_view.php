@@ -141,12 +141,12 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     <th style="width: 8%;">CPU</th>
                     <th style="width: 7%;">Gen</th>
                     <th style="width: 7%;">RAM</th>
-                    <th style="width: 9%;">Storage</th>
+                    <th style="width: 8%;">Storage</th>
                     <th style="width: 7%;">Battery</th>
-                    <th style="width: 9%;">Condition</th>
-                    <th style="width: 11%;">Notes</th>
-                    <th style="width: 8%;">Price</th>
+                    <th style="width: 8%;">Condition</th>
                     <th style="width: 6%;">Qty</th>
+                    <th style="width: 7%;">Price</th>
+                    <th style="width: 12%;">Notes</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php elseif ($selected_sector === 'Gaming'): ?>
@@ -159,11 +159,11 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     <th style="width: 7%;">CPU</th>
                     <th style="width: 7%;">GPU</th>
                     <th style="width: 7%;">RAM</th>
-                    <th style="width: 9%;">Storage</th>
-                    <th style="width: 9%;">Condition</th>
-                    <th style="width: 11%;">Notes</th>
-                    <th style="width: 8%;">Price</th>
+                    <th style="width: 8%;">Storage</th>
+                    <th style="width: 8%;">Condition</th>
                     <th style="width: 6%;">Qty</th>
+                    <th style="width: 7%;">Price</th>
+                    <th style="width: 12%;">Notes</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php elseif ($selected_sector === 'Desktops'): ?>
@@ -173,9 +173,9 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     <th style="width: 15%;">Model</th>
                     <th style="width: 18%;">CPU/Gen/Brand</th>
                     <th style="width: 12%;">Condition</th>
-                    <th style="width: 23%;">Notes</th>
-                    <th style="width: 10%;">Price</th>
                     <th style="width: 8%;">Qty</th>
+                    <th style="width: 10%;">Price</th>
+                    <th style="width: 23%;">Notes</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php else: ?>
@@ -186,9 +186,9 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     <th style="width: 15%;">Device Type</th>
                     <th style="width: 15%;">Voltage/Specs</th>
                     <th style="width: 12%;">Condition</th>
-                    <th style="width: 18%;">Notes</th>
-                    <th style="width: 10%;">Price</th>
                     <th style="width: 8%;">Qty</th>
+                    <th style="width: 10%;">Price</th>
+                    <th style="width: 18%;">Notes</th>
                     <th style="width: 6%;"></th>
                 </tr>
                 <?php endif; ?>
@@ -271,14 +271,14 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                         <td class="editable-cell" data-field="condition">
                             <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['condition'] ?? 'Used') ?>" list="condition-options-list" placeholder="...">
                         </td>
-                        <td class="editable-cell" data-field="notes">
-                            <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['notes'] ?? '') ?>" placeholder="...">
+                        <td class="editable-cell numeric" data-field="quantity">
+                            <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
                         </td>
                         <td class="editable-cell numeric" data-field="price">
                             <input type="number" step="any" class="cell-input text-right" value="<?= htmlspecialchars($item['price'] ?? '0.00') ?>">
                         </td>
-                        <td class="editable-cell numeric" data-field="quantity">
-                            <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
+                        <td class="editable-cell" data-field="notes">
+                            <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['notes'] ?? '') ?>" placeholder="...">
                         </td>
                         <td style="text-align:right;">
                             <div class="action-buttons">
@@ -368,14 +368,14 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     <td class="editable-cell" data-field="condition">
                         <input type="text" class="cell-input" list="condition-options-list" placeholder="Condition...">
                     </td>
-                    <td class="editable-cell" data-field="notes">
-                        <input type="text" class="cell-input" placeholder="Notes...">
+                    <td class="editable-cell numeric" data-field="quantity">
+                        <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">
                     </td>
                     <td class="editable-cell numeric" data-field="price">
                         <input type="number" step="any" class="cell-input text-right" placeholder="Price...">
                     </td>
-                    <td class="editable-cell numeric" data-field="quantity">
-                        <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">
+                    <td class="editable-cell" data-field="notes">
+                        <input type="text" class="cell-input" placeholder="Notes...">
                     </td>
                     <td style="text-align:right;">
                         <div class="action-buttons" style="justify-content: flex-end;">
@@ -393,7 +393,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                     elseif ($selected_sector === 'Desktops') $total_cols_sp = 8;
                     if ($show_location_col) $total_cols_sp += 1;
                     ?>
-                    <td colspan="<?= $total_cols_sp - 3 ?>" style="padding: 15px;">
+                    <td colspan="<?= $total_cols_sp - 4 ?>" style="padding: 15px;">
                         <div class="search-container footer-search" style="max-width: 300px; margin: 0;">
                             <i class="search-icon">🔍</i>
                             <input type="text" id="wh-search-footer" placeholder="Filter these results..."
@@ -410,7 +410,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                             <?= number_format($total_qty) ?>
                         </span>
                     </td>
-                    <td style="text-align: right; padding: 15px;">
+                    <td colspan="2" style="text-align: right; padding: 15px;">
                         <button type="button" id="btn-consolidate-spreadsheet" class="btn-consolidate" onclick="consolidateWarehouseRows()" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; color: #475569;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" title="Consolidate duplicate rows">
                             🔄 Consolidate
                         </button>

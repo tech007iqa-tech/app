@@ -238,43 +238,146 @@ if (!empty($selected_loc)) {
             <!-- TAB 2: SHELF AUDIT, DEPLETION & FULL LOCATION RECONCILIATION SYNC -->
             <div id="inv-tab-pane-deplete" class="inv-tab-pane" style="display:none;">
                 
-                <!-- Whole Location Sync / Full Shelf Reconcile Banner -->
-                <div style="padding:14px 18px; border-radius:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #86efac; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-                    <div>
-                        <div style="font-weight:900; color:#166534; font-size:0.95rem; display:flex; align-items:center; gap:6px;">
-                            <span>🔄</span> Full Location Reconciliation Sync
+                <!-- Whole Location Sync / Full Shelf Reconcile Header Banner -->
+                <div style="padding:16px 20px; border-radius:16px; background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border:1px solid var(--border-color, #cbd5e1); margin-bottom:16px; display:flex; flex-direction:column; gap:12px;">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-weight:900; color:var(--text-main, #0f172a); font-size:1rem; display:flex; align-items:center; gap:8px;">
+                                <span>⚡</span> Reconcile Shelf <?= htmlspecialchars($selected_loc ?? '') ?>
+                                <span style="font-size:0.75rem; background:#0f172a; color:#facc15; font-weight:800; padding:2px 8px; border-radius:6px;"><?= htmlspecialchars($selected_sector) ?></span>
+                            </div>
+                            <div style="font-size:0.78rem; color:var(--text-secondary, #64748b); margin-top:3px;">
+                                Search or check off items physically found on shelf. <strong>All unchecked items will be recorded as SOLD and deleted upon reconciliation.</strong>
+                            </div>
                         </div>
-                        <div style="font-size:0.75rem; color:#15803d; margin-top:2px;">
-                            Check off items physically present on <strong>Shelf <?= htmlspecialchars($selected_loc ?? '') ?></strong>. Any unchecked/omitted items will be automatically recorded as <strong>SOLD</strong> and purged.
+
+                        <!-- Main Reconcile Commit Action Button -->
+                        <button type="button" id="btn-main-reconcile-shelf" onclick="promptLocationSyncReconcile()"
+                            style="height:42px; padding:0 20px; border-radius:12px; border:none; background:#16a34a; color:white; font-weight:900; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 3px 10px rgba(22,163,74,0.35); transition:all 0.15s;">
+                            <span>⚡</span> Reconcile Shelf <?= htmlspecialchars($selected_loc ?? '') ?>
+                        </button>
+                    </div>
+
+                    <!-- Live Audit Metric Counters & Batch Controls -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-top:10px; border-top:1px solid var(--border-color, #e2e8f0);">
+                        <div style="display:flex; align-items:center; gap:12px; font-size:0.8rem; font-weight:800; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:6px; background:#dcfce7; color:#166534; padding:4px 10px; border-radius:8px; border:1px solid #86efac;">
+                                <span>✅ Verified to Keep:</span>
+                                <span id="reconcile-stat-verified-count">0</span>
+                                <span style="font-weight:600; opacity:0.8;">(<span id="reconcile-stat-verified-units">0</span> units)</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px; background:#fee2e2; color:#991b1b; padding:4px 10px; border-radius:8px; border:1px solid #fca5a5;">
+                                <span>❌ Missing to Purge:</span>
+                                <span id="reconcile-stat-missing-count"><?= count($items) ?></span>
+                                <span style="font-weight:600; opacity:0.8;">(<span id="reconcile-stat-missing-units"><?= array_sum(array_column($items, 'quantity')) ?></span> units)</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Mass Toggles -->
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button type="button" onclick="massSetReconcileChecks(true)"
+                                style="font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:6px; border:1px solid #cbd5e1; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a); cursor:pointer;"
+                                title="Mark all registered items as physically present">
+                                ✓ Check All
+                            </button>
+                            <button type="button" onclick="massSetReconcileChecks(false)"
+                                style="font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:6px; border:1px solid #cbd5e1; background:var(--bg-body, #ffffff); color:var(--text-secondary, #64748b); cursor:pointer;"
+                                title="Reset all checkboxes to unchecked for fresh physical audit">
+                                ✕ Uncheck All
+                            </button>
                         </div>
                     </div>
-                    <button type="button" onclick="promptLocationSyncReconcile()"
-                        style="height:38px; padding:0 16px; border-radius:10px; border:none; background:#16a34a; color:white; font-weight:900; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(22,163,74,0.3); transition:all 0.15s;">
-                        <span>⚡</span> Reconcile Shelf <?= htmlspecialchars($selected_loc ?? '') ?>
-                    </button>
+
                 </div>
 
-                <div style="margin-bottom:14px;">
-                    <div style="position:relative; width:100%;">
-                        <input type="text" id="modal-deplete-filter" placeholder="Filter shelf items..." onkeyup="filterModalDepleteList(this.value)"
-                            style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border-color, #cbd5e1); padding:0 10px 0 32px; font-size:0.85rem; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a);">
-                        <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:0.5; font-size:0.85rem;">🔍</span>
+                <style>
+                .reconcile-qty-input::-webkit-outer-spin-button,
+                .reconcile-qty-input::-webkit-inner-spin-button {
+                    -webkit-appearance: none !important;
+                    margin: 0 !important;
+                }
+                .reconcile-qty-input {
+                    -moz-appearance: textfield !important;
+                    appearance: textfield !important;
+                    color: #0f172a !important;
+                    font-size: 1.05rem !important;
+                    font-weight: 900 !important;
+                    text-align: center !important;
+                    border: none !important;
+                    background: transparent !important;
+                    width: 46px !important;
+                    height: 32px !important;
+                    line-height: 32px !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    outline: none !important;
+                }
+                .reconcile-qty-stepper-box {
+                    display: inline-flex;
+                    align-items: center;
+                    background: #f1f5f9;
+                    border: 1.5px solid #cbd5e1;
+                    border-radius: 10px;
+                    padding: 2px 4px;
+                    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+                }
+                .reconcile-step-btn {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 8px;
+                    border: 1px solid #cbd5e1;
+                    background: #ffffff;
+                    font-weight: 900;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    color: #0f172a;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+                    transition: all 0.1s ease;
+                    user-select: none;
+                }
+                .reconcile-step-btn:hover {
+                    background: #f8fafc;
+                    border-color: #94a3b8;
+                }
+                .reconcile-step-btn:active {
+                    transform: scale(0.92);
+                }
+                </style>
+
+                <!-- Instant Search / Scan Bar with Enter-to-Verify feature -->
+                <div style="margin-bottom:14px; display:flex; gap:8px; align-items:center;">
+                    <div style="position:relative; flex:1;">
+                        <input type="text" id="modal-deplete-filter" 
+                            placeholder="Type model, CPU, specs or scan barcode (Press Enter to Verify top match)..." 
+                            oninput="filterModalDepleteList(this.value)"
+                            onkeydown="handleReconcileSearchKeydown(event)"
+                            style="width:100%; height:44px; border-radius:10px; border:1px solid var(--border-color, #cbd5e1); padding:0 12px 0 38px; font-size:0.9rem; font-weight:600; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a); box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);">
+                        <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.6; font-size:1.05rem;">🔍</span>
                     </div>
+                    <button type="button" onclick="verifyTopFilteredItem()"
+                        style="height:44px; padding:0 16px; border-radius:10px; border:1px solid #86efac; background:#f0fdf4; color:#166534; font-weight:800; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                        <span>↵</span> Verify Found
+                    </button>
                 </div>
 
                 <div id="modal-deplete-status" style="display:none; margin-bottom:12px; padding:10px 14px; border-radius:8px; font-size:0.85rem; font-weight:700;"></div>
 
-                <div style="max-height:42vh; overflow-y:auto; border:1px solid var(--border-color, #e2e8f0); border-radius:12px; background:var(--bg-body, #ffffff); margin-bottom:18px;">
+                <!-- Table Listing with Unchecked Defaults and Verification Controls -->
+                <div style="max-height:44vh; overflow-y:auto; border:1px solid var(--border-color, #e2e8f0); border-radius:14px; background:var(--bg-body, #ffffff); margin-bottom:18px;">
                     <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.85rem;">
                         <thead>
                             <tr style="background:var(--bg-body, #f8fafc); border-bottom:1px solid var(--border-color, #e2e8f0); position:sticky; top:0; z-index:10;">
-                                <th style="padding:10px; width:36px; text-align:center;">
-                                    <input type="checkbox" id="modal-select-all-deplete" onclick="toggleSelectAllModalDeplete(this)" style="cursor:pointer;" title="Select All">
+                                <th style="padding:10px 12px; width:44px; text-align:center;">
+                                    <input type="checkbox" id="modal-select-all-deplete" onclick="toggleSelectAllModalDeplete(this)" style="cursor:pointer; width:16px; height:16px;" title="Toggle All Checkboxes">
                                 </th>
-                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b);">Item / Hardware Specs</th>
-                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:80px;">Shelf Qty</th>
-                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:120px;">Step Qty</th>
-                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:right; width:60px;"></th>
+                                <th style="padding:10px 12px; font-weight:800; color:var(--text-secondary, #64748b);">Item / Hardware Specs</th>
+                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:100px;">Audit Status</th>
+                                <th style="padding:10px; font-weight:800; color:var(--text-secondary, #64748b); text-align:center; width:140px;">Verified Count</th>
+                                <th style="padding:10px 12px; font-weight:800; color:var(--text-secondary, #64748b); text-align:right; width:50px;"></th>
                             </tr>
                         </thead>
                         <tbody id="modal-deplete-table-body">
@@ -295,40 +398,52 @@ if (!empty($selected_loc)) {
                                         $sp['condition'] ?? '',
                                         $sp['notes'] ?? ''
                                     ]);
+                                    $orig_qty = (int)($it['quantity'] ?? 1);
                                 ?>
-                                <tr class="modal-deplete-row" data-id="<?= $it['id'] ?>" data-qty="<?= (int)$it['quantity'] ?>"
+                                <tr class="modal-deplete-row" 
+                                    id="reconcile-row-<?= $it['id'] ?>"
+                                    data-id="<?= $it['id'] ?>" 
+                                    data-orig-qty="<?= $orig_qty ?>"
+                                    data-verified-qty="<?= $orig_qty ?>"
                                     data-search="<?= htmlspecialchars(strtolower($it['brand'] . ' ' . $it['model'] . ' ' . implode(' ', $spec_summary))) ?>"
-                                    style="border-bottom:1px solid var(--border-color, #e2e8f0); transition:background 0.15s;">
-                                    <td style="padding:10px; text-align:center;">
-                                        <input type="checkbox" class="modal-deplete-checkbox" value="<?= $it['id'] ?>" checked style="cursor:pointer;" title="Checked = Verified Physically on Shelf">
+                                    style="border-bottom:1px solid var(--border-color, #e2e8f0); transition:background 0.15s, transform 0.15s; background:var(--bg-body, #ffffff);">
+                                    
+                                    <td style="padding:10px 12px; text-align:center;">
+                                        <input type="checkbox" class="modal-deplete-checkbox" value="<?= $it['id'] ?>" 
+                                            onchange="onReconcileRowCheckChange(this)"
+                                            style="cursor:pointer; width:18px; height:18px; accent-color:#16a34a;" title="Check = Verified Physically on Shelf">
                                     </td>
-                                    <td style="padding:10px;">
-                                        <div style="font-weight:800; color:var(--text-main, #0f172a);"><?= htmlspecialchars($it['brand'] . ' ' . $it['model']) ?></div>
+
+                                    <td style="padding:10px 12px; cursor:pointer;" onclick="toggleRowCheckDirectly(<?= $it['id'] ?>)">
+                                        <div style="font-weight:800; color:var(--text-main, #0f172a); font-size:0.9rem;">
+                                            <?= htmlspecialchars($it['brand'] . ' ' . $it['model']) ?>
+                                        </div>
                                         <div style="font-size:0.75rem; color:var(--text-secondary, #64748b); margin-top:2px;">
                                             <?= htmlspecialchars(implode(' • ', $spec_summary) ?: 'No specs listed') ?>
                                         </div>
                                     </td>
+
                                     <td style="padding:10px; text-align:center;">
-                                        <span class="modal-item-qty-badge" style="display:inline-block; padding:4px 10px; background:#f1f5f9; border-radius:12px; font-weight:900; font-size:0.85rem; color:#0f172a;">
-                                            <?= (int)$it['quantity'] ?>
+                                        <span class="reconcile-row-status-badge" style="display:inline-block; padding:3px 8px; border-radius:6px; font-weight:800; font-size:0.72rem; background:#fee2e2; color:#991b1b;">
+                                            ❌ Missing
                                         </span>
                                     </td>
+
                                     <td style="padding:10px; text-align:center;">
-                                        <div style="display:inline-flex; align-items:center; gap:4px;">
-                                            <button type="button" onclick="depleteModalItemQty(<?= $it['id'] ?>, -1)" title="Decrement 1 (Record 1 as Sold)"
-                                                style="width:30px; height:30px; border-radius:6px; border:1px solid var(--border-color, #cbd5e1); background:var(--bg-body, #ffffff); font-weight:900; cursor:pointer; color:var(--text-main, #0f172a);">
-                                                -1
-                                            </button>
-                                            <button type="button" onclick="depleteModalItemQty(<?= $it['id'] ?>, 1)" title="Increment 1"
-                                                style="width:30px; height:30px; border-radius:6px; border:1px solid var(--border-color, #cbd5e1); background:var(--bg-body, #ffffff); font-weight:900; cursor:pointer; color:var(--text-main, #0f172a);">
-                                                +1
-                                            </button>
+                                        <div class="reconcile-qty-stepper-box">
+                                            <button type="button" class="reconcile-step-btn" onclick="adjustVerifiedQty(<?= $it['id'] ?>, -1)" title="Decrement Verified Qty">−</button>
+                                            <input type="number" min="1" max="999" class="reconcile-qty-input" 
+                                                value="<?= $orig_qty ?>" 
+                                                oninput="onVerifiedQtyInputChange(<?= $it['id'] ?>, this.value)"
+                                                onchange="onVerifiedQtyInputChange(<?= $it['id'] ?>, this.value)">
+                                            <button type="button" class="reconcile-step-btn" onclick="adjustVerifiedQty(<?= $it['id'] ?>, 1)" title="Increment Verified Qty">+</button>
                                         </div>
                                     </td>
-                                    <td style="padding:10px; text-align:right;">
+
+                                    <td style="padding:10px 12px; text-align:right;">
                                         <button type="button" onclick="purgeModalItem(<?= $it['id'] ?>, '<?= htmlspecialchars(addslashes($it['brand'] . ' ' . $it['model'])) ?>')"
-                                            style="width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; background:#fee2e2; color:#b91c1c; font-size:0.95rem; cursor:pointer; transition:all 0.15s;"
-                                            onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Record as Sold & Remove">
+                                            style="width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:none; background:#fee2e2; color:#b91c1c; font-size:0.85rem; cursor:pointer; transition:all 0.15s;"
+                                            onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'" title="Record as Sold & Remove Immediately">
                                             🗑️
                                         </button>
                                     </td>

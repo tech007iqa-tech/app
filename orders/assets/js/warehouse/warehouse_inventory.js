@@ -68,6 +68,7 @@ function switchInventoryTab(tabName) {
         }
         const filterIn = document.getElementById('modal-deplete-filter');
         if (filterIn) setTimeout(() => filterIn.focus(), 50);
+        recalculateReconcileStats();
     }
 }
 
@@ -228,37 +229,292 @@ async function submitQuickIntakeAjax(e) {
     }
 }
 
-// Whole Location Reconciliation Sync
+// ==========================================
+// OVERHAULED SHELF AUDIT & RECONCILE CONTROLLER
+// ==========================================
+
+// Toggle all checkboxes with mass buttons (✓ Check All / ✕ Uncheck All)
+function massSetReconcileChecks(isChecked) {
+    const checkboxes = document.querySelectorAll('.modal-deplete-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+        const row = cb.closest('.modal-deplete-row');
+        if (row) updateRowVisualState(row, isChecked);
+    });
+
+    const masterCb = document.getElementById('modal-select-all-deplete');
+    if (masterCb) masterCb.checked = isChecked;
+
+    recalculateReconcileStats();
+}
+
+// Master checkbox toggle in the table header
+function toggleSelectAllModalDeplete(masterCheckbox) {
+    const isChecked = masterCheckbox.checked;
+    const checkboxes = document.querySelectorAll('.modal-deplete-checkbox');
+    checkboxes.forEach(cb => {
+        const row = cb.closest('.modal-deplete-row');
+        if (row && row.style.display !== 'none') {
+            cb.checked = isChecked;
+            updateRowVisualState(row, isChecked);
+        }
+    });
+    recalculateReconcileStats();
+}
+
+// Single row checkbox change event
+function onReconcileRowCheckChange(checkbox) {
+    const row = checkbox.closest('.modal-deplete-row');
+    if (row) {
+        updateRowVisualState(row, checkbox.checked);
+    }
+    recalculateReconcileStats();
+}
+
+// Click on the item description text directly toggles the checkbox
+function toggleRowCheckDirectly(itemId) {
+    const row = document.getElementById(`reconcile-row-${itemId}`);
+    if (!row) return;
+    const cb = row.querySelector('.modal-deplete-checkbox');
+    if (cb) {
+        cb.checked = !cb.checked;
+        updateRowVisualState(row, cb.checked);
+        recalculateReconcileStats();
+    }
+}
+
+// Adjust verified quantity with step buttons
+function adjustVerifiedQty(itemId, delta) {
+    const row = document.getElementById(`reconcile-row-${itemId}`);
+    if (!row) return;
+
+    const input = row.querySelector('.reconcile-qty-input');
+    const cb = row.querySelector('.modal-deplete-checkbox');
+
+    let currentQty = parseInt(row.getAttribute('data-verified-qty') || '1', 10);
+    let newQty = Math.max(1, currentQty + delta);
+
+    row.setAttribute('data-verified-qty', newQty);
+    if (input) input.value = newQty;
+
+    // Automatically check the item as verified when adjusting qty
+    if (cb && !cb.checked && delta > 0) {
+        cb.checked = true;
+        updateRowVisualState(row, true);
+    }
+
+    recalculateReconcileStats();
+}
+
+// Direct numeric input change for verified quantity
+function onVerifiedQtyInputChange(itemId, rawValue) {
+    const row = document.getElementById(`reconcile-row-${itemId}`);
+    if (!row) return;
+
+    let newQty = Math.max(1, parseInt(rawValue || '1', 10));
+    row.setAttribute('data-verified-qty', newQty);
+
+    const cb = row.querySelector('.modal-deplete-checkbox');
+    if (cb && !cb.checked) {
+        cb.checked = true;
+        updateRowVisualState(row, true);
+    }
+
+    recalculateReconcileStats();
+}
+
+// Visual state helper for row
+function updateRowVisualState(row, isChecked) {
+    const statusBadge = row.querySelector('.reconcile-row-status-badge');
+    if (isChecked) {
+        row.style.background = '#f0fdf4';
+        row.style.borderColor = '#86efac';
+        if (statusBadge) {
+            statusBadge.style.background = '#dcfce7';
+            statusBadge.style.color = '#166534';
+            statusBadge.textContent = '✅ Verified';
+        }
+    } else {
+        row.style.background = 'var(--bg-body, #ffffff)';
+        row.style.borderColor = 'var(--border-color, #e2e8f0)';
+        if (statusBadge) {
+            statusBadge.style.background = '#fee2e2';
+            statusBadge.style.color = '#991b1b';
+            statusBadge.textContent = '❌ Missing';
+        }
+    }
+}
+
+// Filter items in Shelf Audit & Sync
+function filterModalDepleteList(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.modal-deplete-row');
+
+    rows.forEach(row => {
+        const searchText = (row.getAttribute('data-search') || '').toLowerCase();
+        if (!q || searchText.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Handle Enter key inside search box to automatically verify the top match
+function handleReconcileSearchKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        verifyTopFilteredItem();
+    }
+}
+
+// Verify the top visible matching row from the search filter
+function verifyTopFilteredItem() {
+    const visibleRows = Array.from(document.querySelectorAll('.modal-deplete-row')).filter(r => r.style.display !== 'none');
+    
+    if (visibleRows.length === 0) {
+        alert('No matching item found on this shelf.');
+        return;
+    }
+
+    // Pick top visible row
+    const targetRow = visibleRows[0];
+    const cb = targetRow.querySelector('.modal-deplete-checkbox');
+    const input = targetRow.querySelector('.reconcile-qty-input');
+    const itemId = targetRow.getAttribute('data-id');
+
+    if (cb) {
+        if (cb.checked) {
+            // Already verified, increment count by 1
+            adjustVerifiedQty(itemId, 1);
+        } else {
+            cb.checked = true;
+            updateRowVisualState(targetRow, true);
+        }
+    }
+
+    // Visual pulse highlight animation
+    targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    targetRow.style.transition = 'transform 0.15s ease, background 0.2s';
+    targetRow.style.transform = 'scale(1.02)';
+    setTimeout(() => {
+        targetRow.style.transform = 'scale(1)';
+    }, 200);
+
+    recalculateReconcileStats();
+
+    // Clear search box for the next item scan
+    const filterInput = document.getElementById('modal-deplete-filter');
+    if (filterInput) {
+        const searchedTerm = filterInput.value;
+        filterInput.value = '';
+        filterModalDepleteList('');
+        filterInput.focus();
+
+        const statusBox = document.getElementById('modal-deplete-status');
+        if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#dcfce7';
+            statusBox.style.color = '#166534';
+            statusBox.style.border = '1px solid #86efac';
+            statusBox.innerHTML = `✅ Verified & Checked: <strong>${escapeHtml(targetRow.querySelector('div')?.textContent || searchedTerm)}</strong>`;
+            setTimeout(() => { statusBox.style.display = 'none'; }, 2500);
+        }
+    }
+}
+
+// Recalculate Live Metrics (Verified Keep vs Missing Purge)
+function recalculateReconcileStats() {
+    const allRows = Array.from(document.querySelectorAll('.modal-deplete-row'));
+    let verifiedCount = 0;
+    let verifiedUnits = 0;
+    let missingCount = 0;
+    let missingUnits = 0;
+
+    allRows.forEach(row => {
+        const cb = row.querySelector('.modal-deplete-checkbox');
+        const origQty = parseInt(row.getAttribute('data-orig-qty') || '1', 10);
+        const verifiedQty = parseInt(row.getAttribute('data-verified-qty') || `${origQty}`, 10);
+
+        if (cb && cb.checked) {
+            verifiedCount++;
+            verifiedUnits += verifiedQty;
+        } else {
+            missingCount++;
+            missingUnits += origQty;
+        }
+    });
+
+    const vCountEl = document.getElementById('reconcile-stat-verified-count');
+    const vUnitsEl = document.getElementById('reconcile-stat-verified-units');
+    const mCountEl = document.getElementById('reconcile-stat-missing-count');
+    const mUnitsEl = document.getElementById('reconcile-stat-missing-units');
+    const mainReconcileBtn = document.getElementById('btn-main-reconcile-shelf');
+
+    if (vCountEl) vCountEl.textContent = verifiedCount;
+    if (vUnitsEl) vUnitsEl.textContent = verifiedUnits;
+    if (mCountEl) mCountEl.textContent = missingCount;
+    if (mUnitsEl) mUnitsEl.textContent = missingUnits;
+
+    if (mainReconcileBtn) {
+        const locMeta = document.getElementById('warehouse-metadata');
+        const locCode = locMeta ? (locMeta.dataset.locationCode || 'F-1') : 'F-1';
+        mainReconcileBtn.innerHTML = `<span>⚡</span> Reconcile Shelf ${locCode} (Keep ${verifiedUnits}, Purge ${missingUnits})`;
+    }
+}
+
+// Whole Location Reconciliation Sync Execution
 async function promptLocationSyncReconcile() {
     const allRows = Array.from(document.querySelectorAll('.modal-deplete-row'));
-    const checkedBoxes = Array.from(document.querySelectorAll('.modal-deplete-checkbox:checked'));
-    const uncheckedBoxes = Array.from(document.querySelectorAll('.modal-deplete-checkbox:not(:checked)'));
-
-    const keptIds = checkedBoxes.map(cb => cb.value);
-    const missingCount = uncheckedBoxes.length;
-    const keptCount = checkedBoxes.length;
-
-    const locMeta = document.getElementById('warehouse-metadata');
-    const locCode = locMeta ? (locMeta.dataset.locationCode || 'N-1') : 'N-1';
-    const sector = locMeta ? (locMeta.dataset.sector || 'Laptops') : 'Laptops';
-
     if (allRows.length === 0) {
         alert('No registered items to reconcile on this location.');
         return;
     }
 
-    let confirmMsg = `🔄 FULL LOCATION AUDIT & SYNC — Shelf ${locCode}\n\n`;
-    confirmMsg += `• Verified Physically Present: ${keptCount} item(s) (Retained on Shelf)\n`;
-    confirmMsg += `• Missing / Omitted: ${missingCount} item(s)\n\n`;
+    const verifiedMap = {}; // { id: qty }
+    let verifiedItemsCount = 0;
+    let verifiedUnitsCount = 0;
+    let missingItemsCount = 0;
+    let missingUnitsCount = 0;
 
-    if (missingCount === 0) {
-        confirmMsg += `All ${keptCount} items are verified present. Re-align shelf inventory?`;
+    allRows.forEach(row => {
+        const cb = row.querySelector('.modal-deplete-checkbox');
+        const itemId = row.getAttribute('data-id');
+        const origQty = parseInt(row.getAttribute('data-orig-qty') || '1', 10);
+        const verifiedQty = parseInt(row.getAttribute('data-verified-qty') || `${origQty}`, 10);
+
+        if (cb && cb.checked) {
+            verifiedMap[itemId] = verifiedQty;
+            verifiedItemsCount++;
+            verifiedUnitsCount += verifiedQty;
+        } else {
+            missingItemsCount++;
+            missingUnitsCount += origQty;
+        }
+    });
+
+    const locMeta = document.getElementById('warehouse-metadata');
+    const locCode = locMeta ? (locMeta.dataset.locationCode || 'F-1') : 'F-1';
+    const sector = locMeta ? (locMeta.dataset.sector || 'Laptops') : 'Laptops';
+
+    let confirmMsg = `⚡ RECONCILE SHELF ${locCode} — CONFIRMATION\n\n`;
+    confirmMsg += `✅ VERIFIED TO KEEP ON SHELF:\n   • ${verifiedItemsCount} unique item(s) (${verifiedUnitsCount} total unit[s])\n\n`;
+    confirmMsg += `❌ MISSING / UNCHECKED (WILL BE DELETED & RECORDED AS SOLD):\n   • ${missingItemsCount} item(s) (${missingUnitsCount} total unit[s])\n\n`;
+
+    if (verifiedItemsCount === 0) {
+        confirmMsg += `⚠️ WARNING: You have 0 items checked. ALL items on Shelf ${locCode} will be deleted and recorded as SOLD.\n\nAre you sure you want to proceed?`;
     } else {
-        confirmMsg += `⚠️ CRITICAL: The ${missingCount} missing item(s) will be automatically recorded as SOLD in the database and cleared from Shelf ${locCode}.\n\nProceed with full shelf sync?`;
+        confirmMsg += `Proceed with updating verified inventory and purging missing items?`;
     }
 
     if (!confirm(confirmMsg)) {
         return;
+    }
+
+    const mainBtn = document.getElementById('btn-main-reconcile-shelf');
+    if (mainBtn) {
+        mainBtn.disabled = true;
+        mainBtn.innerHTML = `<span>⏳</span> Reconciling Shelf ${locCode}...`;
     }
 
     const csrfEl = document.querySelector('input[name="csrf_token"]') || document.getElementById('warehouse-metadata');
@@ -269,7 +525,7 @@ async function promptLocationSyncReconcile() {
     formData.append('csrf_token', csrfToken);
     formData.append('location_code', locCode);
     formData.append('sector', sector);
-    formData.append('kept_item_ids', JSON.stringify(keptIds));
+    formData.append('verified_items', JSON.stringify(verifiedMap));
 
     try {
         const response = await fetch(window.location.href, {
@@ -283,112 +539,46 @@ async function promptLocationSyncReconcile() {
         const result = await response.json().catch(() => null);
 
         if (response.ok && (!result || result.success !== false)) {
-            // Remove unchecked rows from DOM
-            uncheckedBoxes.forEach(cb => {
-                const row = cb.closest('.modal-deplete-row');
-                if (row) row.remove();
-                const mainRow = document.querySelector(`tr[data-id="${cb.value}"]`);
-                if (mainRow) mainRow.remove();
-            });
-
-            updateModalBadgeCounts();
-            updateTotalQuantityHeader();
-
             const statusBox = document.getElementById('modal-deplete-status');
             if (statusBox) {
                 statusBox.style.display = 'block';
                 statusBox.style.background = '#dcfce7';
                 statusBox.style.color = '#166534';
                 statusBox.style.border = '1px solid #86efac';
-                statusBox.innerHTML = `✅ ${escapeHtml(result && result.message ? result.message : `Shelf ${locCode} synchronized successfully.`)}`;
+                statusBox.innerHTML = `✅ ${escapeHtml(result && result.message ? result.message : `Shelf ${locCode} reconciled successfully!`)}`;
             }
 
             if (typeof Notifications !== 'undefined' && Notifications.success) {
-                Notifications.success(`Shelf ${locCode} synchronized.`);
+                Notifications.success(`Shelf ${locCode} synchronized: ${verifiedUnitsCount} kept, ${missingUnitsCount} purged.`);
             }
 
             setTimeout(() => {
                 window.location.reload();
-            }, 1000);
+            }, 800);
         } else {
-            alert(result && result.message ? result.message : 'Failed to reconcile location sync.');
+            alert(result && result.message ? result.message : 'Failed to reconcile shelf.');
+            if (mainBtn) {
+                mainBtn.disabled = false;
+                recalculateReconcileStats();
+            }
         }
     } catch (err) {
-        console.error("Location Sync Error:", err);
+        console.error("Reconcile Error:", err);
         alert("An error occurred during location reconciliation.");
-    }
-}
-
-// Deplete / Step Quantity for an item
-async function depleteModalItemQty(itemId, delta) {
-    const row = document.querySelector(`.modal-deplete-row[data-id="${itemId}"]`);
-    if (!row) return;
-
-    const qtyBadge = row.querySelector('.modal-item-qty-badge');
-    const currentQty = parseInt(row.getAttribute('data-qty') || '1', 10);
-    const newQty = currentQty + delta;
-
-    if (newQty < 0) return;
-
-    const csrfEl = document.querySelector('input[name="csrf_token"]') || document.getElementById('warehouse-metadata');
-    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.dataset.csrf || '') : '';
-
-    const formData = new FormData();
-    formData.append('action', 'deplete_inventory_item');
-    formData.append('csrf_token', csrfToken);
-    formData.append('item_id', itemId);
-    formData.append('delta', delta);
-
-    try {
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        const result = await response.json().catch(() => null);
-
-        if (response.ok && (!result || result.success !== false)) {
-            if (newQty <= 0) {
-                row.style.transition = 'all 0.3s ease';
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(20px)';
-                setTimeout(() => {
-                    row.remove();
-                    updateModalBadgeCounts();
-                }, 300);
-
-                const mainRow = document.querySelector(`tr[data-id="${itemId}"]`);
-                if (mainRow) mainRow.remove();
-            } else {
-                row.setAttribute('data-qty', newQty);
-                if (qtyBadge) qtyBadge.textContent = newQty;
-
-                const mainRow = document.querySelector(`tr[data-id="${itemId}"]`);
-                if (mainRow) {
-                    const qtyInput = mainRow.querySelector('td[data-field="quantity"] input');
-                    if (qtyInput) qtyInput.value = newQty;
-                }
-            }
-
-            updateTotalQuantityHeader();
-        } else {
-            alert(result && result.message ? result.message : 'Error updating quantity.');
+        if (mainBtn) {
+            mainBtn.disabled = false;
+            recalculateReconcileStats();
         }
-    } catch (err) {
-        console.error("Depletion Error:", err);
     }
 }
 
-// Purge Single Item (Record as sold & remove)
+// Purge Single Item (Record as sold & remove immediately)
 async function purgeModalItem(itemId, itemLabel) {
-    if (!confirm(`Mark "${itemLabel}" as SOLD & remove from this shelf?\n\nThis will record the transaction in the sold database and delete the item from this location.`)) {
+    if (!confirm(`Mark "${itemLabel}" as SOLD & remove from this shelf immediately?\n\nThis will record the transaction in the sold database and delete the item from this location.`)) {
         return;
     }
 
-    const row = document.querySelector(`.modal-deplete-row[data-id="${itemId}"]`);
+    const row = document.getElementById(`reconcile-row-${itemId}`) || document.querySelector(`.modal-deplete-row[data-id="${itemId}"]`);
     const csrfEl = document.querySelector('input[name="csrf_token"]') || document.getElementById('warehouse-metadata');
     const csrfToken = csrfEl ? (csrfEl.value || csrfEl.dataset.csrf || '') : '';
 
@@ -415,6 +605,7 @@ async function purgeModalItem(itemId, itemLabel) {
                 setTimeout(() => {
                     row.remove();
                     updateModalBadgeCounts();
+                    recalculateReconcileStats();
                 }, 300);
             }
 
@@ -432,92 +623,6 @@ async function purgeModalItem(itemId, itemLabel) {
     } catch (err) {
         console.error("Purge Error:", err);
     }
-}
-
-// Batch Purge Selected Items (Record as sold)
-async function batchPurgeSelectedModalItems() {
-    const checkedBoxes = Array.from(document.querySelectorAll('.modal-deplete-checkbox:checked'));
-    if (checkedBoxes.length === 0) {
-        alert('Please select at least one item to purge from the shelf.');
-        return;
-    }
-
-    const itemIds = checkedBoxes.map(cb => cb.value);
-    if (!confirm(`CRITICAL: Record ${itemIds.length} selected item(s) as SOLD and remove from this shelf?\n\nThese items will be recorded in the sold history and cleared from inventory.`)) {
-        return;
-    }
-
-    const csrfEl = document.querySelector('input[name="csrf_token"]') || document.getElementById('warehouse-metadata');
-    const csrfToken = csrfEl ? (csrfEl.value || csrfEl.dataset.csrf || '') : '';
-
-    const formData = new FormData();
-    formData.append('action', 'purge_inventory_items');
-    formData.append('csrf_token', csrfToken);
-    formData.append('item_ids', JSON.stringify(itemIds));
-
-    try {
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        const result = await response.json().catch(() => null);
-
-        if (response.ok && (!result || result.success !== false)) {
-            checkedBoxes.forEach(cb => {
-                const row = cb.closest('.modal-deplete-row');
-                if (row) row.remove();
-                const mainRow = document.querySelector(`tr[data-id="${cb.value}"]`);
-                if (mainRow) mainRow.remove();
-            });
-
-            updateModalBadgeCounts();
-            updateTotalQuantityHeader();
-
-            const statusBox = document.getElementById('modal-deplete-status');
-            if (statusBox) {
-                statusBox.style.display = 'block';
-                statusBox.style.background = '#fee2e2';
-                statusBox.style.color = '#991b1b';
-                statusBox.innerHTML = `🏷️ Recorded ${itemIds.length} item(s) as SOLD and removed from shelf.`;
-                setTimeout(() => { statusBox.style.display = 'none'; }, 3000);
-            }
-        } else {
-            alert('Failed to purge selected items.');
-        }
-    } catch (err) {
-        console.error("Batch Purge Error:", err);
-    }
-}
-
-// Filter items within the Deplete modal tab
-function filterModalDepleteList(query) {
-    const q = (query || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('.modal-deplete-row');
-
-    rows.forEach(row => {
-        const searchText = (row.getAttribute('data-search') || '').toLowerCase();
-        if (!q || searchText.includes(q)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-
-// Toggle select all inside modal
-function toggleSelectAllModalDeplete(masterCheckbox) {
-    const isChecked = masterCheckbox.checked;
-    const checkboxes = document.querySelectorAll('.modal-deplete-checkbox');
-    checkboxes.forEach(cb => {
-        const row = cb.closest('.modal-deplete-row');
-        if (row && row.style.display !== 'none') {
-            cb.checked = isChecked;
-        }
-    });
 }
 
 // Helper: update modal item count badge
@@ -561,6 +666,11 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// Initialize reconcile stats on tab switch
+document.addEventListener('DOMContentLoaded', function () {
+    recalculateReconcileStats();
+});
 
 // Attach Escape key listener to close modal
 document.addEventListener('keydown', function (e) {

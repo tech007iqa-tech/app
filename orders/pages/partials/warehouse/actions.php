@@ -147,47 +147,101 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'reconcile_location_sync' && isset($_POST['location_code'])) {
         $loc = trim($_POST['location_code']);
         $sector = $_POST['sector'] ?? 'Laptops';
-        $kept_ids_raw = $_POST['kept_item_ids'] ?? '[]';
-        $kept_ids = json_decode($kept_ids_raw, true) ?: [];
+        
+        // Can receive verified_items as JSON array of {id, qty} or object {id: qty}, or fallback to kept_item_ids
+        $verified_items_raw = $_POST['verified_items'] ?? '';
+        $verified_map = []; // [ id => verified_qty ]
+        
+        if (!empty($verified_items_raw)) {
+            $decoded = json_decode($verified_items_raw, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $k => $v) {
+                    if (is_array($v) && isset($v['id'])) {
+                        $verified_map[(int)$v['id']] = max(1, (int)($v['qty'] ?? 1));
+                    } elseif (is_numeric($k)) {
+                        $verified_map[(int)$k] = max(1, (int)$v);
+                    }
+                }
+            }
+        } elseif (isset($_POST['kept_item_ids'])) {
+            $kept_ids = json_decode($_POST['kept_item_ids'], true) ?: [];
+            foreach ($kept_ids as $kid) {
+                $verified_map[(int)$kid] = null; // keep current db qty
+            }
+        }
+
+        $kept_ids = array_keys($verified_map);
 
         $conn_wh->beginTransaction();
         try {
-            // Query all items currently on this location/sector
-            $sql_find = "SELECT * FROM inventory WHERE location_code = ? AND sector = ?";
-            $params = [$loc, $sector];
-            if (!empty($kept_ids)) {
-                $placeholders = implode(',', array_fill(0, count($kept_ids), '?'));
-                $sql_find .= " AND id NOT IN ($placeholders)";
-                $params = array_merge($params, array_map('intval', $kept_ids));
-            }
-            $stmt_missing = $conn_wh->prepare($sql_find);
-            $stmt_missing->execute($params);
-            $missing_items = $stmt_missing->fetchAll(PDO::FETCH_ASSOC);
+            // 1. Fetch all items currently on this shelf/sector
+            $stmt_all = $conn_wh->prepare("SELECT * FROM inventory WHERE location_code = ? AND sector = ?");
+            $stmt_all->execute([$loc, $sector]);
+            $all_shelf_items = $stmt_all->fetchAll(PDO::FETCH_ASSOC);
 
             $sold_count = 0;
+            $kept_count = 0;
             $deleted_ids = [];
+            $updated_ids = [];
+
             $stmt_sold = $conn_wh->prepare("
                 INSERT INTO sold_items (location_code, sector, brand, model, specs_json, quantity, sold_price, sold_by, reason)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Full Location Sync Audit')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
-            foreach ($missing_items as $item) {
+            $stmt_update_qty = $conn_wh->prepare("UPDATE inventory SET quantity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+
+            foreach ($all_shelf_items as $item) {
+                $item_id = (int)$item['id'];
+                $db_qty = (int)($item['quantity'] ?? 1);
                 $price = (float)($item['price'] ?? 0.00);
-                $qty = (int)($item['quantity'] ?? 1);
-                $stmt_sold->execute([
-                    $loc,
-                    $item['sector'] ?? $sector,
-                    $item['brand'],
-                    $item['model'],
-                    $item['specs_json'],
-                    $qty,
-                    $price,
-                    $current_user
-                ]);
-                $deleted_ids[] = (int)$item['id'];
-                $sold_count += $qty;
+
+                if (isset($verified_map[$item_id])) {
+                    // Item was verified on shelf!
+                    $target_qty = $verified_map[$item_id] !== null ? (int)$verified_map[$item_id] : $db_qty;
+                    if ($target_qty <= 0) $target_qty = 1;
+
+                    if ($target_qty < $db_qty) {
+                        // Some units were missing/sold
+                        $diff_sold = $db_qty - $target_qty;
+                        $stmt_sold->execute([
+                            $loc,
+                            $item['sector'] ?? $sector,
+                            $item['brand'],
+                            $item['model'],
+                            $item['specs_json'],
+                            $diff_sold,
+                            $price,
+                            $current_user,
+                            'Reconcile Audit Count Adjustment'
+                        ]);
+                        $sold_count += $diff_sold;
+                    }
+
+                    if ($target_qty !== $db_qty) {
+                        $stmt_update_qty->execute([$target_qty, $item_id]);
+                        $updated_ids[] = $item_id;
+                    }
+                    $kept_count += $target_qty;
+                } else {
+                    // Item was NOT checked off -> Purge and record as SOLD
+                    $stmt_sold->execute([
+                        $loc,
+                        $item['sector'] ?? $sector,
+                        $item['brand'],
+                        $item['model'],
+                        $item['specs_json'],
+                        $db_qty,
+                        $price,
+                        $current_user,
+                        'Full Location Sync Audit'
+                    ]);
+                    $deleted_ids[] = $item_id;
+                    $sold_count += $db_qty;
+                }
             }
 
+            // Delete missing items from inventory
             if (!empty($deleted_ids)) {
                 $del_ph = implode(',', array_fill(0, count($deleted_ids), '?'));
                 $stmt_del = $conn_wh->prepare("DELETE FROM inventory WHERE id IN ($del_ph)");
@@ -200,10 +254,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,
+                    'kept_count' => $kept_count,
                     'sold_count' => $sold_count,
                     'deleted_record_count' => count($deleted_ids),
                     'deleted_ids' => $deleted_ids,
-                    'message' => "Location {$loc} synchronized: {$sold_count} missing unit(s) recorded as SOLD and removed from shelf."
+                    'message' => "Shelf {$loc} reconciled: {$kept_count} unit(s) verified & retained, {$sold_count} unit(s) recorded as SOLD & removed."
                 ]);
                 exit();
             }

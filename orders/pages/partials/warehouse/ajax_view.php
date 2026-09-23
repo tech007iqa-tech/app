@@ -108,14 +108,14 @@ if (UI::is_ajax()) {
                     <td class="editable-cell" data-field="condition">
                         <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['condition'] ?? 'Used') ?>" list="condition-options-list" placeholder="...">
                     </td>
-                    <td class="editable-cell" data-field="notes">
-                        <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['notes'] ?? '') ?>" placeholder="...">
+                    <td class="editable-cell numeric" data-field="quantity">
+                        <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
                     </td>
                     <td class="editable-cell numeric" data-field="price">
                         <input type="number" step="any" class="cell-input text-right" value="<?= htmlspecialchars($item['price'] ?? '0.00') ?>">
                     </td>
-                    <td class="editable-cell numeric" data-field="quantity">
-                        <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
+                    <td class="editable-cell" data-field="notes">
+                        <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['notes'] ?? '') ?>" placeholder="...">
                     </td>
                     <td style="text-align:right;">
                         <div class="action-buttons">
@@ -376,14 +376,14 @@ if (UI::is_ajax()) {
                 <td class="editable-cell" data-field="condition">
                     <input type="text" class="cell-input" list="condition-options-list" placeholder="Condition...">
                 </td>
-                <td class="editable-cell" data-field="notes">
-                    <input type="text" class="cell-input" placeholder="Notes...">
+                <td class="editable-cell numeric" data-field="quantity">
+                    <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">
                 </td>
                 <td class="editable-cell numeric" data-field="price">
                     <input type="number" step="any" class="cell-input text-right" placeholder="Price...">
                 </td>
-                <td class="editable-cell numeric" data-field="quantity">
-                    <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">
+                <td class="editable-cell" data-field="notes">
+                    <input type="text" class="cell-input" placeholder="Notes...">
                 </td>
                 <td style="text-align:right;">
                     <div class="action-buttons" style="justify-content: flex-end;">
