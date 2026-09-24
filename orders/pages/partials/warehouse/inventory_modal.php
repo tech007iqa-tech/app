@@ -67,13 +67,39 @@ if (!empty($selected_loc)) {
             
             <!-- TAB 1: RAPID INTAKE FORM WITH SMART PRICING -->
             <div id="inv-tab-pane-intake" class="inv-tab-pane" style="display:block;">
+                <?php
+                $is_global_intake = empty($selected_loc) || $selected_loc === 'GLOBAL';
+                $modal_sector = ($selected_sector === 'Master' || empty($selected_sector)) ? 'Laptops' : $selected_sector;
+                ?>
                 <form id="wh-quick-intake-form" onsubmit="submitQuickIntakeAjax(event)">
                     <?= UI::csrf_field() ?>
                     <input type="hidden" name="action" value="quick_add_inventory">
-                    <input type="hidden" name="location_code" value="<?= htmlspecialchars($selected_loc ?? '') ?>">
-                    <input type="hidden" name="sector" value="<?= htmlspecialchars($selected_sector) ?>">
+                    <?php if (!$is_global_intake): ?>
+                        <input type="hidden" name="location_code" value="<?= htmlspecialchars($selected_loc) ?>">
+                    <?php endif; ?>
+                    <?php if ($selected_sector !== 'Master'): ?>
+                        <input type="hidden" name="sector" value="<?= htmlspecialchars($selected_sector) ?>">
+                    <?php endif; ?>
 
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:14px;">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:14px;">
+                        <?php if ($is_global_intake): ?>
+                            <div>
+                                <label style="display:block; font-size:0.7rem; font-weight:800; text-transform:uppercase; margin-bottom:5px; color:var(--text-secondary, #64748b);">Target Shelf *</label>
+                                <input type="text" name="location_code" required placeholder="e.g. A-1, B-2" list="gate-loc-datalist"
+                                    style="width:100%; height:44px; border-radius:10px; border:1px solid var(--border-color, #cbd5e1); padding:0 12px; font-weight:700; font-size:0.9rem; background:var(--bg-body, #ffffff); color:#2563eb;">
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($selected_sector === 'Master'): ?>
+                            <div>
+                                <label style="display:block; font-size:0.7rem; font-weight:800; text-transform:uppercase; margin-bottom:5px; color:var(--text-secondary, #64748b);">Sector *</label>
+                                <select name="sector" style="width:100%; height:44px; border-radius:10px; border:1px solid var(--border-color, #cbd5e1); padding:0 12px; font-weight:700; font-size:0.9rem; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a);">
+                                    <option value="Laptops" selected>💻 Laptops</option>
+                                    <option value="Gaming">🎮 Gaming</option>
+                                    <option value="Desktops">🖥️ Desktops</option>
+                                    <option value="Electronics">🔌 Electronics</option>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                         <div>
                             <label style="display:block; font-size:0.7rem; font-weight:800; text-transform:uppercase; margin-bottom:5px; color:var(--text-secondary, #64748b);">Brand *</label>
                             <input type="text" id="intake-brand" name="brand" required placeholder="e.g. Dell, Lenovo, HP" list="brand-options"

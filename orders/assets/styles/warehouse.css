@@ -232,8 +232,10 @@
 
 .search-container {
     position: relative;
-    max-width: 400px;
+    max-width: 420px;
     flex: 1;
+    display: flex;
+    align-items: center;
 }
 
 .search-icon {
@@ -244,6 +246,7 @@
     font-style: normal;
     color: #525c6a;
     opacity: 0.9;
+    pointer-events: none;
 }
 
 .search-input {
@@ -251,10 +254,12 @@
     height: 48px;
     border-radius: 14px;
     border: 1px solid var(--border-color);
-    padding: 0 16px 0 44px;
-    font-size: 16px;
+    padding: 0 65px 0 44px;
+    font-size: 0.92rem;
+    font-weight: 600;
     transition: all 0.2s;
-    background: #ffffff;
+    background: var(--bg-card, #ffffff);
+    color: var(--text-main, #0f172a);
     -webkit-appearance: none;
     appearance: none;
 }
@@ -262,7 +267,88 @@
 .search-input:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 4px rgba(140, 198, 63, 0.1);
+    box-shadow: 0 0 0 4px rgba(140, 198, 63, 0.15);
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e2e8f0;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.search-clear-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.search-clear-btn:hover {
+    background: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.search-kbd-hint {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 6px;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.search-input:focus ~ .search-kbd-hint,
+.search-clear-btn.visible ~ .search-kbd-hint {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.wh-row-hidden {
+    display: none !important;
+}
+
+.search-match-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .search-match-count-badge {
+    background: rgba(22, 101, 52, 0.2);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.3);
 }
 
 .btn-export {
@@ -358,6 +444,62 @@
     box-shadow: inset 0 -2px 0 #1e293b;
 }
 
+.inventory-table th.col-type,
+.inventory-table td.col-type {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 24px;
+}
+
+.inventory-table th.col-main,
+.inventory-table td.col-main {
+    min-width: 170px;
+}
+
+.inventory-table th.col-qty,
+.inventory-table td.col-qty {
+    width: 1%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.inventory-table th.col-price,
+.inventory-table td.col-price {
+    width: 1%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.inventory-table th.col-specs,
+.inventory-table td.col-specs {
+    min-width: 150px;
+}
+
+.inventory-table th.col-notes,
+.inventory-table td.col-notes {
+    min-width: 180px;
+}
+
+.inventory-table th.col-log,
+.inventory-table td.col-log {
+    width: 150px;
+    white-space: nowrap;
+}
+
+.inventory-table th.col-sector,
+.inventory-table td.col-sector {
+    width: 1%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.inventory-table th.col-actions,
+.inventory-table td.col-actions {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+}
+
 .inventory-table tr.inventory-card {
     transition: background 0.2s;
 }
@@ -385,6 +527,8 @@
     font-size: 0.75rem;
     font-weight: 700;
     color: #475569;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .cell-make {

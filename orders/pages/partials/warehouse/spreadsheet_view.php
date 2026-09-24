@@ -54,14 +54,17 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
             ?>
             <div class="inventory-total-count">
                 Total Qty: <span class="count-value" id="sidebar-total-qty"><?= number_format($total_qty) ?> Units</span>
+                <span id="search-match-count" class="search-match-count-badge" style="display: none;"></span>
             </div>
         </div>
         <div class="inventory-actions">
-            <div class="search-container" style="flex: 1; max-width: 300px;">
+            <div class="search-container" style="flex: 1; max-width: 340px;">
                 <i class="search-icon">🔍</i>
-                <input type="text" id="wh-search" placeholder="Search items..."
-                    aria-label="Search warehouse inventory" onkeyup="syncSearch(this)"
-                    onkeydown="if(event.key==='Enter') event.preventDefault()" class="search-input">
+                <input type="text" id="wh-search" placeholder="Search items... (Ctrl+K)"
+                    aria-label="Search warehouse inventory" oninput="syncSearch(this)"
+                    onkeydown="handleSearchKeydown(event, this)" class="search-input" autocomplete="off" spellcheck="false">
+                <button type="button" class="search-clear-btn" id="search-clear-btn" onclick="clearWarehouseSearch()" title="Clear Search (Esc)">✕</button>
+                <span class="search-kbd-hint">Ctrl K</span>
             </div>
             <button type="button" onclick="openInventoryModal('intake')" class="btn-inventory" title="Open Inventory Intake & Shelf Depletion Dialog">
                 ⚡ INVENTORY
@@ -194,15 +197,31 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                 <?php endif; ?>
             </thead>
             <tbody id="inventory-list">
+                <!-- Dynamic No Results Placeholder -->
+                <tr id="wh-no-results" class="no-results-row" style="display: none;">
+                    <td colspan="15">
+                        <div class="no-results-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; gap: 10px;">
+                            <div style="font-size: 2rem;">🕵️‍♂️</div>
+                            <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-main, #0f172a);">No items matching your search filter</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary, #64748b);">Try different keywords or press escape to clear.</div>
+                            <button type="button" onclick="clearWarehouseSearch()" class="btn-export" style="background: var(--accent-color, #0284c7); color: white; padding: 6px 16px; height: auto; font-size: 0.8rem; margin-top: 5px;">
+                                ✕ Clear Search Filter
+                            </button>
+                        </div>
+                    </td>
+                </tr>
                 <?php foreach ($items as $item):
                     $specs = json_decode($item['specs_json'], true) ?: [];
                     ?>
                     <tr class="inventory-card summary-row" data-id="<?= $item['id'] ?>"
+                        data-sector="<?= htmlspecialchars($item['sector'] ?? $selected_sector) ?>"
+                        data-location="<?= htmlspecialchars($item['location_code'] ?? '') ?>"
                         data-brand="<?= htmlspecialchars($item['brand']) ?>"
                         data-model="<?= htmlspecialchars($item['model']) ?>"
+                        data-qty="<?= (int)$item['quantity'] ?>"
                         data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
                         data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
-                        data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+                        data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($item['sector'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['series'] ?? '') . ' ' . ($specs['notes'] ?? '') . ' ' . ($specs['condition'] ?? ''))) ?>">
 
                         <?php if ($show_location_col): ?>
                             <td class="editable-cell" data-field="location_code">

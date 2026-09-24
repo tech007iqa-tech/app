@@ -59,6 +59,30 @@ function initWarehouseApp() {
         incrementSessionCounter();
     }
 
+    // Build search index and bind global search hotkeys
+    if (typeof buildWarehouseSearchIndex === 'function') {
+        buildWarehouseSearchIndex();
+    }
+
+    // Global keyboard shortcuts (Ctrl+K / Cmd+K / Slash to search)
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            const sIn = document.getElementById('wh-search');
+            if (sIn) {
+                sIn.focus();
+                sIn.select();
+            }
+        } else if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
+            e.preventDefault();
+            const sIn = document.getElementById('wh-search');
+            if (sIn) {
+                sIn.focus();
+                sIn.select();
+            }
+        }
+    });
+
     // Re-apply persistent search
     const savedSearch = sessionStorage.getItem('wh_active_search');
     const searchIn = document.getElementById('wh-search');
@@ -66,6 +90,8 @@ function initWarehouseApp() {
     if (savedSearch && (searchIn || footerIn)) {
         if (searchIn) searchIn.value = savedSearch;
         if (footerIn) footerIn.value = savedSearch;
+        const clearBtn = document.getElementById('search-clear-btn');
+        if (clearBtn && savedSearch.trim() !== '') clearBtn.classList.add('visible');
         if (typeof filterWarehouse === 'function') filterWarehouse();
     }
 
@@ -121,6 +147,7 @@ function initWarehouseApp() {
             elementId: 'inventory-list',
             url: window.location.pathname + window.location.search + (window.location.search ? '&ajax=1' : '?ajax=1'),
             onUpdate: () => {
+                if (typeof buildWarehouseSearchIndex === 'function') buildWarehouseSearchIndex();
                 if (typeof filterWarehouse === 'function') filterWarehouse();
 
                 // Keep selected IDs up-to-date with DOM

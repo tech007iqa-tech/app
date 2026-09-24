@@ -201,6 +201,19 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
 ---
 
 ## ⚠️ Recent Critical Fixes & Features (September 2026)
+*   **Warehouse High-Performance Search & Speed Engine (September 24, 2026)**:
+    *   **In-Memory Search Indexing (`assets/js/warehouse/warehouse_bulk.js`)**: Eliminated DOM layout thrashing and repetitive cell queries during typing by creating a compiled in-memory index (`window.__whInventoryIndex`). Re-indexed in $O(1)$ on cell edits and $O(N)$ on bulk loads/AppSync updates.
+    *   **Hyper-Flexible Multi-Criteria Search & Syntax**:
+        *   **Field-Scoped Filters**: `brand:dell`, `model:t480`, `loc:a-1`, `shelf:a-1`, `sec:laptops`, `cpu:i7`, `ram:16`, `storage:512`, `cond:tested`, `status:working`.
+        *   **Numeric Range Operators**: `qty:>5`, `qty:<=10`, `qty:0`, `price:>100`, `price:<50`.
+        *   **Hardware Acronyms & Synonyms**: Automatic token expansion for RAM (`16g` $\leftrightarrow$ `16gb`), Storage (`512` $\leftrightarrow$ `512gb ssd`), CPU Generations (`8th` $\leftrightarrow$ `gen 8`), and punctuation normalization (`T-480` $\leftrightarrow$ `T480`).
+        *   **Negations & Exact Phrases**: Exclusions (`-sold`, `-broken`, `!parts`) and quoted terms (`"ThinkPad T480"`).
+    *   **60FPS RAF Debounced Rendering**: Smooth batch display toggle via `requestAnimationFrame` debouncing (20ms) and `.wh-row-hidden` class optimization.
+    *   **Quality of Life UX Enhancements**:
+        *   **Global Hotkeys**: <kbd>Ctrl</kbd>+<kbd>K</kbd>, <kbd>Cmd</kbd>+<kbd>K</kbd>, and <kbd>/</kbd> instantly focus search; <kbd>Escape</kbd> clears query.
+        *   **Embedded Clear Button & Match Counter**: Quick ✕ reset button in search input and real-time match pill badge (`Showing 42 of 1,211 items`).
+        *   **Master Sector Navigation Tab**: Embedded `🌐 Master` (all inventory sectors) into the primary `.sector-nav` bar for single-click catalog overview.
+    *   **Database Composite Indexing & PRAGMA Optimizations (`core/Schema.php` & `core/Database.php`)**: Added high-speed indexes (`idx_inv_sector_loc`, `idx_inv_loc_sector`, `idx_inv_brand_model`, `idx_inv_updated`, `idx_inv_price`, `idx_locations_zone`, `idx_sold_loc_sec`) alongside SQLite memory cache (`PRAGMA cache_size = -64000`, `PRAGMA temp_store = MEMORY`).
 *   **Warehouse Gate Modularization & Zone Spreadsheet View (September 16, 2026)**:
     *   **Zone Integrated Spreadsheet Engine (`pages/partials/warehouse/spreadsheet_view.php`)**: Embedded full in-cell Excel-style spreadsheet directly inside parent Zone views (`?view=warehouse&zone=[Name]`), rendering all stock across all shelves in the active zone with sector navigation tabs.
     *   **Dynamic Shelf Location Column & Auto-fill**: Added real-time editable `Shelf` column with datalist autocomplete (`#zone-shelves-list`), inline shelf reassignment via `api/update_inventory_field.php`, and smart default shelf pre-fill on the bottom blank intake row.

@@ -165,11 +165,318 @@ function initWarehouseBulkActions() {
 }
 
 /**
- * Synchronizes the two search bars (Header and Footer) and filters the table
+ * Global In-Memory Inventory Search Index & Performance State
+ */
+window.__whInventoryIndex = [];
+let __searchDebounceTimer = null;
+let __searchRafId = null;
+
+/**
+ * Builds / Rebuilds the in-memory compiled search index
+ */
+function buildWarehouseSearchIndex() {
+    const listContainer = document.getElementById('inventory-list');
+    if (!listContainer) {
+        window.__whInventoryIndex = [];
+        return;
+    }
+
+    const cards = listContainer.querySelectorAll('.inventory-card:not(.new-blank-row)');
+    const index = [];
+
+    cards.forEach(card => {
+        const entry = extractWarehouseRowData(card);
+        if (entry) index.push(entry);
+    });
+
+    window.__whInventoryIndex = index;
+}
+
+/**
+ * Extracts normalized data from a table row element for the search index
+ */
+function extractWarehouseRowData(card) {
+    if (!card || card.classList.contains('no-results-row') || card.classList.contains('new-blank-row')) return null;
+
+    const id = card.getAttribute('data-id') || '';
+    const sector = (card.getAttribute('data-sector') || card.getAttribute('data-sector-theme') || '').toLowerCase();
+    
+    // Read direct attributes or cell inputs
+    let brand = card.getAttribute('data-brand') || '';
+    let model = card.getAttribute('data-model') || '';
+    let location = card.getAttribute('data-location') || '';
+    let price = parseFloat(card.getAttribute('data-price') || '0');
+    let qty = parseInt(card.getAttribute('data-qty') || '0', 10);
+    
+    // In spreadsheet mode, cell inputs take precedence if present
+    const brandInput = card.querySelector('[data-field="brand"] .cell-input');
+    if (brandInput) brand = brandInput.value.trim();
+    
+    const modelInput = card.querySelector('[data-field="model"] .cell-input');
+    if (modelInput) model = modelInput.value.trim();
+    
+    const locInput = card.querySelector('[data-field="location_code"] .cell-input');
+    if (locInput) location = locInput.value.trim();
+    
+    const locTag = card.querySelector('.location-tag');
+    if (!location && locTag) location = locTag.textContent.trim();
+    
+    const qtyInput = card.querySelector('[data-field="quantity"] .cell-input');
+    const qtyPill = card.querySelector('.qty-pill');
+    if (qtyInput) qty = parseInt(qtyInput.value, 10) || 0;
+    else if (qtyPill) qty = parseInt(qtyPill.textContent, 10) || 0;
+
+    const priceInput = card.querySelector('[data-field="price"] .cell-input');
+    if (priceInput) price = parseFloat(priceInput.value) || 0;
+
+    const specsJson = card.getAttribute('data-specs') || '{}';
+    let specs = {};
+    try { specs = JSON.parse(specsJson); } catch (e) { specs = {}; }
+
+    // Read spec cell inputs if present
+    const cpuInput = card.querySelector('[data-field="cpu"] .cell-input') || card.querySelector('[data-field="cpu_gen"] .cell-input');
+    const cpuVal = (cpuInput ? cpuInput.value.trim() : (specs.cpu || specs.cpu_gen || '')).toLowerCase();
+    
+    const ramInput = card.querySelector('[data-field="ram"] .cell-input');
+    const ramVal = (ramInput ? ramInput.value.trim() : (specs.ram || '')).toLowerCase();
+    
+    const storageInput = card.querySelector('[data-field="storage"] .cell-input');
+    const storageVal = (storageInput ? storageInput.value.trim() : (specs.storage || '')).toLowerCase();
+
+    const seriesInput = card.querySelector('[data-field="series"] .cell-input');
+    const seriesVal = (seriesInput ? seriesInput.value.trim() : (specs.series || '')).toLowerCase();
+
+    const genInput = card.querySelector('[data-field="gen"] .cell-input');
+    const genVal = (genInput ? genInput.value.trim() : (specs.gen || '')).toLowerCase();
+
+    const gpuInput = card.querySelector('[data-field="gpu"] .cell-input');
+    const gpuVal = (gpuInput ? gpuInput.value.trim() : (specs.gpu || '')).toLowerCase();
+
+    const batteryInput = card.querySelector('[data-field="battery"] .cell-input');
+    const batteryVal = (batteryInput ? batteryInput.value.trim() : (specs.battery || '')).toLowerCase();
+
+    const conditionInput = card.querySelector('[data-field="condition"] .cell-input');
+    const conditionVal = (conditionInput ? conditionInput.value.trim() : (specs.condition || 'Used')).toLowerCase();
+
+    const notesInput = card.querySelector('[data-field="notes"] .cell-input');
+    const notesVal = (notesInput ? notesInput.value.trim() : (specs.notes || '')).toLowerCase();
+
+    const statusVal = (card.querySelector('.status-badge')?.textContent || '').toLowerCase();
+
+    // Normalizations & Synonyms Expansion
+    const rawTokens = [
+        brand, model, location, sector, seriesVal, cpuVal, genVal, ramVal, storageVal, gpuVal, batteryVal, conditionVal, notesVal, statusVal
+    ];
+    const rawSearch = rawTokens.join(' ').toLowerCase();
+    const cleanSearch = rawSearch.replace(/[-_.,/\\#;:()]/g, ' ');
+
+    // Hardware Synonym and Prefix Tokens
+    const expandedTokens = [];
+    
+    // RAM synonyms: e.g. "16gb" -> "16g", "16 ram", "16-gb"
+    if (ramVal) {
+        const numRam = ramVal.replace(/[^0-9]/g, '');
+        if (numRam) {
+            expandedTokens.push(numRam + 'g', numRam + 'gb', numRam + ' ram');
+        }
+    }
+
+    // Storage synonyms: e.g. "512gb" -> "512g", "512 ssd", "512 nvme"
+    if (storageVal) {
+        const numStorage = storageVal.replace(/[^0-9]/g, '');
+        if (numStorage) {
+            expandedTokens.push(numStorage + 'g', numStorage + 'gb', numStorage + ' ssd', numStorage + ' nvme');
+        }
+    }
+
+    // CPU Generation synonyms: e.g. "8th" -> "gen 8", "8th gen", "8gen"
+    if (genVal || cpuVal) {
+        const combinedCpu = (genVal + ' ' + cpuVal).toLowerCase();
+        const genMatch = combinedCpu.match(/(\d+)(?:th|nd|rd|st)?\s*gen/i) || combinedCpu.match(/gen\s*(\d+)/i) || combinedCpu.match(/i[3579]-?(\d{1,2})\d{2,3}/i);
+        if (genMatch) {
+            const gNum = genMatch[1];
+            expandedTokens.push(gNum + 'th', gNum + 'th gen', 'gen ' + gNum, 'gen' + gNum);
+        }
+    }
+
+    // Location / Shelf synonyms: e.g. "A-1" -> "a1", "shelf a 1", "zone a"
+    if (location) {
+        expandedTokens.push(location.replace(/[-_]/g, ''), 'shelf ' + location);
+    }
+
+    const fullNormalizedSearch = (rawSearch + ' ' + cleanSearch + ' ' + expandedTokens.join(' ')).replace(/\s+/g, ' ').trim();
+
+    return {
+        el: card,
+        id: id,
+        brand: brand.toLowerCase(),
+        model: model.toLowerCase(),
+        location: location.toLowerCase(),
+        sector: sector,
+        series: seriesVal,
+        cpu: cpuVal,
+        gpu: gpuVal,
+        gen: genVal,
+        ram: ramVal,
+        storage: storageVal,
+        condition: conditionVal,
+        notes: notesVal,
+        status: statusVal,
+        qty: qty,
+        price: price,
+        normalizedText: fullNormalizedSearch
+    };
+}
+
+/**
+ * Updates a single row inside the in-memory search index
+ */
+function updateWarehouseRowSearchIndex(row) {
+    if (!row || !window.__whInventoryIndex) return;
+    const id = row.getAttribute('data-id');
+    const existingIdx = window.__whInventoryIndex.findIndex(item => item.el === row || (id && item.id === id));
+    const newData = extractWarehouseRowData(row);
+
+    if (newData) {
+        if (existingIdx >= 0) {
+            window.__whInventoryIndex[existingIdx] = newData;
+        } else {
+            window.__whInventoryIndex.push(newData);
+        }
+    } else if (existingIdx >= 0) {
+        window.__whInventoryIndex.splice(existingIdx, 1);
+    }
+}
+
+/**
+ * Parses user search query into structured search tokens:
+ * - Field filters: brand:dell, model:t480, loc:a-1, shelf:a-1, sec:laptops, cpu:i7, ram:16, storage:512, cond:tested
+ * - Range/numeric filters: qty:>5, qty:<=10, qty:0, price:>100, price:<50
+ * - Negation tokens: -broken, !parts, -dell
+ * - Quoted exact terms: "ThinkPad T480"
+ * - General words: space-separated order-independent matching
+ */
+function parseWarehouseQuery(queryStr) {
+    if (!queryStr || typeof queryStr !== 'string') return null;
+    const cleanStr = queryStr.trim();
+    if (!cleanStr) return null;
+
+    const terms = [];
+    const fieldFilters = [];
+    const numFilters = [];
+    const negations = [];
+
+    // Extract quoted strings first: e.g. "ThinkPad T480"
+    const regex = /"([^"]+)"|(\S+)/g;
+    let match;
+    while ((match = regex.exec(cleanStr)) !== null) {
+        const token = match[1] || match[2];
+        if (!token) continue;
+
+        // Negation: -word or !word
+        if (token.startsWith('-') || token.startsWith('!')) {
+            const negTerm = token.slice(1).toLowerCase().trim();
+            if (negTerm) negations.push(negTerm);
+            continue;
+        }
+
+        // Numeric Comparison: qty:>5, qty:<10, qty:0, price:>100
+        const numMatch = token.match(/^(qty|quantity|price)([:=><]=?|>|<|=)(-?\d+(?:\.\d+)?)$/i);
+        if (numMatch) {
+            const field = numMatch[1].toLowerCase().startsWith('qty') ? 'qty' : 'price';
+            const op = numMatch[2].replace(':', '=');
+            const val = parseFloat(numMatch[3]);
+            numFilters.push({ field, op, val });
+            continue;
+        }
+
+        // Field filter: brand:dell, b:dell, model:t480, m:t480, shelf:a-1, loc:a-1, sec:laptops, cpu:i7, ram:16, storage:512, cond:tested
+        const fieldMatch = token.match(/^([a-zA-Z_]+):(.+)$/);
+        if (fieldMatch) {
+            const rawField = fieldMatch[1].toLowerCase();
+            const val = fieldMatch[2].toLowerCase().trim();
+            let targetField = null;
+
+            if (['brand', 'b', 'make'].includes(rawField)) targetField = 'brand';
+            else if (['model', 'm'].includes(rawField)) targetField = 'model';
+            else if (['location', 'loc', 'shelf', 'zone'].includes(rawField)) targetField = 'location';
+            else if (['sector', 'sec', 'cat', 'category'].includes(rawField)) targetField = 'sector';
+            else if (['cpu', 'processor'].includes(rawField)) targetField = 'cpu';
+            else if (['ram', 'memory'].includes(rawField)) targetField = 'ram';
+            else if (['storage', 'ssd', 'hdd', 'nvme', 'disk'].includes(rawField)) targetField = 'storage';
+            else if (['gpu', 'graphics', 'video'].includes(rawField)) targetField = 'gpu';
+            else if (['series'].includes(rawField)) targetField = 'series';
+            else if (['cond', 'condition', 'grade'].includes(rawField)) targetField = 'condition';
+            else if (['notes', 'note'].includes(rawField)) targetField = 'notes';
+            else if (['status'].includes(rawField)) targetField = 'status';
+
+            if (targetField && val) {
+                fieldFilters.push({ field: targetField, val: val });
+                continue;
+            }
+        }
+
+        // General term
+        terms.push(token.toLowerCase());
+    }
+
+    return { terms, fieldFilters, numFilters, negations };
+}
+
+/**
+ * Evaluates whether an indexed item matches the parsed search query
+ */
+function matchesWarehouseRow(item, parsedQuery) {
+    if (!parsedQuery) return true;
+
+    // 1. Negations: if any negated term is found in normalizedText, reject
+    for (let i = 0; i < parsedQuery.negations.length; i++) {
+        const neg = parsedQuery.negations[i];
+        if (item.normalizedText.includes(neg)) return false;
+    }
+
+    // 2. Numeric Range Filters
+    for (let i = 0; i < parsedQuery.numFilters.length; i++) {
+        const nf = parsedQuery.numFilters[i];
+        const rowVal = nf.field === 'qty' ? item.qty : item.price;
+        if (nf.op === '=' || nf.op === '==' || nf.op === ':=') {
+            if (rowVal !== nf.val) return false;
+        } else if (nf.op === '>') {
+            if (rowVal <= nf.val) return false;
+        } else if (nf.op === '>=') {
+            if (rowVal < nf.val) return false;
+        } else if (nf.op === '<') {
+            if (rowVal >= nf.val) return false;
+        } else if (nf.op === '<=') {
+            if (rowVal > nf.val) return false;
+        }
+    }
+
+    // 3. Field Filters
+    for (let i = 0; i < parsedQuery.fieldFilters.length; i++) {
+        const ff = parsedQuery.fieldFilters[i];
+        const valOnRow = (item[ff.field] || '').toString();
+        if (!valOnRow.includes(ff.val)) return false;
+    }
+
+    // 4. General Search Terms (all terms must match normalizedText)
+    for (let i = 0; i < parsedQuery.terms.length; i++) {
+        const term = parsedQuery.terms[i];
+        const cleanTerm = term.replace(/[-_.,/\\#;:()]/g, '');
+        if (!item.normalizedText.includes(term) && (!cleanTerm || !item.normalizedText.includes(cleanTerm))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Synchronizes search input value, updates clear buttons, and triggers fast debounced filter
  */
 function syncSearch(inputEl) {
-    const rect = inputEl.getBoundingClientRect();
-    const offsetTop = rect.top;
+    if (!inputEl) return;
+    const query = inputEl.value;
 
     if (window.location.hash) {
         window.history.replaceState({}, '', window.location.pathname + window.location.search);
@@ -177,20 +484,64 @@ function syncSearch(inputEl) {
 
     const otherId = inputEl.id === 'wh-search' ? 'wh-search-footer' : 'wh-search';
     const otherEl = document.getElementById(otherId);
-    if (otherEl) otherEl.value = inputEl.value;
+    if (otherEl && otherEl.value !== query) otherEl.value = query;
 
-    sessionStorage.setItem('wh_active_search', inputEl.value);
-    filterWarehouse();
+    // Toggle clear button visibility
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) {
+        if (query.trim() !== '') {
+            clearBtn.classList.add('visible');
+        } else {
+            clearBtn.classList.remove('visible');
+        }
+    }
 
-    if (inputEl.id === 'wh-search-footer') {
-        const newRect = inputEl.getBoundingClientRect();
-        const diff = newRect.top - offsetTop;
-        window.scrollBy(0, diff);
+    sessionStorage.setItem('wh_active_search', query);
+
+    // High performance RAF debouncing
+    if (__searchDebounceTimer) clearTimeout(__searchDebounceTimer);
+    __searchDebounceTimer = setTimeout(() => {
+        if (__searchRafId) cancelAnimationFrame(__searchRafId);
+        __searchRafId = requestAnimationFrame(() => {
+            filterWarehouse();
+        });
+    }, 20);
+}
+
+/**
+ * Handles keyboard navigation & shortcuts on search inputs
+ */
+function handleSearchKeydown(event, inputEl) {
+    if (!event) return;
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        clearWarehouseSearch();
+        inputEl.blur();
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
     }
 }
 
 /**
- * Filters the warehouse inventory list based on search input
+ * Clears search input across all bars and restores all rows instantly
+ */
+function clearWarehouseSearch() {
+    const s1 = document.getElementById('wh-search');
+    const s2 = document.getElementById('wh-search-footer');
+    if (s1) s1.value = '';
+    if (s2) s2.value = '';
+
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) clearBtn.classList.remove('visible');
+
+    sessionStorage.removeItem('wh_active_search');
+    filterWarehouse();
+
+    if (s1) s1.focus();
+}
+
+/**
+ * High-Speed Filter Execution against the in-memory index
  */
 function filterWarehouse() {
     const searchInput = document.getElementById('wh-search');
@@ -198,56 +549,64 @@ function filterWarehouse() {
     if (!searchInput && !footerInput) return;
 
     const rawValue = (searchInput ? searchInput.value : "") || (footerInput ? footerInput.value : "");
-    const terms = rawValue.toLowerCase().split(' ').filter(t => t.trim() !== '');
+    const parsedQuery = parseWarehouseQuery(rawValue);
 
-    const cards = document.getElementsByClassName('inventory-card');
+    // Ensure search index is populated
+    if (!window.__whInventoryIndex || window.__whInventoryIndex.length === 0) {
+        buildWarehouseSearchIndex();
+    }
+
+    const index = window.__whInventoryIndex;
     const noResultsRow = document.getElementById('wh-no-results');
+    const matchCountBadge = document.getElementById('search-match-count');
 
     let visibleQtyTotal = 0;
     let visibleCount = 0;
+    const totalItems = index.length;
 
-    for (let i = 0; i < cards.length; i++) {
-        let text = "";
-        const cellInputs = cards[i].querySelectorAll('.cell-input');
-        if (cellInputs.length > 0) {
-            const values = [];
-            cellInputs.forEach(input => {
-                values.push(input.value);
-            });
-            text = values.join(' ').toLowerCase();
-        } else {
-            text = (cards[i].getAttribute('data-search') || "").toLowerCase();
-        }
+    // Fast in-memory evaluation and batch DOM update
+    for (let i = 0; i < totalItems; i++) {
+        const item = index[i];
+        if (!item || !item.el) continue;
 
-        const isMatch = terms.every(term => text.includes(term));
+        const isMatch = matchesWarehouseRow(item, parsedQuery);
 
         if (isMatch) {
-            cards[i].style.display = "";
+            item.el.classList.remove('wh-row-hidden');
+            item.el.style.display = "";
             visibleCount++;
-
-            let qty = 0;
-            const qtyPill = cards[i].querySelector('.qty-pill');
-            if (qtyPill) {
-                qty = parseInt(qtyPill.innerText, 10) || 0;
-            } else {
-                const qtyInput = cards[i].querySelector('[data-field="quantity"] .cell-input');
-                if (qtyInput) {
-                    qty = parseInt(qtyInput.value, 10) || 0;
-                }
-            }
-            visibleQtyTotal += qty;
+            visibleQtyTotal += item.qty;
         } else {
-            cards[i].style.display = "none";
+            item.el.classList.add('wh-row-hidden');
+            item.el.style.display = "none";
         }
     }
 
+    // Toggle No Results Placeholder
     if (noResultsRow) {
-        noResultsRow.style.display = (visibleCount === 0 && terms.length > 0) ? "" : "none";
+        if (visibleCount === 0 && rawValue.trim() !== '') {
+            noResultsRow.style.display = "";
+            noResultsRow.classList.remove('wh-row-hidden');
+        } else {
+            noResultsRow.style.display = "none";
+            noResultsRow.classList.add('wh-row-hidden');
+        }
     }
 
-    const totalQtyElem = document.getElementById('table-total-qty');
+    // Live Metrics Update
+    const totalQtyElem = document.getElementById('table-total-qty') || document.getElementById('sidebar-total-qty');
     if (totalQtyElem) {
-        totalQtyElem.innerText = visibleQtyTotal.toLocaleString();
+        totalQtyElem.textContent = visibleQtyTotal.toLocaleString() + " Units";
+    }
+
+    // Update Match Count Badge if filtered
+    if (matchCountBadge) {
+        if (rawValue.trim() !== '' && totalItems > 0) {
+            matchCountBadge.textContent = `Showing ${visibleCount.toLocaleString()} of ${totalItems.toLocaleString()} items`;
+            matchCountBadge.style.display = "inline-flex";
+        } else {
+            matchCountBadge.style.display = "none";
+        }
     }
 }
 

@@ -16,21 +16,29 @@
             }
             ?>
             <div class="inventory-total-count">
-                Total Qty: <span class="count-value"><?= number_format($total_qty) ?> Units</span>
+                Total Qty: <span class="count-value" id="table-total-qty"><?= number_format($total_qty) ?> Units</span>
+                <span id="search-match-count" class="search-match-count-badge" style="display: none;"></span>
             </div>
         </div>
         <div class="inventory-actions">
-            <div class="search-container" style="flex: 1; max-width: 300px;">
+            <div class="search-container" style="flex: 1; max-width: 340px;">
                 <i class="search-icon">🔍</i>
-                <input type="text" id="wh-search" placeholder="Search items..."
-                    aria-label="Search warehouse inventory" onkeyup="syncSearch(this)"
-                    onkeydown="if(event.key==='Enter') event.preventDefault()" class="search-input">
+                <input type="text" id="wh-search" placeholder="Search items... (Ctrl+K)"
+                    aria-label="Search warehouse inventory" oninput="syncSearch(this)"
+                    onkeydown="handleSearchKeydown(event, this)" class="search-input" autocomplete="off" spellcheck="false">
+                <button type="button" class="search-clear-btn" id="search-clear-btn" onclick="clearWarehouseSearch()" title="Clear Search (Esc)">✕</button>
+                <span class="search-kbd-hint">Ctrl K</span>
             </div>
             <button type="button" onclick="openInventoryModal('intake')" class="btn-inventory" title="Open Inventory Intake & Shelf Depletion Dialog">
                 ⚡ INVENTORY
             </button>
-            <a href="#wh-main-form" class="btn-export"
-                style="background: var(--text-main); color: white; border: none;">NEW Item</a>
+            <?php if ($selected_loc !== 'GLOBAL'): ?>
+                <a href="#wh-main-form" class="btn-export"
+                    style="background: var(--text-main); color: white; border: none;">NEW Item</a>
+            <?php else: ?>
+                <button type="button" onclick="openInventoryModal('intake')" class="btn-export"
+                    style="background: var(--text-main); color: white; border: none;" title="Open Quick Inbound Intake">➕ Quick Intake</button>
+            <?php endif; ?>
             <button type="button" onclick="downloadWarehouseCSV()" class="btn-export">
                 📊 Export CSV
             </button>
@@ -55,12 +63,9 @@
                 <tr>
                     <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll"></th>
                     <th class="col-type">Location</th>
-                    <?php if ($selected_sector === 'Master'): ?>
-                        <th>Sector</th>
-                    <?php endif; ?>
                     <th class="col-main">Make/Model</th>
                     <th class="col-qty">QTY</th>
-                    <th class="col-qty">Price</th>
+                    <th class="col-price">Price</th>
                     <?php if ($selected_sector === 'Laptops'): ?>
                         <th>CPU</th>
                         <th>Ram/Storage</th>
@@ -72,10 +77,13 @@
                     <?php elseif ($selected_sector === 'Desktops'): ?>
                         <th>CPU / Gen Brand</th>
                     <?php elseif ($selected_sector === 'Master'): ?>
-                        <th>Core Specs</th>
+                        <th class="col-specs">Core Specs</th>
                     <?php endif; ?>
-                    <th>Notes</th>
+                    <th class="col-notes">Notes</th>
                     <th class="col-log">Staff Log</th>
+                    <?php if ($selected_sector === 'Master'): ?>
+                        <th class="col-sector">Sector</th>
+                    <?php endif; ?>
                     <th class="col-actions">Modify</th>
                 </tr>
             </thead>
@@ -91,13 +99,13 @@
                     <!-- Dynamic No Results Placeholder -->
                     <tr id="wh-no-results" class="no-results-row" style="display: none;">
                         <td colspan="12">
-                            <div class="no-results-wrapper"
-                                style="display: flex; justify-content: center; width: 100%;">
-                                <div class="no-results-container">
-                                    <div class="no-results-icon">🕵️‍♂️</div>
-                                    <div style="font-size: 1.4rem; font-weight: 900; letter-spacing: -0.02em;">No
-                                        matches found</div>
-                                </div>
+                            <div class="no-results-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; gap: 10px;">
+                                <div style="font-size: 2rem;">🕵️‍♂️</div>
+                                <div style="font-size: 1.25rem; font-weight: 900; letter-spacing: -0.02em; color: var(--text-main, #0f172a);">No items matching your search filter</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary, #64748b);">Try different keywords or press escape to clear.</div>
+                                <button type="button" onclick="clearWarehouseSearch()" class="btn-export" style="background: var(--accent-color, #0284c7); color: white; padding: 6px 16px; height: auto; font-size: 0.8rem; margin-top: 5px;">
+                                    ✕ Clear Search Filter
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -125,34 +133,27 @@
                         ?>
                         <tr class="inventory-card <?= ($highlight_id && $item['id'] == $highlight_id) ? 'highlight-row' : '' ?>"
                             data-id="<?= $item['id'] ?>" data-sector-theme="<?= htmlspecialchars($item['sector']) ?>"
+                            data-sector="<?= htmlspecialchars($item['sector']) ?>"
+                            data-location="<?= htmlspecialchars($item['location_code'] ?? '') ?>"
                             data-brand="<?= htmlspecialchars($item['brand']) ?>"
                             data-model="<?= htmlspecialchars($item['model']) ?>"
+                            data-qty="<?= (int)$item['quantity'] ?>"
                             data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
                             data-created-date="<?= $created_date_only ?>" data-created-time="<?= $created_time_only ?>"
                             data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
-                            data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . $item['location_code'] . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['cpu_gen'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['series'] ?? '') . ' ' . ($specs['notes'] ?? ''))) ?>">
+                            data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($item['sector'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['cpu_gen'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['series'] ?? '') . ' ' . ($specs['notes'] ?? '') . ' ' . ($specs['condition'] ?? ''))) ?>">
 
                             <td style="text-align: center;"><input type="checkbox" class="row-select"></td>
-                            <td><span class="location-tag"><?= htmlspecialchars($item['location_code']) ?></span></td>
+                            <td class="col-type"><span class="location-tag"><?= htmlspecialchars($item['location_code']) ?></span></td>
 
-                            <?php if ($selected_sector === 'Master'): ?>
-                                <td>
-                                    <a href="index.php?view=warehouse&sector=<?= urlencode($item['sector']) ?>&loc=<?= urlencode($item['location_code']) ?>"
-                                        style="text-decoration: none;">
-                                        <span
-                                            class="sector-badge sector-<?= strtolower($item['sector']) ?>"><?= htmlspecialchars($item['sector']) ?></span>
-                                    </a>
-                                </td>
-                            <?php endif; ?>
-
-                            <td>
+                            <td class="col-main">
                                 <div class="cell-make"><?= htmlspecialchars($item['brand']) ?></div>
                                 <div class="cell-model"><?= htmlspecialchars($item['model']) ?></div>
                             </td>
 
-                            <td><span class="qty-pill"><?= (int) $item['quantity'] ?></span></td>
+                            <td class="col-qty"><span class="qty-pill"><?= (int) $item['quantity'] ?></span></td>
 
-                            <td><span class="price-pill">$<?= number_format($item['price'] ?? 0, 0) ?></span></td>
+                            <td class="col-price"><span class="price-pill">$<?= number_format($item['price'] ?? 0, 0) ?></span></td>
 
                             <?php if ($selected_sector === 'Laptops'): ?>
                                 <td>
@@ -186,41 +187,76 @@
                                 <td>
                                     <div class="spec-value"><?= htmlspecialchars($specs['cpu_gen'] ?? '-') ?></div>
                                 </td>
-                            <?php elseif ($selected_sector === 'Master'): ?>
-                                <td>
-                                    <div class="master-specs-wrapper">
-                                        <?php if ($item['sector'] === 'Laptops'): ?>
-                                            <?php if (!empty($specs['cpu'])): ?>
-                                                <span class="spec-tag cpu" title="CPU">💻 <?= htmlspecialchars($specs['cpu']) ?><?php if (!empty($specs['gen']) && $specs['gen'] !== '-'): ?> <small>(<?= htmlspecialchars($specs['gen']) ?>)</small><?php endif; ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($specs['ram']) || !empty($specs['storage'])): ?>
-                                                <span class="spec-tag memory" title="RAM / Storage">💾 <?= htmlspecialchars(($specs['ram'] ?? '-') . ' / ' . ($specs['storage'] ?? '-')) ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($specs['series'])): ?>
-                                                <span class="spec-tag series" title="Series">🏷️ <?= htmlspecialchars($specs['series']) ?></span>
-                                            <?php endif; ?>
-                                        <?php elseif ($item['sector'] === 'Gaming'): ?>
-                                            <?php if (!empty($specs['category'])): ?>
-                                                <span class="spec-tag category" title="Category">🎮 <?= htmlspecialchars($specs['category']) ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($specs['gpu'])): ?>
-                                                <span class="spec-tag gpu" title="GPU">⚡ <?= htmlspecialchars($specs['gpu']) ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($specs['ram']) || !empty($specs['storage'])): ?>
-                                                <span class="spec-tag memory" title="RAM / Storage">💾 <?= htmlspecialchars(($specs['ram'] ?? '-') . ' / ' . ($specs['storage'] ?? '-')) ?></span>
-                                            <?php endif; ?>
-                                        <?php elseif ($item['sector'] === 'Desktops'): ?>
-                                            <?php if (!empty($specs['cpu_gen'])): ?>
-                                                <span class="spec-tag cpu" title="CPU/Gen">🖥️ <?= htmlspecialchars($specs['cpu_gen']) ?></span>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <span class="spec-tag empty">-</span>
-                                        <?php endif; ?>
-                                    </div>
+                            <?php elseif ($selected_sector === 'Master'):
+                                $core_primary = '';
+                                $core_secondary = '';
+
+                                if ($item['sector'] === 'Laptops') {
+                                    $cpu_str = $specs['cpu'] ?? '';
+                                    if (!empty($specs['gen']) && $specs['gen'] !== '-') {
+                                        $cpu_str .= ($cpu_str ? ' (' . $specs['gen'] . ')' : $specs['gen']);
+                                    }
+                                    $core_primary = $cpu_str ?: ($specs['series'] ?? '-');
+
+                                    $sec_parts = [];
+                                    if (!empty($specs['series']) && $core_primary !== $specs['series']) {
+                                        $sec_parts[] = $specs['series'];
+                                    }
+                                    $ram_val = trim($specs['ram'] ?? '');
+                                    $storage_val = trim($specs['storage'] ?? '');
+                                    $has_ram = ($ram_val !== '' && $ram_val !== '-');
+                                    $has_storage = ($storage_val !== '' && $storage_val !== '-');
+                                    if ($has_ram && $has_storage) {
+                                        $sec_parts[] = $ram_val . ' / ' . $storage_val;
+                                    } elseif ($has_ram) {
+                                        $sec_parts[] = $ram_val;
+                                    } elseif ($has_storage) {
+                                        $sec_parts[] = $storage_val;
+                                    }
+                                    $core_secondary = implode(' • ', $sec_parts);
+                                } elseif ($item['sector'] === 'Gaming') {
+                                    $core_primary = $specs['gpu'] ?? ($specs['category'] ?? '-');
+                                    $sec_parts = [];
+                                    if (!empty($specs['cpu']) && $specs['cpu'] !== '-') $sec_parts[] = $specs['cpu'];
+                                    $ram_val = trim($specs['ram'] ?? '');
+                                    $storage_val = trim($specs['storage'] ?? '');
+                                    $has_ram = ($ram_val !== '' && $ram_val !== '-');
+                                    $has_storage = ($storage_val !== '' && $storage_val !== '-');
+                                    if ($has_ram && $has_storage) {
+                                        $sec_parts[] = $ram_val . ' / ' . $storage_val;
+                                    } elseif ($has_ram) {
+                                        $sec_parts[] = $ram_val;
+                                    } elseif ($has_storage) {
+                                        $sec_parts[] = $storage_val;
+                                    }
+                                    $core_secondary = implode(' • ', $sec_parts);
+                                } elseif ($item['sector'] === 'Desktops') {
+                                    $core_primary = $specs['cpu_gen'] ?? ($specs['cpu'] ?? '-');
+                                    $ram_val = trim($specs['ram'] ?? '');
+                                    $storage_val = trim($specs['storage'] ?? '');
+                                    $has_ram = ($ram_val !== '' && $ram_val !== '-');
+                                    $has_storage = ($storage_val !== '' && $storage_val !== '-');
+                                    if ($has_ram && $has_storage) {
+                                        $core_secondary = $ram_val . ' / ' . $storage_val;
+                                    } elseif ($has_ram) {
+                                        $core_secondary = $ram_val;
+                                    } elseif ($has_storage) {
+                                        $core_secondary = $storage_val;
+                                    }
+                                } else {
+                                    $core_primary = $specs['type'] ?? ($specs['voltage'] ?? '-');
+                                    $core_secondary = (!empty($specs['type']) && !empty($specs['voltage']) && $specs['voltage'] !== '-') ? $specs['voltage'] : '';
+                                }
+                            ?>
+                                <td class="col-specs">
+                                    <div class="cell-make"><?= htmlspecialchars($core_primary ?: '-') ?></div>
+                                    <?php if (!empty($core_secondary)): ?>
+                                        <div class="cell-model"><?= htmlspecialchars($core_secondary) ?></div>
+                                    <?php endif; ?>
                                 </td>
                             <?php endif; ?>
 
-                            <td>
+                            <td class="col-notes">
                                 <div class="notes-cell-wrapper">
                                     <div class="status-row">
                                         <?php if (!empty($item['status'])): ?>
@@ -244,7 +280,7 @@
                                 </div>
                             </td>
 
-                            <td>
+                            <td class="col-log">
                                 <div class="staff-log-wrapper">
                                     <div class="log-entry">
                                         <span class="log-user">👤 <?= htmlspecialchars($item['user_owner']) ?></span>
@@ -260,7 +296,24 @@
                                 </div>
                             </td>
 
-                            <td>
+                            <?php if ($selected_sector === 'Master'):
+                                $target_loc = !empty($selected_loc) ? $selected_loc : ($item['location_code'] ?? 'GLOBAL');
+                                $sector_href = "index.php?view=warehouse&sector=" . urlencode($item['sector']) . "&loc=" . urlencode($target_loc);
+                                if (!empty($active_zone_name)) {
+                                    $sector_href .= "&zone=" . urlencode($active_zone_name);
+                                }
+                            ?>
+                                <td class="col-sector">
+                                    <a href="<?= $sector_href ?>"
+                                        style="text-decoration: none;"
+                                        title="Filter <?= htmlspecialchars($item['sector']) ?> in <?= htmlspecialchars($target_loc) ?>">
+                                        <span
+                                            class="sector-badge sector-<?= strtolower($item['sector']) ?>"><?= htmlspecialchars($item['sector']) ?></span>
+                                    </a>
+                                </td>
+                            <?php endif; ?>
+
+                            <td class="col-actions">
                                 <div class="row-actions">
                                     <button type="button" class="row-action-btn btn-edit"
                                         onclick='editWarehouseItem(<?= json_encode($item) ?>)'
@@ -287,12 +340,12 @@
             </tbody>
             <tfoot style="border-top: 2px solid #e2e8f0; background: #f8fafc;">
                 <tr>
-                    <td colspan="<?= $selected_sector === 'Master' ? 3 : 2 ?>" style="padding: 15px;">
+                    <td colspan="2" style="padding: 15px;">
                         <div class="search-container footer-search" style="max-width: 300px; margin: 0;">
                             <i class="search-icon">🔍</i>
                             <input type="text" id="wh-search-footer" placeholder="Filter these results..."
-                                onkeyup="syncSearch(this)"
-                                onkeydown="if(event.key==='Enter') event.preventDefault()" class="search-input"
+                                oninput="syncSearch(this)"
+                                onkeydown="handleSearchKeydown(event, this)" class="search-input"
                                 style="height: 40px; font-size: 0.9rem; border-radius: 10px;">
                         </div>
                     </td>
@@ -314,8 +367,7 @@
                     } elseif ($selected_sector === 'Master') {
                         $total_cols = 10;
                     }
-                    $cols_used = ($selected_sector === 'Master' ? 3 : 2) + 2; // first td + Inventory Total td + Qty td
-                    $remaining_cols = $total_cols - $cols_used;
+                    $remaining_cols = max(1, $total_cols - 4);
                     ?>
                     <td colspan="<?= $remaining_cols ?>"></td>
                 </tr>

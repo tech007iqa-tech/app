@@ -613,6 +613,12 @@ class Schema {
         if ($db_name === 'warehouse' && $table === 'inventory') {
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_sector ON inventory(sector)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_brand ON inventory(brand)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_location ON inventory(location_code)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_sector_loc ON inventory(sector, location_code)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_loc_sector ON inventory(location_code, sector)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_brand_model ON inventory(brand, model)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_updated ON inventory(updated_at DESC)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_inv_price ON inventory(price)");
 
             $cols = $conn->query("PRAGMA table_info(inventory)")->fetchAll(PDO::FETCH_ASSOC);
             if (!in_array('price', array_column($cols, 'name'))) {
@@ -621,10 +627,16 @@ class Schema {
         }
 
         if ($db_name === 'warehouse' && $table === 'locations') {
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_locations_zone ON locations(working_zone_name, location_code)");
             $cols = $conn->query("PRAGMA table_info(locations)")->fetchAll(PDO::FETCH_ASSOC);
             if (!in_array('working_zone_name', array_column($cols, 'name'))) {
                 $conn->exec("ALTER TABLE locations ADD COLUMN working_zone_name TEXT DEFAULT NULL");
             }
+        }
+
+        if ($db_name === 'warehouse' && $table === 'sold_items') {
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_sold_loc_sec ON sold_items(location_code, sector)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_sold_brand_model ON sold_items(brand, model)");
         }
 
         // --- Audit & User Indexes ---

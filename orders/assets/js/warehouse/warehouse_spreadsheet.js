@@ -212,6 +212,9 @@ async function handleWarehouseCellSave(input) {
                 cell.style.backgroundColor = '';
             }, 600);
 
+            if (typeof updateWarehouseRowSearchIndex === 'function') {
+                updateWarehouseRowSearchIndex(row);
+            }
             if (typeof filterWarehouse === 'function') {
                 filterWarehouse();
             }

@@ -86,6 +86,8 @@ class Database
                 $conn->exec("PRAGMA busy_timeout = 5000;");
                 $conn->exec("PRAGMA synchronous = NORMAL;");
                 $conn->exec("PRAGMA foreign_keys = ON;");
+                $conn->exec("PRAGMA cache_size = -64000;");
+                $conn->exec("PRAGMA temp_store = MEMORY;");
 
                 // Self-Healing Schema Integration for Orders/Warehouse/Customers/Users/Calendar
                 $schema_file = __DIR__ . '/../orders/core/Schema.php';

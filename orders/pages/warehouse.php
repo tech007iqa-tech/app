@@ -208,6 +208,12 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
         <div class="warehouse-container">
             <!-- Sector Navigation Tabs for Zone -->
             <div class="sector-nav" style="margin-top: 5px;">
+                <a href="index.php?view=warehouse&sector=Master&zone=<?= urlencode($active_zone_name) ?>"
+                    class="sector-card <?= $selected_sector === 'Master' ? 'active' : '' ?>"
+                    data-sector="Master">
+                    <span class="sector-icon">🌐</span>
+                    <span class="sector-name">Master</span>
+                </a>
                 <?php foreach ($sectors as $s):
                     $sector_url = "index.php?view=warehouse&sector=" . urlencode($s['name']) . "&zone=" . urlencode($active_zone_name);
                 ?>
@@ -232,6 +238,18 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
     <?php else: ?>
         <!-- Single Shelf or Global View -->
         <div class="sector-nav">
+            <?php
+            $master_url = "index.php?view=warehouse&sector=Master&loc=" . urlencode($selected_loc);
+            if (!empty($effective_zone)) {
+                $master_url .= "&zone=" . urlencode($effective_zone);
+            }
+            ?>
+            <a href="<?= $master_url ?>"
+                class="sector-card <?= $selected_sector === 'Master' ? 'active' : '' ?>"
+                data-sector="Master">
+                <span class="sector-icon">🌐</span>
+                <span class="sector-name">Master</span>
+            </a>
             <?php foreach ($sectors as $s):
                 $sector_url = "index.php?view=warehouse&sector=" . urlencode($s['name']) . "&loc=" . urlencode($selected_loc);
                 if (!empty($effective_zone)) {
