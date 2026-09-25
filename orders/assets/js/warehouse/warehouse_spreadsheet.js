@@ -179,31 +179,21 @@ async function handleWarehouseCellSave(input) {
     }
 
     const metadata = document.getElementById('warehouse-metadata');
-    if (!metadata) return;
-    const csrfToken = metadata.getAttribute('data-csrf');
-
-    const activeZone = metadata.getAttribute('data-zone') || '';
+    const activeZone = metadata ? (metadata.getAttribute('data-zone') || '') : '';
 
     try {
-        const response = await fetch('api/update_inventory_field.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                csrf_token: csrfToken,
-                item_id: rowId,
-                field: field,
-                value: val,
-                zone: activeZone
-            })
+        const result = await AppSync.post('api/update_inventory_field.php', {
+            item_id: rowId,
+            field: field,
+            value: val,
+            zone: activeZone
         });
 
-        const result = await response.json();
         if (result.success) {
+            const data = result.data || result;
             const counter = document.getElementById('sidebar-total-qty');
-            if (counter && result.new_total !== undefined) {
-                counter.textContent = result.new_total + ' Units';
+            if (counter && data.new_total !== undefined) {
+                counter.textContent = data.new_total + ' Units';
                 counter.classList.add('pulse');
                 setTimeout(() => counter.classList.remove('pulse'), 500);
             }
@@ -219,7 +209,11 @@ async function handleWarehouseCellSave(input) {
                 filterWarehouse();
             }
         } else {
-            console.error('Save failed:', result.error);
+            console.error('Save failed:', result.message || result.error);
+            cell.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            setTimeout(() => {
+                cell.style.backgroundColor = '';
+            }, 1000);
         }
     } catch (err) {
         console.error('Error updating cell field:', err);
@@ -318,53 +312,72 @@ async function createWarehouseRowFromBlank(row) {
     }
 
     try {
-        const response = await fetch('api/add_inventory_item.php', {
-            method: 'POST',
-            body: formData
-        });
+        const response = await AppSync.post('api/add_inventory_item.php', formData);
 
-        const result = await response.json();
-        if (response.ok && result.success) {
-            if (window.IQA_Notify) {
-                window.IQA_Notify.success('Item successfully added ✨');
+        if (response.success) {
+            const notifyEngine = window.Notifications || window.IQA_Notify;
+            if (notifyEngine && typeof notifyEngine.success === 'function') {
+                notifyEngine.success('Item successfully added ✨');
             }
 
-            const activeEl = document.activeElement;
-            if (activeEl && activeEl.classList.contains('cell-input')) {
-                const cell = activeEl.closest('td');
-                if (cell) {
-                    const field = cell.getAttribute('data-field');
-                    if (field) {
-                        sessionStorage.setItem('warehouse_restore_field', field);
-                        sessionStorage.setItem('warehouse_restore_item_id', result.new_id);
-                    }
+            // Clear the inputs on the blank row to ready for next entry
+            const inputsToClear = row.querySelectorAll('.cell-input');
+            inputsToClear.forEach(input => {
+                const parentCell = input.closest('td');
+                const fieldName = parentCell ? parentCell.getAttribute('data-field') : '';
+                // Preserve default shelf location if present
+                if (fieldName === 'location_code') {
+                    return;
                 }
-            } else {
-                sessionStorage.setItem('warehouse_restore_field', 'brand');
-                sessionStorage.setItem('warehouse_restore_item_id', result.new_id);
+                if (fieldName === 'quantity') {
+                    input.value = '';
+                } else if (fieldName === 'price') {
+                    input.value = '';
+                } else if (fieldName === 'condition') {
+                    input.value = 'Used';
+                } else {
+                    input.value = '';
+                }
+            });
+
+            // Sync the table via AppSync immediately
+            if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                await window.AppSync.sync('inventory-list', true);
             }
 
-            window.location.reload();
+            const resData = response.data || response;
+            if (resData.new_total !== undefined) {
+                const counter = document.getElementById('sidebar-total-qty');
+                if (counter) {
+                    counter.textContent = resData.new_total + ' Units';
+                    counter.classList.add('pulse');
+                    setTimeout(() => counter.classList.remove('pulse'), 500);
+                }
+            }
+
+            // Refocus to the blank brand input for fast rapid intake
+            const brandIn = row.querySelector('[data-field="brand"] .cell-input');
+            if (brandIn) {
+                brandIn.focus();
+            }
         } else {
-            const errMsg = result.error || 'Failed to add item to inventory.';
-            if (window.IQA_Notify) {
-                window.IQA_Notify.error(errMsg);
+            const errMsg = response.message || response.error || 'Failed to add item to inventory.';
+            const notifyEngine = window.Notifications || window.IQA_Notify;
+            if (notifyEngine && typeof notifyEngine.error === 'function') {
+                notifyEngine.error(errMsg);
             } else {
                 alert(errMsg);
-            }
-            delete row.dataset.isSubmitting;
-            if (btnIndicator) {
-                btnIndicator.textContent = originalBtnText;
-                btnIndicator.disabled = false;
             }
         }
     } catch (err) {
         console.error('Error adding row:', err);
-        if (window.IQA_Notify) {
-            window.IQA_Notify.error('A network error occurred while adding row.');
+        const notifyEngine = window.Notifications || window.IQA_Notify;
+        if (notifyEngine && typeof notifyEngine.error === 'function') {
+            notifyEngine.error('A network error occurred while adding row.');
         } else {
             alert('A network error occurred while adding row.');
         }
+    } finally {
         delete row.dataset.isSubmitting;
         if (btnIndicator) {
             btnIndicator.textContent = originalBtnText;

@@ -142,7 +142,9 @@ function initWarehouseBulkActions() {
                     selectedIds.clear();
                     if (selectAll) selectAll.checked = false;
                     updateBulkBar();
-                    window.location.reload();
+                    if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                        await window.AppSync.sync('inventory-list', true);
+                    }
                 } else {
                     if (window.IQA_Notify) {
                         window.IQA_Notify.error(`Error: ${json.error}`);

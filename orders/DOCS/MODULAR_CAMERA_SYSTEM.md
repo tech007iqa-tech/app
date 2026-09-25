@@ -93,7 +93,9 @@ CameraUploader.open({
     defaultTab: 'camera', // 'camera' or 'file'
     onSuccess: function(photo) {
         console.log('Uploaded new photo:', photo);
-        window.location.reload();
+        if (window.AppSync) {
+            AppSync.sync('inventory-list', true);
+        }
     }
 });
 ```
@@ -104,7 +106,9 @@ CameraUploader.open({
     sector: 'Laptops',
     availableLocations: ['C-1', 'C-2', 'C-3', 'C-4'],
     onSuccess: function(photo) {
-        window.location.reload();
+        if (window.AppSync) {
+            AppSync.sync('inventory-list', true);
+        }
     }
 });
 ```

@@ -1,40 +1,25 @@
 <?php
 // orders/api/update_inventory_field.php
-header('Content-Type: application/json');
+require_once __DIR__ . '/../core/ApiResponse.php';
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/Security.php';
-session_start();
 
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized access.']);
-    exit;
-}
+ApiResponse::requireAuth();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method not allowed.']);
-    exit;
+    ApiResponse::methodNotAllowed();
 }
 
-// Read JSON input
-$input = json_decode(file_get_contents('php://input'), true);
-
-// Validate CSRF
-if (!Security::validate($input['csrf_token'] ?? '')) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Invalid CSRF token.']);
-    exit;
-}
+// Read JSON / POST input safely
+$input = ApiResponse::getJsonInput();
+ApiResponse::requireCsrf();
 
 $item_id = isset($input['item_id']) ? (int)$input['item_id'] : 0;
 $field = $input['field'] ?? '';
 $value = $input['value'] ?? '';
 
 if ($item_id <= 0 || empty($field)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Missing required fields.']);
-    exit;
+    ApiResponse::error('Missing required fields (item_id or field).', 400);
 }
 
 // Main columns
@@ -120,13 +105,11 @@ try {
         $total_units = $stmt_total->fetchColumn() ?: 0;
     }
 
-    echo json_encode([
-        'success' => true,
+    ApiResponse::success([
         'new_total' => $total_units,
         'field' => $field,
         'value' => $value
-    ]);
+    ], 'Field updated successfully.');
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    ApiResponse::error($e->getMessage(), 500);
 }

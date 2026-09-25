@@ -265,3 +265,108 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
 *   **Inventory Consolidation**: Added `api/consolidate_inventory.php` to automate the merging of identical inventory items within the same warehouse location.
 *   **Checkout & Warehouse CSV Standardization**: Added `ram`, `storage`, and `battery` columns directly to the `items` schema. Unified the frontend CSV exports for both Checkout and Warehouse modules so their layout and column sequencing ("Price", "QTY", "Total", plus auto-generated "Notes" and "Battery" descriptions) match perfectly.
 *   **Iframe Escaping**: Improved UX in the inbound module (`orders/index.php?view=inbound`) by ensuring navigation actions escape the iframe and target the parent window/tab.
+
+---
+
+## 🌐 Universal System AJAX & API Architecture Standard (AppSync & ApiResponse)
+
+To guarantee maximum robustness, security, and developer speed across the application, all current and future endpoints/scripts must adhere to the **Two-Engine Standard**.
+
+### 1. Server-Side: `ApiResponse.php` (`core/ApiResponse.php` & `orders/core/ApiResponse.php`)
+Guarantees buffer clearance (eradicates PHP notice corruption), sets strict no-cache JSON headers, and enforces standard status envelopes:
+
+```php
+// Standard Envelope Contract:
+// { "success": true|false, "message": "...", "data": mixed, "error": "..." }
+
+// 1. One-Line Auth & CSRF Validation Guard
+ApiResponse::requireAuth();
+ApiResponse::requireCsrf();
+
+// 2. Safe JSON input reading (php://input)
+$input = ApiResponse::getJsonInput();
+
+// 3. Response Emitters (Terminates script execution cleanly)
+ApiResponse::success($data, 'Item saved successfully');
+ApiResponse::error('Validation failed', 400);
+ApiResponse::unauthorized(); // 401
+ApiResponse::forbidden();    // 403
+ApiResponse::notFound();     // 404
+```
+
+### 2. Client-Side: `AppSync` (`assets/js/app_sync.js`)
+Global, dependency-free async engine loaded before view scripts:
+
+```javascript
+// 1. JSON POST with Automatic CSRF Injection & Error Parsing
+const res = await AppSync.post('api/update_inventory_field.php', {
+    item_id: 104,
+    field: 'price',
+    value: 299.99
+});
+if (res.success) {
+    console.log(res.data);
+} else {
+    Notifications.error(res.message);
+}
+
+// 2. Query Parameter GET Request
+const stock = await AppSync.get('api/get_warehouse_stock.php', { sector: 'Laptops', loc: 'A-1' });
+
+// 3. One-Line Form Submissions (Auto disables submit button, shows ⏳ spinner, auto-restores)
+AppSync.bindForm('#my-form', {
+    loadingText: 'Saving...',
+    autoNotify: true, // Automatically triggers Notifications.success / error toasts
+    onSuccess(res, form) {
+        refreshTable();
+    }
+});
+
+// 4. Debounced / Abortable Cell & Search Inputs (Prevents race conditions)
+const cancelable = AppSync.createAbortable();
+async function onCellBlur(itemId, val) {
+    const res = await cancelable.post('api/update_inventory_field.php', { item_id: itemId, value: val });
+}
+
+// 5. Livewire-Style Smart DOM Diffing & Cross-Client Polling Registration
+AppSync.register({
+    elementId: 'inventory-list',
+    url: window.location.pathname + window.location.search + (window.location.search ? '&ajax=1' : '?ajax=1'),
+    rowSelector: 'tr',
+    rowIdAttribute: 'data-id',
+    onUpdate: () => {
+        buildWarehouseSearchIndex();
+        filterWarehouse();
+    }
+});
+```
+
+---
+
+### 3. Multi-User Real-Time Sync & Livewire-Style Smart DOM Diffing
+
+When multiple users or devices view the same warehouse location simultaneously (e.g. `orders/index.php?view=warehouse&sector=Laptops&loc=W1-L1&zone=W1`):
+
+1. **Non-Blocking SQLite PRAGMA Fingerprinting (`api/sync_check.php`)**:
+   - Polled every 2.5 seconds by `AppSync.checkSync()` in `<3ms`.
+   - Inspects SQLite's internal `PRAGMA data_version` on `warehouse.db` and `orders.db`, alongside live record metrics (`COUNT(*)` and `MAX(id)` from `location_photos` and `inventory`).
+   - Generates an instant MD5 fingerprint token (`token`) that immediately detects transactions across processes, eliminating Windows/NTFS filesystem `filemtime` caching latency in SQLite WAL mode.
+   - Triggers proactive sync checks on `visibilitychange` (tab switch) and window `focus`.
+
+2. **Multi-Target Live AJAX Responder (`ajax_view.php`)**:
+   - When changes are detected, `AppSync.sync('inventory-list')` queries the endpoint with `&ajax=1`.
+   - Returns a multi-container JSON map:
+     ```json
+     {
+       "inventory-list": "<tr class=\"summary-row\" data-id=\"101\">...</tr>",
+       "location-photos-gallery": "<div class=\"photo-card-mini\" data-photo-id=\"36\">...</div><button ...>Camera / Add</button>",
+       "photo-count-badge": "1 Photos"
+     }
+     ```
+
+3. **Smart In-Place DOM Patching (`app_sync.js`)**:
+   - `inventory-list`: Diffed row-by-row using `data-id`. Preserves active user focus, input caret positions, selection checkboxes, and pulses newly added rows with `row-pulse-highlight`.
+   - `location-photos-gallery`: Swaps photo cards dynamically, updates photo counts, and automatically opens the `<details id="location-photos-details">` accordion when new photos are captured.
+   - `photo-count-badge`: Updates count text and adjusts badge styling (emerald `#10b981` vs slate `#94a3b8`).
+   - Photo hover previews utilize document-level event delegation (`mouseover`/`mousemove`/`mouseout`), allowing newly synced thumbnails to support instant hover magnification without needing script re-initialization.
+

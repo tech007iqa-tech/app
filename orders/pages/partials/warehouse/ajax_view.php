@@ -4,6 +4,9 @@
  * Renders inventory list rows (both spreadsheet and standard table format) for AppSync / live updates.
  */
 
+require_once dirname(__DIR__, 3) . '/core/UI.php';
+require_once dirname(__DIR__, 3) . '/core/ApiResponse.php';
+
 if (UI::is_ajax()) {
     if (ob_get_level() > 0) {
         ob_clean();
@@ -442,9 +445,62 @@ if (UI::is_ajax()) {
         <?php endif; ?>
     <?php endif;
     $table_html = ob_get_clean();
-    header('Content-Type: application/json');
-    echo json_encode([
+
+    $response_payload = [
         'inventory-list' => $table_html
-    ]);
-    exit();
+    ];
+
+    if (($selected_loc && $selected_loc !== 'GLOBAL') || !empty($active_zone_name)) {
+        $displayed_photos = ($selected_loc && $selected_loc !== 'GLOBAL') ? ($location_photos ?? []) : ($zone_photos ?? []);
+
+        $zone_locs = [];
+        if (!empty($active_zone_name) && !empty($existing_locs)) {
+            foreach ($existing_locs as $el) {
+                if (($el['working_zone_name'] ?? 'General') === $active_zone_name) {
+                    $zone_locs[] = $el['location_code'];
+                }
+            }
+        }
+        $default_cam_loc = ($selected_loc && $selected_loc !== 'GLOBAL') 
+            ? $selected_loc 
+            : (!empty($zone_locs) ? $zone_locs[0] : 'W1-L1');
+        $avail_locs_json = !empty($zone_locs) ? json_encode(array_values($zone_locs)) : json_encode([$default_cam_loc]);
+
+        ob_start();
+        if (empty($displayed_photos)): ?>
+            <div style="color: var(--text-dim); font-size: 0.85rem; padding: 0.5rem 0;">No photographs uploaded for this location yet. Click <strong>Add / Snap Photo</strong> to capture or upload.</div>
+        <?php else: ?>
+            <?php foreach ($displayed_photos as $photo): ?>
+                <div class="photo-card-mini" data-photo-id="<?= $photo['id'] ?>" style="flex: 0 0 110px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-body); position: relative;">
+                    <div class="img-preview-container" style="position: relative; width: 100%; height: 75px; overflow: hidden; border-radius: 6px;">
+                        <img src="<?= htmlspecialchars($photo['thumbnail_path']) ?>" alt="<?= htmlspecialchars($photo['original_filename']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="hover-preview" style="display: none; position: fixed; z-index: 2100; width: 450px; height: 350px; background: rgba(0,0,0,0.95); border: 2px solid var(--accent-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; pointer-events: none;">
+                            <img src="<?= htmlspecialchars($photo['optimized_path']) ?>" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; font-weight: 700; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<?= htmlspecialchars($photo['location_code']) ?> - <?= htmlspecialchars($photo['category']) ?>">
+                        <?= htmlspecialchars($photo['location_code']) ?> (<?= htmlspecialchars($photo['category']) ?>)
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 4px;">
+                        <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.75rem; text-decoration: none;">📥</a>
+                        <button type="button" onclick="deleteLocationPhotoAjax(<?= $photo['id'] ?>, this)" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 0.75rem;" title="Delete Photo">🗑️</button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <!-- Add Photo trigger in gallery -->
+        <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($default_cam_loc, ENT_QUOTES) ?>', sector: '<?= htmlspecialchars($selected_sector, ENT_QUOTES) ?>', availableLocations: <?= htmlspecialchars($avail_locs_json, ENT_QUOTES) ?>, onSuccess: () => { if (window.AppSync) AppSync.sync('inventory-list', true); } })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
+            <span style="font-size: 1.5rem;">📷</span>
+            <span style="font-size: 0.75rem; font-weight: 600;">Camera / Add</span>
+        </button>
+        <?php
+        $photos_gallery_html = ob_get_clean();
+
+        $response_payload['location-photos-gallery'] = $photos_gallery_html;
+        $response_payload['photo-count-badge'] = count($displayed_photos) . ' Photos';
+    }
+
+    ApiResponse::json($response_payload);
 }
+

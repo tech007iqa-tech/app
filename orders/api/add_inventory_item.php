@@ -1,32 +1,20 @@
 <?php
 // orders/api/add_inventory_item.php
-header('Content-Type: application/json');
+require_once __DIR__ . '/../core/ApiResponse.php';
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/Security.php';
-session_start();
 
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized access.']);
-    exit;
-}
+ApiResponse::requireAuth();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit;
+    ApiResponse::methodNotAllowed();
 }
 
 // Read input from $_POST or JSON body
-$raw_input = file_get_contents('php://input');
-$json_input = json_decode($raw_input, true);
-$data = is_array($json_input) ? array_merge($_POST, $json_input) : $_POST;
+$json_input = ApiResponse::getJsonInput();
+$data = !empty($json_input) ? array_merge($_POST, $json_input) : $_POST;
 
-if (!Security::validate($data['csrf_token'] ?? '')) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
-    exit;
-}
+ApiResponse::requireCsrf($data['csrf_token'] ?? null);
 
 try {
     $conn_wh = Database::warehouse();
@@ -126,15 +114,13 @@ try {
         $stmt_total->execute([$sector, $loc]);
         $new_total = $stmt_total->fetchColumn() ?: 0;
 
-        echo json_encode([
-            'success' => true,
+        ApiResponse::success([
             'new_id' => $new_id,
             'new_total' => (int)$new_total
-        ]);
+        ], 'Item added to inventory.');
     } else {
-        throw new Exception("Failed to insert inventory item.");
+        ApiResponse::error("Failed to insert inventory item.", 500);
     }
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    ApiResponse::error($e->getMessage(), 500);
 }

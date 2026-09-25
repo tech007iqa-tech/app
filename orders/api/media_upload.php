@@ -4,31 +4,18 @@
  * Accepts live webcam snapshots (base64) or standard file uploads.
  */
 
-header('Content-Type: application/json');
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../core/ApiResponse.php';
 require_once __DIR__ . '/../core/Security.php';
 require_once __DIR__ . '/../core/MediaManager.php';
 
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized access.']);
-    exit;
-}
+ApiResponse::requireAuth();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method not allowed.']);
-    exit;
+    ApiResponse::methodNotAllowed();
 }
 
 $csrfToken = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-if (!Security::validate($csrfToken)) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Invalid CSRF token.']);
-    exit;
-}
+ApiResponse::requireCsrf($csrfToken);
 
 $locationCode = trim($_POST['location_code'] ?? '');
 $sector = trim($_POST['sector'] ?? 'Laptops');
@@ -36,9 +23,7 @@ $category = trim($_POST['category'] ?? 'General');
 $uploadedBy = $_SESSION['username'] ?? 'User';
 
 if (empty($locationCode)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Location code is required.']);
-    exit;
+    ApiResponse::error('Location code is required.', 400);
 }
 
 try {
@@ -62,20 +47,13 @@ try {
         $origName = $_FILES['photo']['name'];
         $photoRecord = $mediaManager->processUpload($tmpName, $origName, $locationCode, $sector, $category, $uploadedBy);
     } else {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'No image file or camera snapshot received.']);
-        exit;
+        ApiResponse::error('No image file or camera snapshot received.', 400);
     }
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Photo saved successfully ✨',
+    ApiResponse::success([
         'photo' => $photoRecord
-    ]);
+    ], 'Photo saved successfully ✨');
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    ApiResponse::error($e->getMessage(), 500);
 }
+

@@ -377,28 +377,27 @@ const CameraUploader = (function() {
         showStatus('Processing and converting to WebP...', 'info');
 
         try {
-            const response = await fetch('api/media_upload.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
+            const result = await AppSync.post('api/media_upload.php', formData);
 
-            const result = await response.json();
-
-            if (response.ok && result.success) {
+            if (result.success) {
                 showStatus('✨ Photo uploaded and optimized successfully!', 'success');
+                const photoData = (result.data && result.data.photo) ? result.data.photo : (result.photo || result.data);
+
                 setTimeout(() => {
                     close();
-                    if (typeof activeConfig.onSuccess === 'function') {
-                        activeConfig.onSuccess(result.photo);
-                    } else {
-                        window.location.reload();
+                    if (photoData && typeof window.renderLocationPhotoCard === 'function') {
+                        window.renderLocationPhotoCard(photoData);
                     }
-                }, 400);
+                    if (typeof activeConfig.onSuccess === 'function') {
+                        activeConfig.onSuccess(photoData);
+                    }
+                    const notifyEngine = window.Notifications || window.IQA_Notify;
+                    if (notifyEngine && typeof notifyEngine.success === 'function') {
+                        notifyEngine.success(`📸 Photo attached to ${photoData && photoData.location_code ? photoData.location_code : 'shelf'} ✨`);
+                    }
+                }, 350);
             } else {
-                throw new Error(result.error || 'Upload failed.');
+                throw new Error(result.message || result.error || 'Upload failed.');
             }
         } catch (err) {
             console.error("Upload error:", err);

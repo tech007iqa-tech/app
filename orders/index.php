@@ -108,6 +108,12 @@ $page_content = ob_get_clean();
 
     <link rel="icon" type="image/png" href="assets/icon/smart-home-sensor-wifi-black-outline-25276_1024.png">
 
+    <!-- Security & CSRF Context -->
+    <meta name="csrf-token" content="<?= htmlspecialchars(Security::getToken()) ?>">
+
+    <!-- Global API & Sync Engine (AppSync) -->
+    <script src="assets/js/app_sync.js?v=<?= filemtime('assets/js/app_sync.js') ?>"></script>
+
     <!-- Logic Initialization (Deferred) -->
     <script src="assets/js/sync.js?v=<?= filemtime('assets/js/sync.js') ?>" defer></script>
 </head>

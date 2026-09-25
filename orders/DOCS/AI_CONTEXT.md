@@ -13,19 +13,29 @@ Welcome! This document provides the architectural and styling patterns for the *
 - **Script Autoloading**: `prod/index.php` automatically inserts CSS and JS files matching the active route, reducing manual header/footer dependencies.
 - **RBAC**: Access is validated in `prod/core/auth.php`. Non-Admin roles (e.g., Operator) are forced to default to the `warehouse` view.
 
-### 2. Event-Driven Real-Time Synchronization (SSE)
-- **Concept**: To synchronize UI changes instantly across multiple workstations without timers, the system uses native browser Server-Sent Events (SSE).
-- **Backend stream**: `api/sync_stream.php` maintains a streaming connection and checks `filemtime` on SQLite database and WAL files (`db/customers.db` and `db/customers.db-wal`) every 500ms. If a modification is found, it sends a `database-change` event.
-- **Frontend listener**: `assets/js/sync.js` hosts the `AppSync` engine. When registered, it automatically creates a single global `EventSource` listener. On change, it requests `index.php?view=...&ajax=1` and performs a smart row-by-row virtual DOM diff (if it's the registered element ID) or a clean innerHTML swap (for other containers).
+### 2. Universal Real-Time Multi-User AJAX Synchronization (`AppSync` & `ApiResponse`)
+- **Architecture Standard**: Standardized on two decoupled engines:
+  - **Server-Side (`core/ApiResponse.php`)**: Guarantees output buffer clearance, strict no-cache JSON headers, and one-line auth/CSRF guards (`ApiResponse::requireAuth()`, `ApiResponse::requireCsrf()`, `ApiResponse::json($payload)`).
+  - **Client-Side (`assets/js/app_sync.js`)**: Universal client library handling CSRF auto-injection, abortable inputs, form binding, background polling, and Livewire-style smart DOM diffing.
+- **Instant Backend Fingerprinting (`api/sync_check.php`)**:
+  - Non-blocking endpoint responding in `<3ms`.
+  - Checks SQLite internal `PRAGMA data_version` and table metrics (`COUNT(*)`, `MAX(id)`) across `warehouse.db`, `orders.db`, and `customers.db`.
+  - Avoids Windows/NTFS `filemtime` WAL cache lag.
+- **Smart In-Place Livewire-style Diffing**:
+  - Primary tables are diffed row-by-row matching `data-id`.
+  - Automatically preserves active user input focus, caret positions, and selection checkboxes.
+  - Multi-target JSON responses dynamically update secondary targets (e.g., `#location-photos-gallery`, `#photo-count-badge`) and auto-open photo `<details id="location-photos-details">` accordions upon newly uploaded photos.
+- **Complete Developer Integration Guide**: See [`orders/DOCS/REALTIME_AJAX_SYNC_GUIDE.md`](file:///c:/xampp/htdocs/app/orders/DOCS/REALTIME_AJAX_SYNC_GUIDE.md) for full step-by-step instructions on wiring up new views and tables.
 - **Registration Example**:
   ```javascript
   AppSync.register({
-      elementId: 'leads-list',
-      url: 'index.php?view=leads&ajax=1',
-      onUpdate: () => { filterLeads(); }
+      elementId: 'inventory-list',
+      url: window.location.pathname + window.location.search + (window.location.search ? '&ajax=1' : '?ajax=1'),
+      rowSelector: 'tr',
+      rowIdAttribute: 'data-id',
+      onUpdate: () => { filterWarehouse(); }
   });
   ```
-- **Input protection**: Swaps are paused if the user is typing/interacting with an input element inside the target element.
 
 ### 3. State Injection (PHP ➔ JS)
 - **Rule**: Do **NOT** declare global JavaScript variables directly in PHP strings.

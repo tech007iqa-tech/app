@@ -87,31 +87,51 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
 
     <div class="scroll-hint">↔️ Swipe horizontally to edit/view all columns</div>
 
-    <?php if ($selected_loc && $selected_loc !== 'GLOBAL'): ?>
-        <!-- Collapsible Location Photo Gallery Widget for single shelf -->
-        <div style="margin-bottom: 1.5rem; margin-top: 0.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); overflow: hidden;">
-            <details style="padding: 1rem; cursor: pointer;">
-                <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; list-style: none;">
-                    <span>📸 Location Photos for <?= htmlspecialchars($selected_loc) ?> (<?= htmlspecialchars($selected_sector) ?>)</span>
-                    <span class="photo-count" style="font-size: 0.85rem; background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 12px;"><?= count($location_photos) ?> Photos</span>
+    <?php if (($selected_loc && $selected_loc !== 'GLOBAL') || !empty($active_zone_name)): 
+        $displayed_photos = ($selected_loc && $selected_loc !== 'GLOBAL') ? $location_photos : ($zone_photos ?? []);
+        $gallery_title = ($selected_loc && $selected_loc !== 'GLOBAL') 
+            ? "📸 Location Photos for " . htmlspecialchars($selected_loc) . " (" . htmlspecialchars($selected_sector) . ")"
+            : "📸 Photos for Zone " . htmlspecialchars($active_zone_name) . " (" . htmlspecialchars($selected_sector) . ")";
+        $default_cam_loc = ($selected_loc && $selected_loc !== 'GLOBAL') 
+            ? $selected_loc 
+            : (!empty($zone_locs) ? $zone_locs[0] : 'W1-L1');
+        $avail_locs_json = !empty($zone_locs) ? json_encode(array_values($zone_locs)) : json_encode([$default_cam_loc]);
+    ?>
+        <!-- Collapsible Location Photo Gallery Widget -->
+        <div class="location-photo-widget-container" style="margin-bottom: 1.5rem; margin-top: 0.5rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); overflow: hidden; box-shadow: var(--shadow-sm);">
+            <details id="location-photos-details" style="padding: 0.85rem 1.15rem; cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; list-style: none; user-select: none;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.1rem;">📸</span>
+                        <span><?= $gallery_title ?></span>
+                        <span id="photo-count-badge" class="photo-count" style="font-size: 0.75rem; background: <?= count($displayed_photos) > 0 ? '#10b981' : '#94a3b8' ?>; color: white; padding: 2px 10px; border-radius: 12px; font-weight: 800;"><?= count($displayed_photos) ?> Photos</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button type="button" onclick="event.stopPropagation(); CameraUploader.open({ locationCode: '<?= htmlspecialchars($default_cam_loc, ENT_QUOTES) ?>', sector: '<?= htmlspecialchars($selected_sector, ENT_QUOTES) ?>', availableLocations: <?= htmlspecialchars($avail_locs_json, ENT_QUOTES) ?>, onSuccess: () => { if (window.AppSync) AppSync.sync('inventory-list', true); } })" 
+                            style="background: #2563eb; color: white; border: none; padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(37,99,235,0.25);"
+                            onmouseover="this.style.backgroundColor='#1d4ed8'" onmouseout="this.style.backgroundColor='#2563eb'">
+                            <span>📷</span> Add / Snap Photo
+                        </button>
+                        <span style="font-size: 0.8rem; color: var(--text-dim); transition: transform 0.2s;">▼</span>
+                    </div>
                 </summary>
 
-                <div style="margin-top: 1rem;">
+                <div style="margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem;">
                     <!-- Gallery Grid -->
-                    <div class="photo-grid-horizontal" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; align-items: center;">
-                        <?php if (empty($location_photos)): ?>
-                            <div style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No photographs uploaded for this shelf yet.</div>
+                    <div id="location-photos-gallery" class="photo-grid-horizontal" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; align-items: center;">
+                        <?php if (empty($displayed_photos)): ?>
+                            <div style="color: var(--text-dim); font-size: 0.85rem; padding: 0.5rem 0;">No photographs uploaded for this location yet. Click <strong>Add / Snap Photo</strong> to capture or upload.</div>
                         <?php else: ?>
-                            <?php foreach ($location_photos as $photo): ?>
-                                <div class="photo-card-mini" style="flex: 0 0 100px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-body); position: relative;">
+                            <?php foreach ($displayed_photos as $photo): ?>
+                                <div class="photo-card-mini" data-photo-id="<?= $photo['id'] ?>" style="flex: 0 0 110px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-body); position: relative;">
                                     <div class="img-preview-container" style="position: relative; width: 100%; height: 75px; overflow: hidden; border-radius: 6px;">
                                         <img src="<?= htmlspecialchars($photo['thumbnail_path']) ?>" alt="<?= htmlspecialchars($photo['original_filename']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
                                         <div class="hover-preview" style="display: none; position: fixed; z-index: 2100; width: 450px; height: 350px; background: rgba(0,0,0,0.95); border: 2px solid var(--accent-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; pointer-events: none;">
                                             <img src="<?= htmlspecialchars($photo['optimized_path']) ?>" style="width: 100%; height: 100%; object-fit: contain;">
                                         </div>
                                     </div>
-                                    <div style="font-size: 0.7rem; font-weight: 700; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<?= htmlspecialchars($photo['category']) ?>">
-                                        <?= htmlspecialchars($photo['category']) ?>
+                                    <div style="font-size: 0.7rem; font-weight: 700; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<?= htmlspecialchars($photo['location_code']) ?> - <?= htmlspecialchars($photo['category']) ?>">
+                                        <?= htmlspecialchars($photo['location_code']) ?> (<?= htmlspecialchars($photo['category']) ?>)
                                     </div>
                                     <div style="display: flex; justify-content: center; gap: 8px; margin-top: 4px;">
                                         <a href="download_archive.php?id=<?= $photo['id'] ?>" class="btn-icon-tiny" title="Download Raw Original" style="font-size: 0.75rem; text-decoration: none;">📥</a>
@@ -121,8 +141,8 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                             <?php endforeach; ?>
                         <?php endif; ?>
 
-                        <!-- Add Photo trigger -->
-                        <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($selected_loc) ?>', sector: '<?= htmlspecialchars($selected_sector) ?>', onSuccess: () => window.location.reload() })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
+                        <!-- Add Photo trigger in gallery -->
+                        <button type="button" onclick="CameraUploader.open({ locationCode: '<?= htmlspecialchars($default_cam_loc, ENT_QUOTES) ?>', sector: '<?= htmlspecialchars($selected_sector, ENT_QUOTES) ?>', availableLocations: <?= htmlspecialchars($avail_locs_json, ENT_QUOTES) ?>, onSuccess: () => { if (window.AppSync) AppSync.sync('inventory-list', true); } })" style="flex: 0 0 100px; height: 110px; border: 2px dashed var(--border-color); border-radius: 8px; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-dim); transition: all 0.2s;">
                             <span style="font-size: 1.5rem;">📷</span>
                             <span style="font-size: 0.75rem; font-weight: 600;">Camera / Add</span>
                         </button>

@@ -198,11 +198,27 @@ async function submitQuickIntakeAjax(e) {
 
             if (typeof Notifications !== 'undefined' && Notifications.success) {
                 Notifications.success('Inventory item committed to shelf.');
+            } else if (typeof IQA_Notify !== 'undefined' && IQA_Notify.success) {
+                IQA_Notify.success('Inventory item committed to shelf.');
+            }
+
+            if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                window.AppSync.sync('inventory-list', true);
+            }
+            if (typeof updateTotalQuantityHeader === 'function') {
+                updateTotalQuantityHeader();
             }
 
             setTimeout(() => {
-                window.location.reload();
-            }, 750);
+                if (statusBox) {
+                    statusBox.style.transition = 'opacity 0.4s';
+                    statusBox.style.opacity = '0';
+                    setTimeout(() => {
+                        statusBox.style.display = 'none';
+                        statusBox.style.opacity = '1';
+                    }, 400);
+                }
+            }, 3000);
         } else {
             const err = resData && resData.message ? resData.message : 'Failed to commit item.';
             if (statusBox) {
@@ -224,7 +240,7 @@ async function submitQuickIntakeAjax(e) {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `<span>➕</span> Commit to Shelf`;
+            submitBtn.innerHTML = '<span>➕</span> Commit to Shelf';
         }
     }
 }
@@ -548,13 +564,14 @@ async function promptLocationSyncReconcile() {
                 statusBox.innerHTML = `✅ ${escapeHtml(result && result.message ? result.message : `Shelf ${locCode} reconciled successfully!`)}`;
             }
 
-            if (typeof Notifications !== 'undefined' && Notifications.success) {
-                Notifications.success(`Shelf ${locCode} synchronized: ${verifiedUnitsCount} kept, ${missingUnitsCount} purged.`);
+            if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                window.AppSync.sync('inventory-list', true);
             }
 
             setTimeout(() => {
-                window.location.reload();
-            }, 800);
+                const modal = document.getElementById('modal-shelf-deplete');
+                if (modal) modal.style.display = 'none';
+            }, 900);
         } else {
             alert(result && result.message ? result.message : 'Failed to reconcile shelf.');
             if (mainBtn) {
