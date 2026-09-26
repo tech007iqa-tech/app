@@ -61,13 +61,27 @@ $stmt_locs = $conn_wh->query("
 ");
 $existing_locs = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
 
-$all_statuses = $conn_wh->query("
-    SELECT MIN(id) AS id, name, color, is_default 
-    FROM location_statuses 
-    WHERE is_default = 1
-    GROUP BY name 
-    ORDER BY name ASC
-")->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $all_statuses = $conn_wh->query("
+        SELECT MIN(id) AS id, name, color, is_default 
+        FROM location_statuses 
+        WHERE is_default = 1
+        GROUP BY name 
+        ORDER BY name ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $all_statuses = [];
+}
+if (empty($all_statuses)) {
+    $all_statuses = [
+        ['id' => 1, 'name' => 'Working', 'color' => '#10b981', 'is_default' => 1],
+        ['id' => 2, 'name' => 'Audit', 'color' => '#f59e0b', 'is_default' => 1],
+        ['id' => 3, 'name' => 'Shipping', 'color' => '#3b82f6', 'is_default' => 1],
+        ['id' => 4, 'name' => 'In-Review', 'color' => '#8b5cf6', 'is_default' => 1],
+        ['id' => 5, 'name' => 'Warehoused', 'color' => '#6366f1', 'is_default' => 1],
+        ['id' => 6, 'name' => 'Idle', 'color' => '#64748b', 'is_default' => 1]
+    ];
+}
 $sectors = $conn_wh->query("SELECT * FROM sectors")->fetchAll(PDO::FETCH_ASSOC);
 
 // 3. Fetch Inventory Items

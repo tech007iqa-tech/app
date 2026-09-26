@@ -1,10 +1,8 @@
 labels/.vscode/
-labels/db/
 labels/exports/
 labels/update.txt
 marketing/data
 marketing/assets/photo_bucket/
-db/
 orders/assets/exports
 orders/assets/location_photos
 tech/exports/

@@ -6,7 +6,17 @@
 
 require_once __DIR__ . '/Security.php';
 
+if (!class_exists('UI')) {
 class UI {
+
+    /**
+     * Checks if the current request is an AJAX request.
+     */
+    public static function is_ajax() {
+        return isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+    }
+
+
     /**
      * Renders a hidden CSRF protection field
      */
@@ -181,6 +191,16 @@ class UI {
      * Renders any pending notifications from Session or URL
      */
     public static function render_notifications() {
+        $html = '';
+        if (isset($_SESSION['msg'])) {
+            $html .= '<div class="alert success" style="margin: 10px auto; max-width: 800px; padding: 12px 16px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;"><span>' . htmlspecialchars($_SESSION['msg']) . '</span><button onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer; font-weight:900;">✕</button></div>';
+            unset($_SESSION['msg']);
+        }
+        if (isset($_SESSION['error'])) {
+            $html .= '<div class="alert error" style="margin: 10px auto; max-width: 800px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;"><span>' . htmlspecialchars($_SESSION['error']) . '</span><button onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer; font-weight:900;">✕</button></div>';
+            unset($_SESSION['error']);
+        }
+
         $msg = $_SESSION['notification_msg'] ?? null;
         $type = $_SESSION['notification_type'] ?? 'info';
         unset($_SESSION['notification_msg'], $_SESSION['notification_type']);
@@ -188,13 +208,13 @@ class UI {
         $script = "";
         if ($msg) {
             $msg_esc = addslashes(htmlspecialchars($msg));
-            $script .= "IQA_Notify.show('{$msg_esc}', '" . addslashes(htmlspecialchars($type)) . "');";
+            $script .= "if (typeof IQA_Notify !== 'undefined') { IQA_Notify.show('{$msg_esc}', '" . addslashes(htmlspecialchars($type)) . "'); }";
         }
 
         if ($script) {
-            return "<script>document.addEventListener('DOMContentLoaded', () => { {$script} });</script>";
+            $html .= "<script>document.addEventListener('DOMContentLoaded', () => { {$script} });</script>";
         }
-        return "";
+        return $html;
     }
 
     /**
@@ -320,4 +340,5 @@ class UI {
 
         return trim($text);
     }
+}
 }

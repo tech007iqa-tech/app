@@ -84,7 +84,7 @@ class StorageManager {
         $archivePath = '';
         try {
             // Get DB connection helper from app context
-            require_once __DIR__ . '/Database.php';
+            require_once __DIR__ . '/database.php';
             $db = Database::warehouse();
             $stmt = $db->prepare("SELECT value FROM settings WHERE key = ?");
             $stmt->execute(['archive_photos_path']);

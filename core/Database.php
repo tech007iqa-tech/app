@@ -103,6 +103,17 @@ class Database
                     self::initTechSchema($conn);
                 }
 
+                // Initialize Schema for Marketing module if connecting to marketing.db
+                if ($db_name === 'marketing') {
+                    $mkt_schema = __DIR__ . '/../marketing/includes/schema_guard.php';
+                    if (file_exists($mkt_schema)) {
+                        require_once $mkt_schema;
+                        if (function_exists('marketing_schema_guard')) {
+                            marketing_schema_guard($conn);
+                        }
+                    }
+                }
+
                 self::$instances[$db_name] = $conn;
             } catch (PDOException $e) {
                 die("Database Connection Error (" . $db_name . "): " . $e->getMessage());
@@ -150,8 +161,22 @@ class Database
      */
     public static function attach(PDO $conn, $db_to_attach, $alias)
     {
-        $db_path = self::getDbDir() . '/' . $db_to_attach . '.db';
-        $conn->exec("ATTACH DATABASE '{$db_path}' AS {$alias}");
+        try {
+            $stmt = $conn->query("PRAGMA database_list");
+            if ($stmt) {
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    if (strcasecmp($row['name'] ?? '', $alias) === 0) {
+                        return; // Already attached
+                    }
+                }
+            }
+            $db_path = self::getDbDir() . '/' . $db_to_attach . '.db';
+            $conn->exec("ATTACH DATABASE '{$db_path}' AS {$alias}");
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'already in use') === false) {
+                throw $e;
+            }
+        }
     }
 
     /**

@@ -3,24 +3,30 @@
 // Initializes PDO connections to the 3 SQLite files with strict error handling.
 
 // Resolve secure DB directory outside HTTP scope
-$candidates = [
-    dirname(__DIR__, 3) . '/data/db/',
-    dirname(__DIR__, 4) . '/data/db/',
-    '/home4/latinspc/data/db/',
-    __DIR__ . '/../db/'
-];
+$core_db_file = dirname(__DIR__, 2) . '/core/Database.php';
+if (file_exists($core_db_file)) {
+    require_once $core_db_file;
+    $db_dir = rtrim(Database::getDbDir(), '/\\') . '/';
+} else {
+    $candidates = [
+        dirname(__DIR__, 3) . '/data/db/',
+        dirname(__DIR__, 4) . '/data/db/',
+        '/home4/latinspc/data/db/',
+        __DIR__ . '/../db/'
+    ];
 
-$db_dir = __DIR__ . '/../db/';
-foreach ($candidates as $cand) {
-    if (is_dir($cand)) {
-        $db_dir = rtrim($cand, '/\\') . '/';
-        break;
+    $db_dir = __DIR__ . '/../db/';
+    foreach ($candidates as $cand) {
+        if (is_dir($cand)) {
+            $db_dir = rtrim($cand, '/\\') . '/';
+            break;
+        }
     }
-}
 
-// Ensure directory exists
-if (!is_dir($db_dir)) {
-    @mkdir($db_dir, 0755, true);
+    // Ensure directory exists
+    if (!is_dir($db_dir)) {
+        @mkdir($db_dir, 0755, true);
+    }
 }
 
 // Database paths

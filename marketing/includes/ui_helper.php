@@ -4,6 +4,7 @@
  * Standardizes components across all modules.
  */
 
+if (!class_exists('UI')) {
 class UI {
 
     /**
@@ -249,5 +250,6 @@ class UI {
 
         return trim($text);
     }
+}
 }
 ?>

@@ -250,6 +250,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action']) && 
 
                     // Re-lock the reconfigure session so subsequent visits require authentication
                     unset($_SESSION['setup_reconfigure_unlocked']);
+                    $_SESSION['authenticated'] = true;
+                    $_SESSION['username'] = $admin_user;
+                    $_SESSION['role'] = 'Admin';
+                    $_SESSION['display_name'] = $admin_name;
                     $success = true;
                 } catch (Exception $e) {
                     $error = 'Failed to save configuration: ' . $e->getMessage();
