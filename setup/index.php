@@ -138,8 +138,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action']) && 
         if (empty($error)) {
             $company_name = trim($_POST['company_name'] ?? 'IQA Metal');
             $system_name = trim($_POST['system_name'] ?? 'IQA Metal Warehouse Systems');
-            $company_url = trim($_POST['company_url'] ?? 'https://latinospc.com');
-            $support_email = trim($_POST['support_email'] ?? 'contact@latinospc.com');
+            $company_url = trim($_POST['company_url'] ?? 'https://iqametal.com');
+            $support_email = trim($_POST['support_email'] ?? 'contact@iqametal.com');
             $currency_symbol = trim($_POST['currency_symbol'] ?? '$');
             $tagline = trim($_POST['tagline'] ?? 'Intelligent inventory management & rapid label logistics.');
 
@@ -568,7 +568,7 @@ endif;
     <link rel="stylesheet" href="../assets/css/components.css">
     <style>
         :root {
-            /* LatinosPC Official Color Palette */
+            /* IQA Metal Official Color Palette */
             --primary-color: #0056b3;
             /* Royal Cobalt Blue */
             --primary-dark: #082d45;
@@ -1377,14 +1377,14 @@ endif;
                             <div class="form-group">
                                 <label for="company_url">Official Website / Domain</label>
                                 <input type="url" id="company_url" name="company_url"
-                                    value="<?= htmlspecialchars($curr_url) ?>" placeholder="https://latinospc.com">
+                                    value="<?= htmlspecialchars($curr_url) ?>" placeholder="https://iqametal.com">
                                 <span class="input-hint">Linked in footer notes and manifest signatures.</span>
                             </div>
 
                             <div class="form-group">
                                 <label for="support_email">Contact / Operations Email</label>
                                 <input type="email" id="support_email" name="support_email"
-                                    value="<?= htmlspecialchars($curr_email) ?>" placeholder="sales@latinospc.com">
+                                    value="<?= htmlspecialchars($curr_email) ?>" placeholder="sales@iqametal.com">
                                 <span class="input-hint">Receives system alerts and customer inquiries.</span>
                             </div>
 
@@ -1800,7 +1800,7 @@ endif;
                             <div
                                 style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
                                 <span style="color: var(--text-muted);">Website URL:</span>
-                                <strong id="rev-company-url">https://latinospc.com</strong>
+                                <strong id="rev-company-url">https://iqametal.com</strong>
                             </div>
                             <div
                                 style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
@@ -2360,7 +2360,7 @@ endif;
         function populateReview() {
             document.getElementById('rev-company-name').textContent = document.getElementById('company_name').value || 'IQA Metal';
             document.getElementById('rev-system-title').textContent = document.getElementById('system_name').value || 'IQA Metal Warehouse Systems';
-            document.getElementById('rev-company-url').textContent = document.getElementById('company_url').value || 'https://latinospc.com';
+            document.getElementById('rev-company-url').textContent = document.getElementById('company_url').value || 'https://iqametal.com';
             document.getElementById('rev-admin-user').textContent = document.getElementById('admin_user').value || 'admin';
 
             const authMode = document.getElementById('auth_mode_input').value;

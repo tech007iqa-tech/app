@@ -8,7 +8,7 @@
     --text-secondary: #4b5563;
     --text-dim: #94a3b8;
 
-    /* LatinosPC Official Color Palette */
+    /* IQA Metal Official Color Palette */
     --primary-color: #0056b3;
     --primary-dark: #082d45;
     --secondary-color: #218838;
@@ -34,7 +34,7 @@
 
 [data-theme="dark"] {
     --bg-page: #041521;
-    /* LatinosPC Deep Navy */
+    /* IQA Metal Deep Navy */
     --bg-panel: #082d45;
     --bg-surface-2: #0d3855;
     --border-color: rgba(218, 237, 251, 0.14);

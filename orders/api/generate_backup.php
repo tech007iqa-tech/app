@@ -13,14 +13,14 @@ if (($_SESSION['role'] ?? '') !== 'Admin') {
 
 // 2. Prepare Backup
 $db_dir = Database::getDbDir();
-$backup_name = 'LatinosPC_Backup_' . date('Y-m-d_His') . '.zip';
+$backup_name = 'IQAMetal_Backup_' . date('Y-m-d_His') . '.zip';
 $temp_file = sys_get_temp_dir() . '/' . $backup_name;
 $timestamp = date('Y-m-d_His');
 $files = glob($db_dir . '/*.{db,sqlite}', GLOB_BRACE) ?: glob($db_dir . '/*.db');
 
 if (extension_loaded('zip')) {
     // PREFERRED: ZIP Archive
-    $backup_name = "LatinosPC_Backup_{$timestamp}.zip";
+    $backup_name = "IQAMetal_Backup_{$timestamp}.zip";
     $temp_file = sys_get_temp_dir() . '/' . $backup_name;
 
     $zip = new ZipArchive();
@@ -31,7 +31,7 @@ if (extension_loaded('zip')) {
     }
 } elseif (class_exists('PharData')) {
     // FALLBACK: TAR Archive (Built-in to PHP Phar extension)
-    $backup_name = "LatinosPC_Backup_{$timestamp}.tar";
+    $backup_name = "IQAMetal_Backup_{$timestamp}.tar";
     $temp_file = sys_get_temp_dir() . '/' . $backup_name;
 
     try {

@@ -61,9 +61,9 @@ class Notifications {
 }
 
 // Global instance with backward-compatible aliases
-window.LatinosPC_Notify = new Notifications();
-window.IQA_Notify = window.LatinosPC_Notify;
-window.Notify = window.LatinosPC_Notify;
+window.IQA_Notify = new Notifications();
+window.LatinosPC_Notify = window.IQA_Notify;
+window.Notify = window.IQA_Notify;
 
 // Check for session-based notifications (PHP flash messages)
 document.addEventListener('DOMContentLoaded', () => {

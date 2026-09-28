@@ -896,23 +896,188 @@
     appearance: none;
 }
 
-@media (max-width: 1024px) {
+/* ==========================================================================
+   Responsive Breakpoints
+   - Wide Screens: Default (> 1200px)
+   - Middle Screens: 769px - 1200px (Tablets, Laptops, Intermediate Displays)
+   - Small Screens: <= 768px (Mobile Phones)
+   - Extra Small Screens: <= 480px (Compact Mobile)
+   ========================================================================== */
+
+/* --- Tier 2: Middle Screens (max-width: 1200px) --- */
+@media (max-width: 1200px) {
     .warehouse-layout {
-        grid-template-columns: 1fr 320px;
+        grid-template-columns: 1fr 300px;
         gap: 20px;
     }
 
+    .warehouse-layout.spreadsheet-mode {
+        grid-template-columns: 1fr;
+    }
+
+    .warehouse-header-main {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .warehouse-title-block h1 {
+        font-size: 1.75rem;
+    }
+
+    .header-right-side {
+        align-items: flex-end;
+        width: auto;
+    }
+
+    .active-loc-display {
+        text-align: right;
+        width: auto;
+    }
+
+    /* Sector Navigation tablet polish */
+    .sector-nav {
+        gap: 10px;
+        margin-bottom: 24px;
+        padding-bottom: 8px;
+    }
+
+    .sector-card {
+        padding: 14px 16px;
+        min-width: 110px;
+        border-radius: 16px;
+    }
+
+    .sector-icon {
+        font-size: 1.8rem;
+    }
+
+    .sector-name {
+        font-size: 0.9rem;
+    }
+
+    /* Middle Screen Feed Header & Actions: Keep toolbar compact, horizontal, and inline */
+    .inventory-feed-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .inventory-summary-title {
+        flex: 0 0 auto;
+    }
+
+    .inventory-summary-title h2 {
+        font-size: 1.3rem;
+    }
+
     .inventory-actions {
-        width: 100%;
-        margin-top: 10px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        min-width: 0;
+        flex-wrap: wrap;
+        width: auto;
+        margin-top: 0;
+    }
+
+    .inventory-actions .search-container {
+        flex: 1 1 200px;
+        max-width: 320px;
+        min-width: 160px;
+        width: auto;
+    }
+
+    .inventory-actions .search-input {
+        height: 44px;
+        font-size: 0.88rem;
+        border-radius: 12px;
+    }
+
+    .btn-inventory,
+    .btn-export {
+        width: auto !important;
+        height: 44px;
+        padding: 0 18px;
+        font-size: 0.84rem;
+        border-radius: 12px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    /* Table container scrolling */
+    .inventory-table-container,
+    .spreadsheet-table-wrapper {
+        border-radius: 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .gate-options-container {
         grid-template-columns: 1fr;
     }
+
+    .bulk-action-bar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .bulk-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        width: auto;
+        gap: 8px;
+    }
+
+    .bulk-actions input,
+    .bulk-actions button {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 100px;
+    }
 }
 
-@media (max-width: 2000px) {
+/* Middle Screen Sub-breakpoint for tighter tablet widths (769px - 950px) */
+@media (min-width: 769px) and (max-width: 950px) {
+    .inventory-actions {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 6px;
+    }
+
+    .inventory-actions .search-container {
+        flex: 1 1 200px;
+    }
+}
+
+/* --- Tablet / Sub-1024px Touch Scroll Hint --- */
+@media (max-width: 1024px) {
+    .scroll-hint {
+        display: inline-flex;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* --- Tier 3: Small Screens (max-width: 768px - Mobile View) --- */
+@media (max-width: 768px) {
     .warehouse-layout {
         grid-template-columns: 1fr;
     }
@@ -934,7 +1099,7 @@
     }
 
     .warehouse-title-block h1 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
 
     /* Table Responsiveness: allow horizontal scrolling */
@@ -971,17 +1136,19 @@
 
     .inventory-actions {
         flex-direction: column;
+        width: 100%;
         min-width: 0;
     }
 
-    .search-container {
-        max-width: none;
-        width: 100%;
+    .inventory-actions .search-container,
+    .search-container:not(.footer-search) {
+        max-width: none !important;
+        width: 100% !important;
     }
 
     .btn-inventory,
     .btn-export {
-        width: 100%;
+        width: 100% !important;
         justify-content: center;
     }
 

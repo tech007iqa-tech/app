@@ -114,7 +114,7 @@ class Company
 
     public static function getUrl()
     {
-        return self::get('company_url', 'https://latinospc.com');
+        return self::get('company_url', 'https://iqametal.com');
     }
 
     public static function getTagline()
@@ -124,7 +124,7 @@ class Company
 
     public static function getEmail()
     {
-        return self::get('support_email', 'contact@latinospc.com');
+        return self::get('support_email', 'contact@iqametal.com');
     }
 
     public static function getCurrency()

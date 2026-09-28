@@ -1,0 +1,80 @@
+/* =========================================================
+   theme.css - Modern Design Tokens & Color Palettes
+   Clean, standardized CSS variables for Light and Dark modes.
+   ========================================================= */
+
+@font-face {
+    font-family: 'manuscript';
+    src: url('../fonts/font.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    /* Brand & Accent Colors */
+    --primary-color: #0284c7;        /* Cobalt / Vibrant Blue */
+    --primary-hover: #0369a1;        /* Darker Blue on hover */
+    --primary-dark: #0f172a;         /* Deep Navy / Slate 900 */
+    --primary-light: #e0f2fe;        /* Soft Blue tint */
+    
+    --accent-emerald: #10b981;       /* In-Stock / Success */
+    --accent-amber: #f59e0b;         /* Warning / Unpost */
+    --accent-rose: #ef4444;          /* Delete / Danger */
+
+    /* Light Theme Surfaces & Backgrounds */
+    --background: #f8fafc;           /* Crisp slate-50 */
+    --card-bg: #ffffff;              /* Clean white cards */
+    --card-border: #e2e8f0;          /* Subtle border */
+    --hero-bg: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.12) 0%, transparent 60%), linear-gradient(180deg, #f0f9ff 0%, #f8fafc 100%);
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --footer-bg: #f1f5f9;
+
+    /* Typography */
+    --text-color: #0f172a;           /* Primary text */
+    --light-text: #475569;          /* Subtitles & descriptions */
+    --dim-text: #94a3b8;            /* Meta dates & subtle notes */
+
+    /* Inputs & Form Controls */
+    --input-bg: #f8fafc;
+    --input-border: #cbd5e1;
+    --input-focus: #0284c7;
+
+    /* Elevation & Shapes */
+    --border-radius: 16px;
+    --border-radius-sm: 8px;
+    --border-radius-pill: 9999px;
+    --box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    --box-shadow-hover: 0 16px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+    --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Theme - Sleek Glassmorphic Midnight Cobalt */
+[data-theme="dark"] {
+    --primary-color: #38bdf8;        /* Sky 400 */
+    --primary-hover: #7dd3fc;
+    --primary-dark: #f8fafc;
+    --primary-light: rgba(56, 189, 248, 0.15);
+
+    --accent-emerald: #34d399;
+    --accent-amber: #fbbf24;
+    --accent-rose: #f87171;
+
+    --background: #041521;           /* IQA Metal Base Navy */
+    --card-bg: rgba(8, 45, 69, 0.85);/* Glassmorphic Dark Blue */
+    --card-border: rgba(218, 237, 251, 0.14);
+    --hero-bg: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.28) 0%, transparent 65%), linear-gradient(180deg, #041521 0%, #082d45 100%);
+    --header-bg: rgba(4, 21, 33, 0.85);
+    --footer-bg: #030f18;
+
+    --text-color: #f8fafc;
+    --light-text: #94a3b8;
+    --dim-text: #64748b;
+
+    --input-bg: rgba(4, 21, 33, 0.7);
+    --input-border: rgba(218, 237, 251, 0.16);
+    --input-focus: #38bdf8;
+
+    --box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+    --box-shadow-hover: 0 16px 36px -4px rgba(0, 0, 0, 0.75), 0 0 25px rgba(56, 189, 248, 0.15);
+}

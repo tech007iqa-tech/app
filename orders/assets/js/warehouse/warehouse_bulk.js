@@ -716,7 +716,7 @@ function downloadWarehouseCSV() {
     const sector = (state.activeSector || "Warehouse").replace(/\s+/g, '_');
 
     link.href = url;
-    link.download = `LatinosPC_Inventory_${sector}_${dateStamp}.csv`;
+    link.download = `IQAMetal_Inventory_${sector}_${dateStamp}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
