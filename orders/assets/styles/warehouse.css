@@ -1341,13 +1341,15 @@
 }
 
 /* Selected Row Highlighting */
-.inventory-table tr.selected-row {
+.inventory-table tr.selected-row,
+.spreadsheet-table tr.selected-row {
     background-color: rgba(140, 198, 63, 0.08) !important;
     border-left: 4px solid var(--accent-color) !important;
     transition: all 0.2s ease;
 }
 
-.inventory-table tr.selected-row td {
+.inventory-table tr.selected-row td,
+.spreadsheet-table tr.selected-row td {
     border-bottom-color: rgba(140, 198, 63, 0.2);
 }
 
@@ -1395,7 +1397,8 @@
     border-color: var(--border-color);
 }
 
-[data-theme="dark"] .inventory-table tr.selected-row {
+[data-theme="dark"] .inventory-table tr.selected-row,
+[data-theme="dark"] .spreadsheet-table tr.selected-row {
     background-color: rgba(163, 230, 53, 0.1) !important;
     border-left-color: var(--accent-color) !important;
 }
@@ -1930,4 +1933,66 @@
     border-color: #f87171 !important;
     background: rgba(239, 68, 68, 0.1) !important;
     box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Item Migration Modal & Presets */
+.btn-preset-qty {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--bg-card, #ffffff);
+    color: var(--text-main, #0f172a);
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-preset-qty:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.btn-preset-qty.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="dark"] .btn-preset-qty {
+    background: var(--bg-surface-2, #1e293b);
+    border-color: var(--border-color, #334155);
+    color: var(--text-main, #f8fafc);
+}
+
+[data-theme="dark"] .btn-preset-qty:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .btn-preset-qty.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* Quick Migrate Row Button */
+.btn-migrate-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-migrate-row:hover {
+    background: rgba(37, 99, 235, 0.15) !important;
+    color: #2563eb !important;
+    opacity: 1 !important;
+    transform: scale(1.1);
 }

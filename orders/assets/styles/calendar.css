@@ -146,6 +146,7 @@
 /* Weekly Rows */
 .weekly-scroll-area {
     /* Stretch to page height without vertical scroll restriction */
+    font-display: auto;
 }
 
 .weekly-row {
@@ -160,9 +161,11 @@
 .weekly-row:nth-child(even) {
     background-color: #f0f9ff;
 }
+
 .weekly-row:nth-child(even) .grid-cell {
     background-color: #f0f9ff;
 }
+
 .weekly-row:nth-child(even) .time-slot-label {
     background-color: #e0f2fe;
 }
@@ -650,17 +653,70 @@
 }
 
 /* Dark Mode Overrides for Calendar Module */
-[data-theme="dark"] .calendar-grid-header { background: var(--bg-surface-2) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
-[data-theme="dark"] .grid-cell { border-color: var(--border-color) !important; }
-[data-theme="dark"] .grid-cell:hover { background: var(--bg-surface-2) !important; }
-[data-theme="dark"] .weekly-row:nth-child(even) { background-color: rgba(56, 189, 248, 0.03) !important; }
-[data-theme="dark"] .weekly-row:nth-child(even) .grid-cell { background-color: rgba(56, 189, 248, 0.03) !important; }
-[data-theme="dark"] .weekly-row:nth-child(even) .time-slot-label { background-color: rgba(56, 189, 248, 0.07) !important; }
-[data-theme="dark"] .time-slot-label { background: var(--bg-panel) !important; border-color: var(--border-color) !important; color: var(--text-secondary) !important; }
-[data-theme="dark"] .modal-content-glass { background: var(--bg-panel) !important; color: var(--text-main) !important; }
-[data-theme="dark"] .view-controls, [data-theme="dark"] .month-controls { background: var(--bg-surface-2) !important; border-color: var(--border-color) !important; }
-[data-theme="dark"] .timeline-picker { background: var(--bg-panel) !important; }
-[data-theme="dark"] .timeline-chip { background: var(--bg-panel) !important; border-color: var(--border-color) !important; }
-[data-theme="dark"] .timeline-chip.selected { background: var(--cal-accent) !important; color: white !important; }
-[data-theme="dark"] .event-pill.suggested { background: var(--bg-surface-2) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
-[data-theme="dark"] .event-pill.type-lead, [data-theme="dark"] .event-pill.type-order { background: var(--bg-surface-2) !important; }
+[data-theme="dark"] .calendar-grid-header {
+    background: var(--bg-surface-2) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .grid-cell {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .grid-cell:hover {
+    background: var(--bg-surface-2) !important;
+}
+
+[data-theme="dark"] .weekly-row:nth-child(even) {
+    background-color: rgba(56, 189, 248, 0.03) !important;
+}
+
+[data-theme="dark"] .weekly-row:nth-child(even) .grid-cell {
+    background-color: rgba(56, 189, 248, 0.03) !important;
+}
+
+[data-theme="dark"] .weekly-row:nth-child(even) .time-slot-label {
+    background-color: rgba(56, 189, 248, 0.07) !important;
+}
+
+[data-theme="dark"] .time-slot-label {
+    background: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .modal-content-glass {
+    background: var(--bg-panel) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .view-controls,
+[data-theme="dark"] .month-controls {
+    background: var(--bg-surface-2) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .timeline-picker {
+    background: var(--bg-panel) !important;
+}
+
+[data-theme="dark"] .timeline-chip {
+    background: var(--bg-panel) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .timeline-chip.selected {
+    background: var(--cal-accent) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .event-pill.suggested {
+    background: var(--bg-surface-2) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .event-pill.type-lead,
+[data-theme="dark"] .event-pill.type-order {
+    background: var(--bg-surface-2) !important;
+}

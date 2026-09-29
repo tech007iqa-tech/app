@@ -177,3 +177,7 @@
 <!-- Warehouse Inventory Control Modal -->
 <?php include __DIR__ . '/inventory_modal.php'; ?>
 
+<!-- Warehouse Item Migration & Depleted Shelf Modals -->
+<?php include __DIR__ . '/migration_modal.php'; ?>
+
+

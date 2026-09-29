@@ -8,9 +8,11 @@ let lastChecked = null;
 
 function updateBulkBar() {
     const selectedCount = document.getElementById('selectedCount');
+    const btnSelectedCount = document.getElementById('btnSelectedCount');
     const bulkBar = document.getElementById('bulkActionBar');
     const count = selectedIds.size;
     if (selectedCount) selectedCount.textContent = count;
+    if (btnSelectedCount) btnSelectedCount.textContent = count;
     if (bulkBar) bulkBar.style.display = count > 0 ? 'flex' : 'none';
 }
 
@@ -618,7 +620,11 @@ function filterWarehouse() {
 function downloadWarehouseCSV() {
     const cards = document.querySelectorAll('.inventory-card');
     const activeLocElem = document.querySelector('.loc-text');
-    const activeLoc = activeLocElem ? activeLocElem.innerText.trim() : 'Warehouse';
+    let activeLoc = activeLocElem ? activeLocElem.innerText.trim() : '';
+    if (!activeLoc) {
+        const currentCrumb = document.querySelector('.warehouse-breadcrumbs .current-crumb');
+        activeLoc = currentCrumb ? currentCrumb.innerText.trim() : 'Warehouse';
+    }
     const isGlobal = activeLoc === 'GLOBAL';
 
     let csv = `"Active Location","${activeLoc} 📍",,,,,,,\n\n`;
@@ -633,8 +639,16 @@ function downloadWarehouseCSV() {
     cards.forEach(card => {
         if (card.style.display !== 'none') {
             const specs = JSON.parse(card.getAttribute('data-specs') || '{}');
-            const brand = card.getAttribute('data-brand') || '';
-            const model = card.getAttribute('data-model') || '';
+
+            // Brand & Model (with inline input support for spreadsheet mode)
+            let brand = card.getAttribute('data-brand') || '';
+            const brandInput = card.querySelector('[data-field="brand"] .cell-input');
+            if (brandInput && brandInput.value !== undefined) brand = brandInput.value.trim();
+
+            let model = card.getAttribute('data-model') || '';
+            const modelInput = card.querySelector('[data-field="model"] .cell-input');
+            if (modelInput && modelInput.value !== undefined) model = modelInput.value.trim();
+
             let qty = '0';
             const qtyElement = card.querySelector('.qty-pill');
             if (qtyElement) {
@@ -652,27 +666,87 @@ function downloadWarehouseCSV() {
             const createdDate = card.getAttribute('data-created-date') || '';
             const createdTime = card.getAttribute('data-created-time') || '';
 
+            let itemLoc = card.getAttribute('data-location') || '';
             const locTag = card.querySelector('.location-tag');
-            const itemLoc = locTag ? locTag.innerText.trim() : '';
-
-            let cpuGen = (specs.cpu || "") + (specs.gen ? " (" + specs.gen + ")" : "");
-            if (card.getAttribute('data-sector-theme') === 'Desktops') {
-                cpuGen = specs.cpu_gen || '';
+            if (locTag) {
+                itemLoc = locTag.innerText.trim();
+            } else {
+                const locInput = card.querySelector('[data-field="location_code"] .cell-input');
+                if (locInput && locInput.value !== undefined) {
+                    itemLoc = locInput.value.trim();
+                }
             }
-            const sectorTheme = card.getAttribute('data-sector-theme') || 'Laptops';
 
-            const batteryVal = specs.battery || "";
-            const isBatteryNo = (batteryVal.toLowerCase() === 'no' || batteryVal.toLowerCase() === 'missing' || batteryVal.toLowerCase() === 'dead');
-            const descVal = isBatteryNo ? 'Parts' : 'Untested';
+            // Series
+            let seriesVal = specs.series || '';
+            const seriesInput = card.querySelector('[data-field="series"] .cell-input');
+            if (seriesInput && seriesInput.value !== undefined) seriesVal = seriesInput.value.trim();
+
+            // CPU & Gen
+            let cpuVal = specs.cpu || '';
+            const cpuInput = card.querySelector('[data-field="cpu"] .cell-input');
+            if (cpuInput && cpuInput.value !== undefined) cpuVal = cpuInput.value.trim();
+
+            let genVal = specs.gen || '';
+            const genInput = card.querySelector('[data-field="gen"] .cell-input');
+            if (genInput && genInput.value !== undefined) genVal = genInput.value.trim();
+
+            let cpuGen = (cpuVal || "") + (genVal ? " (" + genVal + ")" : "");
+            if (card.getAttribute('data-sector-theme') === 'Desktops' || card.getAttribute('data-sector') === 'Desktops') {
+                const cpuGenInput = card.querySelector('[data-field="cpu_gen"] .cell-input');
+                cpuGen = (cpuGenInput && cpuGenInput.value !== undefined) ? cpuGenInput.value.trim() : (specs.cpu_gen || '');
+            }
+            const sectorTheme = card.getAttribute('data-sector-theme') || card.getAttribute('data-sector') || 'Laptops';
+
+            // Battery
+            let batteryVal = specs.battery || "";
+            const batteryInput = card.querySelector('[data-field="battery"] .cell-input');
+            if (batteryInput && batteryInput.value !== undefined) {
+                batteryVal = batteryInput.value.trim();
+            }
+
+            // Condition in system maps to Description in CSV
+            let conditionVal = '';
+            const conditionInput = card.querySelector('[data-field="condition"] .cell-input');
+            if (conditionInput && conditionInput.value !== undefined && conditionInput.value.trim() !== '') {
+                conditionVal = conditionInput.value.trim();
+            } else if (card.querySelector('.condition-badge')) {
+                conditionVal = card.querySelector('.condition-badge').innerText.trim();
+            } else if (specs.condition && specs.condition.toString().trim() !== '') {
+                conditionVal = specs.condition.toString().trim();
+            }
+
+            let descVal = conditionVal;
+            if (!descVal || descVal.trim() === '') {
+                const isBatteryNo = (batteryVal.toLowerCase() === 'no' || batteryVal.toLowerCase() === 'missing' || batteryVal.toLowerCase() === 'dead');
+                descVal = isBatteryNo ? 'Parts' : 'Untested';
+            }
+
+            // RAM, Storage & Notes formatting
+            let ram = specs.ram || "";
+            const ramInput = card.querySelector('[data-field="ram"] .cell-input');
+            if (ramInput && ramInput.value !== undefined) ram = ramInput.value.trim();
+
+            let storage = specs.storage || "";
+            const storageInput = card.querySelector('[data-field="storage"] .cell-input');
+            if (storageInput && storageInput.value !== undefined) storage = storageInput.value.trim();
+
+            let customNotes = specs.notes || "";
+            const notesInput = card.querySelector('[data-field="notes"] .cell-input');
+            if (notesInput && notesInput.value !== undefined) customNotes = notesInput.value.trim();
 
             let notesVal = "";
-            const ram = specs.ram || "";
-            const storage = specs.storage || "";
-            if (ram || storage) {
+            const hasRam = ram && ram !== '-' && ram !== '--';
+            const hasStorage = storage && storage !== '-' && storage !== '--';
+            if (hasRam && hasStorage) {
                 notesVal = `${ram}/${storage}`;
+            } else if (hasRam) {
+                notesVal = ram;
+            } else if (hasStorage) {
+                notesVal = storage;
             }
-            if (specs.notes) {
-                notesVal += notesVal ? ` - ${specs.notes}` : specs.notes;
+            if (customNotes) {
+                notesVal += notesVal ? ` - ${customNotes}` : customNotes;
             }
 
             let itemType = "Laptop";
@@ -686,7 +760,7 @@ function downloadWarehouseCSV() {
                 sanitize(itemType),
                 sanitize(brand),
                 sanitize(model),
-                sanitize(specs.series || ""),
+                sanitize(seriesVal),
                 sanitize(cpuGen),
                 sanitize(descVal),
                 sanitize(notesVal),

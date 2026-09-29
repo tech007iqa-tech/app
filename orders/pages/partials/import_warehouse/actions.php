@@ -94,7 +94,7 @@ try {
     $stmt_zones = $conn_wh->query("SELECT name FROM working_zones ORDER BY name ASC");
     $working_zones = $stmt_zones->fetchAll(PDO::FETCH_COLUMN);
 
-    $stmt_locs = $conn_wh->query("SELECT location_code, working_zone_name, status FROM locations ORDER BY location_code ASC");
+    $stmt_locs = $conn_wh->query("SELECT location_code, working_zone_name, status FROM locations WHERE COALESCE(is_archived, 0) = 0 ORDER BY location_code ASC");
     $all_locations = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($all_locations as $row_loc) {

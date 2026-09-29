@@ -57,6 +57,7 @@ $stmt_locs = $conn_wh->query("
     LEFT JOIN (
         SELECT name, color FROM location_statuses GROUP BY name
     ) ls ON l.status = ls.name
+    WHERE COALESCE(l.is_archived, 0) = 0
     ORDER BY l.location_code ASC
 ");
 $existing_locs = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
@@ -83,6 +84,15 @@ if (empty($all_statuses)) {
     ];
 }
 $sectors = $conn_wh->query("SELECT * FROM sectors")->fetchAll(PDO::FETCH_ASSOC);
+
+try {
+    $working_zones = $conn_wh->query("SELECT name FROM working_zones ORDER BY name ASC")->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    $working_zones = [];
+}
+if (empty($working_zones)) {
+    $working_zones = ['General'];
+}
 
 // 3. Fetch Inventory Items
 $items = [];
@@ -140,6 +150,19 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
 <script id="warehouse-state" type="application/json">
     <?= json_encode(['activeSector' => $selected_sector], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
 </script>
+<script id="warehouse-locations-data" type="application/json">
+    <?= json_encode($existing_locs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
+</script>
+<?php
+$clean_zone_names = array_map(function($z) {
+    return is_array($z) ? ($z['name'] ?? '') : (string)$z;
+}, $working_zones ?? []);
+$clean_zone_names = array_values(array_unique(array_filter($clean_zone_names)));
+if (empty($clean_zone_names)) $clean_zone_names = ['General'];
+?>
+<script id="warehouse-zones-data" type="application/json">
+    <?= json_encode($clean_zone_names, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
+</script>
 
 <div class="warehouse-container">
     <header class="warehouse-header">
@@ -192,6 +215,9 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
                         <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?><?= $effective_zone ? '&zone=' . urlencode($effective_zone) : '' ?>" class="loc-active-badge">
                             <span class="loc-pin">📍</span>
                             <span class="loc-text"><?= htmlspecialchars($selected_loc) ?></span>
+                            <?php if (!empty($active_l['is_archived'])): ?>
+                                <span style="background:#ef4444; color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; font-weight:800; margin-left:4px;">ARCHIVED</span>
+                            <?php endif; ?>
                             <span class="loc-change">Change</span>
                         </a>
                     </div>
@@ -205,9 +231,17 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
         <div class="bulk-info">
             <span id="selectedCount">0</span> items selected
         </div>
-        <div class="bulk-actions">
-            <input type="text" id="bulkLocation" placeholder="Move to Zone..." list="gate-loc-datalist"
-                style="width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <div class="bulk-actions" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <button type="button" id="openBulkMigrateModalBtn" class="btn btn-primary" onclick="openBulkMigrationModal()"
+                style="background: #2563eb; color: white; font-weight: 800; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3); transition: transform 0.15s, background 0.15s;"
+                onmouseover="this.style.background='#1d4ed8'; this.style.transform='translateY(-1px)'"
+                onmouseout="this.style.background='#2563eb'; this.style.transform='none'">
+                <span>🚚 Migrate Selected</span>
+                <span id="btnSelectedCount" style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 900;">0</span>
+            </button>
+            <div style="height: 24px; width: 1px; background: rgba(255,255,255,0.25); margin: 0 2px;"></div>
+            <input type="text" id="bulkLocation" placeholder="Quick Move..." list="gate-loc-datalist"
+                style="width: 130px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem;">
             <datalist id="gate-loc-datalist">
                 <?php foreach ($existing_locs as $l): ?>
                     <option value="<?= htmlspecialchars($l['location_code']) ?>">
@@ -216,14 +250,14 @@ include __DIR__ . '/partials/warehouse/ajax_view.php';
             <div style="position:relative; display:flex; align-items:center;">
                 <span style="position:absolute; left:10px; font-weight:800; color:var(--text-secondary);">$</span>
                 <input type="number" id="bulkPrice" placeholder="Price"
-                    style="width: 100px; padding: 10px 10px 10px 25px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    style="width: 85px; padding: 10px 10px 10px 22px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem;">
             </div>
             <button id="applyBulkBtn" class="btn btn-success"
-                style="background: white; color: var(--text-main); font-weight: 800; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer;">
+                style="background: white; color: var(--text-main); font-weight: 800; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem;">
                 Apply Batch Changes
             </button>
             <button id="cancelBulkBtn"
-                style="background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: 700;">
+                style="background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.85rem;">
                 Cancel
             </button>
         </div>

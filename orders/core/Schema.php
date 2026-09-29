@@ -83,6 +83,10 @@ class Schema {
                 location_code TEXT PRIMARY KEY,
                 status TEXT DEFAULT 'Idle',
                 working_zone_name TEXT DEFAULT NULL,
+                aisle_shelf TEXT DEFAULT NULL,
+                is_archived INTEGER DEFAULT 0,
+                archived_at DATETIME DEFAULT NULL,
+                archived_reason TEXT DEFAULT NULL,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )",
             'location_statuses' => "CREATE TABLE IF NOT EXISTS location_statuses (
@@ -118,6 +122,18 @@ class Schema {
                 sector TEXT NOT NULL DEFAULT 'Laptops',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (location_code) REFERENCES locations(location_code) ON DELETE CASCADE
+            )",
+            'inventory_move_logs' => "CREATE TABLE IF NOT EXISTS inventory_move_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                inventory_id INTEGER NOT NULL,
+                source_location TEXT NOT NULL,
+                target_location TEXT NOT NULL,
+                source_zone TEXT DEFAULT NULL,
+                target_zone TEXT DEFAULT NULL,
+                quantity_moved INTEGER NOT NULL,
+                remaining_source_qty INTEGER NOT NULL DEFAULT 0,
+                moved_by TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )",
             'settings' => "CREATE TABLE IF NOT EXISTS settings (
                 key TEXT PRIMARY KEY,
@@ -648,11 +664,30 @@ class Schema {
         }
 
         if ($db_name === 'warehouse' && $table === 'locations') {
-            $conn->exec("CREATE INDEX IF NOT EXISTS idx_locations_zone ON locations(working_zone_name, location_code)");
-            $cols = $conn->query("PRAGMA table_info(locations)")->fetchAll(PDO::FETCH_ASSOC);
-            if (!in_array('working_zone_name', array_column($cols, 'name'))) {
+            $cols = array_column($conn->query("PRAGMA table_info(locations)")->fetchAll(PDO::FETCH_ASSOC), 'name');
+            if (!in_array('working_zone_name', $cols)) {
                 $conn->exec("ALTER TABLE locations ADD COLUMN working_zone_name TEXT DEFAULT NULL");
             }
+            if (!in_array('aisle_shelf', $cols)) {
+                $conn->exec("ALTER TABLE locations ADD COLUMN aisle_shelf TEXT DEFAULT NULL");
+            }
+            if (!in_array('is_archived', $cols)) {
+                $conn->exec("ALTER TABLE locations ADD COLUMN is_archived INTEGER DEFAULT 0");
+            }
+            if (!in_array('archived_at', $cols)) {
+                $conn->exec("ALTER TABLE locations ADD COLUMN archived_at DATETIME DEFAULT NULL");
+            }
+            if (!in_array('archived_reason', $cols)) {
+                $conn->exec("ALTER TABLE locations ADD COLUMN archived_reason TEXT DEFAULT NULL");
+            }
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_locations_zone ON locations(working_zone_name, location_code)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_locations_archived ON locations(is_archived, working_zone_name)");
+        }
+
+        if ($db_name === 'warehouse' && $table === 'inventory_move_logs') {
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_move_logs_inv ON inventory_move_logs(inventory_id)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_move_logs_loc ON inventory_move_logs(source_location, target_location)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_move_logs_time ON inventory_move_logs(timestamp DESC)");
         }
 
         if ($db_name === 'warehouse' && $table === 'location_statuses') {

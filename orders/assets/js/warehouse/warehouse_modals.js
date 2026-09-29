@@ -415,3 +415,479 @@ async function deleteLocationPhotoAjax(photoId, btnEl) {
     }
 }
 window.deleteLocationPhotoAjax = deleteLocationPhotoAjax;
+
+/* ==========================================================================
+   Item-Level Inventory Migration, Renaming & Location Management Controller
+   ========================================================================== */
+
+let activeMigrationItem = null;
+let activeMigrationMode = 'single'; // 'single' | 'bulk'
+let pendingDepletedShelf = null;
+
+function getWarehouseLocations() {
+    try {
+        const el = document.getElementById('warehouse-locations-data');
+        return el ? JSON.parse(el.textContent) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function getWarehouseZones() {
+    try {
+        const el = document.getElementById('warehouse-zones-data');
+        return el ? JSON.parse(el.textContent) : ['General'];
+    } catch (e) {
+        return ['General'];
+    }
+}
+
+function populateTargetShelvesDropdown(zoneName, currentShelfToExclude = null) {
+    const shelfSelect = document.getElementById('migrate-target-shelf');
+    if (!shelfSelect) return;
+
+    shelfSelect.innerHTML = '';
+    const locs = getWarehouseLocations();
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '-- Choose Shelf --';
+    shelfSelect.appendChild(placeholder);
+
+    // Filter locations by zone
+    const matching = locs.filter(l => {
+        const lZone = l.working_zone_name || 'General';
+        return (!zoneName || lZone === zoneName) && (!currentShelfToExclude || l.location_code !== currentShelfToExclude);
+    });
+
+    matching.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.location_code;
+        opt.textContent = `${l.location_code} (${l.status || 'Working'})`;
+        shelfSelect.appendChild(opt);
+    });
+
+    // Add option to create a new shelf
+    const newOpt = document.createElement('option');
+    newOpt.value = '__NEW__';
+    newOpt.textContent = '+ Create New Shelf...';
+    newOpt.style.color = '#2563eb';
+    newOpt.style.fontWeight = '800';
+    shelfSelect.appendChild(newOpt);
+
+    // Auto-select first matching shelf if available, otherwise __NEW__
+    if (matching.length > 0) {
+        shelfSelect.value = matching[0].location_code;
+        handleMigrateShelfChange(matching[0].location_code);
+    } else {
+        shelfSelect.value = '__NEW__';
+        handleMigrateShelfChange('__NEW__');
+    }
+}
+
+function openItemMigrationModal(itemData) {
+    activeMigrationMode = 'single';
+    activeMigrationItem = itemData;
+
+    const modal = document.getElementById('item-migration-modal');
+    if (!modal) return;
+
+    // Reset error banner
+    const errBanner = document.getElementById('migrate-error-banner');
+    if (errBanner) {
+        errBanner.style.display = 'none';
+        errBanner.textContent = '';
+    }
+
+    // Single item context visibility
+    document.getElementById('migrate-single-context').style.display = 'block';
+    document.getElementById('migrate-bulk-context').style.display = 'none';
+    document.getElementById('migrate-qty-group').style.display = 'block';
+
+    // Modal title & subtitle
+    document.getElementById('migrate-modal-title').textContent = 'Relocate Item Stock';
+    document.getElementById('migrate-modal-subtitle').textContent = `Transfer stock quantity from ${itemData.location_code || 'current shelf'} to another location.`;
+
+    // Populate item specs
+    let specs = {};
+    if (typeof itemData.specs_json === 'string') {
+        try { specs = JSON.parse(itemData.specs_json); } catch(e) {}
+    } else if (itemData.specs_json && typeof itemData.specs_json === 'object') {
+        specs = itemData.specs_json;
+    }
+
+    const titleEl = document.getElementById('migrate-item-title');
+    if (titleEl) titleEl.textContent = `${itemData.brand || ''} ${itemData.model || ''}`.trim() || 'Inventory Item';
+
+    const specsParts = [];
+    if (specs.cpu) specsParts.push(`CPU: ${specs.cpu}`);
+    if (specs.ram) specsParts.push(`RAM: ${specs.ram}`);
+    if (specs.storage) specsParts.push(`Storage: ${specs.storage}`);
+    if (specs.series) specsParts.push(`Series: ${specs.series}`);
+    if (specs.condition) specsParts.push(`Condition: ${specs.condition}`);
+    const specsEl = document.getElementById('migrate-item-specs');
+    if (specsEl) specsEl.textContent = specsParts.length > 0 ? specsParts.join(' • ') : 'Standard specs';
+
+    const sectorBadge = document.getElementById('migrate-item-sector-badge');
+    if (sectorBadge) sectorBadge.textContent = itemData.sector || 'General';
+
+    const srcLoc = itemData.location_code || '-';
+    document.getElementById('migrate-item-source-loc').textContent = srcLoc;
+
+    // Find parent zone of source shelf
+    const locs = getWarehouseLocations();
+    const foundLoc = locs.find(l => l.location_code === srcLoc);
+    const srcZone = foundLoc?.working_zone_name || 'General';
+    document.getElementById('migrate-item-source-zone').textContent = srcZone;
+
+    const qty = parseInt(itemData.quantity) || 1;
+    document.getElementById('migrate-item-available-qty').textContent = qty;
+    document.getElementById('migrate-qty-max-label').textContent = qty;
+
+    const qtyInput = document.getElementById('migrate-qty-input');
+    if (qtyInput) {
+        qtyInput.value = qty;
+        qtyInput.max = qty;
+    }
+
+    // Highlight 'All' preset
+    updatePresetPillActive(qty, qty);
+
+    // Setup Zones dropdown
+    const zoneSelect = document.getElementById('migrate-target-zone');
+    if (zoneSelect) {
+        zoneSelect.value = srcZone;
+        if (!zoneSelect.value && zoneSelect.options.length > 1) {
+            zoneSelect.selectedIndex = 1;
+        }
+        handleMigrateZoneChange(zoneSelect.value, srcLoc);
+    }
+
+    modal.style.display = 'flex';
+}
+window.openItemMigrationModal = openItemMigrationModal;
+
+function openBulkMigrationModal() {
+    if (typeof selectedIds === 'undefined' || selectedIds.size === 0) {
+        if (window.IQA_Notify) {
+            window.IQA_Notify.error("Please select at least one item from the table to migrate.");
+        } else {
+            alert("Please select at least one item from the table to migrate.");
+        }
+        return;
+    }
+
+    activeMigrationMode = 'bulk';
+    activeMigrationItem = null;
+
+    const modal = document.getElementById('item-migration-modal');
+    if (!modal) return;
+
+    // Reset error banner
+    const errBanner = document.getElementById('migrate-error-banner');
+    if (errBanner) {
+        errBanner.style.display = 'none';
+        errBanner.textContent = '';
+    }
+
+    // Toggle single vs bulk context
+    document.getElementById('migrate-single-context').style.display = 'none';
+    document.getElementById('migrate-bulk-context').style.display = 'block';
+    document.getElementById('migrate-qty-group').style.display = 'none';
+
+    document.getElementById('migrate-modal-title').textContent = 'Batch Relocate Inventory';
+    document.getElementById('migrate-modal-subtitle').textContent = `Transfer all units of ${selectedIds.size} selected item(s) to a target shelf.`;
+    document.getElementById('migrate-bulk-selected-count').textContent = selectedIds.size;
+
+    // Setup Zones dropdown
+    const zoneSelect = document.getElementById('migrate-target-zone');
+    if (zoneSelect && zoneSelect.options.length > 1) {
+        if (!zoneSelect.value) zoneSelect.selectedIndex = 1;
+        handleMigrateZoneChange(zoneSelect.value);
+    }
+
+    modal.style.display = 'flex';
+}
+window.openBulkMigrationModal = openBulkMigrationModal;
+
+function closeItemMigrationModal() {
+    const modal = document.getElementById('item-migration-modal');
+    if (modal) modal.style.display = 'none';
+    activeMigrationItem = null;
+}
+window.closeItemMigrationModal = closeItemMigrationModal;
+
+function handleMigrateZoneChange(zoneName, currentShelfToExclude = null) {
+    const newZoneDrawer = document.getElementById('migrate-new-zone-drawer');
+    const newShelfDrawer = document.getElementById('migrate-new-shelf-drawer');
+    const shelfSelect = document.getElementById('migrate-target-shelf');
+
+    if (zoneName === '__NEW__') {
+        if (newZoneDrawer) newZoneDrawer.style.display = 'block';
+        if (newShelfDrawer) newShelfDrawer.style.display = 'block';
+        if (shelfSelect) {
+            shelfSelect.innerHTML = '<option value="__NEW__" selected>+ Create New Shelf...</option>';
+        }
+        const nzInput = document.getElementById('migrate-new-zone-name');
+        if (nzInput) nzInput.focus();
+    } else {
+        if (newZoneDrawer) newZoneDrawer.style.display = 'none';
+        const exclude = currentShelfToExclude || (activeMigrationItem ? activeMigrationItem.location_code : null);
+        populateTargetShelvesDropdown(zoneName, exclude);
+    }
+}
+window.handleMigrateZoneChange = handleMigrateZoneChange;
+
+function handleMigrateShelfChange(shelfCode) {
+    const newShelfDrawer = document.getElementById('migrate-new-shelf-drawer');
+    if (shelfCode === '__NEW__') {
+        if (newShelfDrawer) newShelfDrawer.style.display = 'block';
+        const nsCode = document.getElementById('migrate-new-shelf-code');
+        if (nsCode) nsCode.focus();
+    } else {
+        if (newShelfDrawer) newShelfDrawer.style.display = 'none';
+    }
+}
+window.handleMigrateShelfChange = handleMigrateShelfChange;
+
+function adjustMigrateQty(delta) {
+    const input = document.getElementById('migrate-qty-input');
+    if (!input || !activeMigrationItem) return;
+    const max = parseInt(activeMigrationItem.quantity) || 1;
+    let current = parseInt(input.value) || 1;
+    current = Math.max(1, Math.min(max, current + delta));
+    input.value = current;
+    updatePresetPillActive(current, max);
+}
+window.adjustMigrateQty = adjustMigrateQty;
+
+function setMigrateQtyPreset(val) {
+    const input = document.getElementById('migrate-qty-input');
+    if (!input || !activeMigrationItem) return;
+    const max = parseInt(activeMigrationItem.quantity) || 1;
+    let target = (val === 'all') ? max : Math.min(parseInt(val) || 1, max);
+    input.value = target;
+    updatePresetPillActive(target, max);
+}
+window.setMigrateQtyPreset = setMigrateQtyPreset;
+
+function validateMigrateQtyInput() {
+    const input = document.getElementById('migrate-qty-input');
+    if (!input || !activeMigrationItem) return;
+    const max = parseInt(activeMigrationItem.quantity) || 1;
+    let current = parseInt(input.value) || 1;
+    if (current > max) current = max;
+    if (current < 1) current = 1;
+    input.value = current;
+    updatePresetPillActive(current, max);
+}
+window.validateMigrateQtyInput = validateMigrateQtyInput;
+
+function updatePresetPillActive(currentVal, maxVal) {
+    document.querySelectorAll('.btn-preset-qty').forEach(btn => {
+        const text = btn.textContent.trim().toLowerCase();
+        if (text === 'all' && currentVal === maxVal) {
+            btn.classList.add('active');
+        } else if (text === String(currentVal) && currentVal !== maxVal) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+async function executeInventoryMigration() {
+    const errBanner = document.getElementById('migrate-error-banner');
+    if (errBanner) {
+        errBanner.style.display = 'none';
+        errBanner.textContent = '';
+    }
+
+    const zoneSelect = document.getElementById('migrate-target-zone');
+    const shelfSelect = document.getElementById('migrate-target-shelf');
+    let targetZone = zoneSelect?.value.trim() || '';
+    let targetShelf = shelfSelect?.value.trim() || '';
+
+    // If new zone
+    if (targetZone === '__NEW__') {
+        const nzInput = document.getElementById('migrate-new-zone-name');
+        targetZone = nzInput?.value.trim() || '';
+        if (!targetZone) {
+            showMigrateError("Please enter a name for the new working zone.");
+            return;
+        }
+    }
+
+    // If new shelf
+    if (targetShelf === '__NEW__') {
+        const nsCode = document.getElementById('migrate-new-shelf-code');
+        targetShelf = nsCode?.value.trim() || '';
+        if (!targetShelf) {
+            showMigrateError("Please enter a code for the new shelf location.");
+            return;
+        }
+    }
+
+    if (!targetShelf) {
+        showMigrateError("Please select or create a destination shelf location.");
+        return;
+    }
+
+    // Check same-location restriction for single item
+    if (activeMigrationMode === 'single' && activeMigrationItem) {
+        if (targetShelf === activeMigrationItem.location_code) {
+            showMigrateError(`Destination cannot be the same as current shelf (${targetShelf}).`);
+            return;
+        }
+    }
+
+    const autoArchive = document.getElementById('migrate-auto-archive-check')?.checked ?? true;
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+
+    // Build payload
+    const payload = {
+        csrf_token: csrfToken,
+        target_location: targetShelf,
+        target_zone: targetZone,
+        auto_archive_source: autoArchive
+    };
+
+    if (activeMigrationMode === 'single' && activeMigrationItem) {
+        const qtyToMove = parseInt(document.getElementById('migrate-qty-input')?.value) || 1;
+        payload.item_id = activeMigrationItem.id;
+        payload.quantity = qtyToMove;
+    } else if (activeMigrationMode === 'bulk') {
+        payload.ids = Array.from(selectedIds);
+    }
+
+    const submitBtn = document.getElementById('btn-submit-migration');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⌛ Migrating Stock...';
+    }
+
+    try {
+        const res = await fetch('api/migrate_inventory.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+            closeItemMigrationModal();
+
+            // Clear selections
+            if (typeof selectedIds !== 'undefined') {
+                selectedIds.clear();
+                const selectAll = document.getElementById('selectAll');
+                if (selectAll) selectAll.checked = false;
+                if (typeof updateBulkBar === 'function') updateBulkBar();
+            }
+
+            const notifyEngine = window.Notifications || window.IQA_Notify;
+            const successMsg = `Successfully moved ${json.moved_items_count} item(s) (${json.total_units_moved} units) to ${json.target_location}!`;
+            if (notifyEngine && typeof notifyEngine.success === 'function') {
+                notifyEngine.success(successMsg);
+            } else {
+                alert(successMsg);
+            }
+
+            // Report auto-archived sources
+            if (json.archived_sources && json.archived_sources.length > 0) {
+                const archiveNote = `Depleted shelf ${json.archived_sources.join(', ')} was emptied and automatically archived.`;
+                if (notifyEngine && typeof notifyEngine.info === 'function') {
+                    notifyEngine.info(archiveNote);
+                }
+            }
+
+            // Sync with other terminals / refresh table
+            if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                await window.AppSync.sync('inventory-list', true);
+            }
+
+            // If depleted shelves exist and were NOT auto-archived, show prompt
+            if (json.depleted_sources && json.depleted_sources.length > 0) {
+                const unarchived = json.depleted_sources.filter(s => !json.archived_sources || !json.archived_sources.includes(s));
+                if (unarchived.length > 0) {
+                    openDepletedShelfModal(unarchived[0]);
+                }
+            }
+        } else {
+            showMigrateError(json.error || "Failed to execute inventory migration.");
+        }
+    } catch (err) {
+        console.error(err);
+        showMigrateError("A network error occurred while executing migration.");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Confirm & Relocate Stock ➔</span>';
+        }
+    }
+}
+window.executeInventoryMigration = executeInventoryMigration;
+
+function showMigrateError(msg) {
+    const errBanner = document.getElementById('migrate-error-banner');
+    if (errBanner) {
+        errBanner.textContent = msg;
+        errBanner.style.display = 'block';
+    } else {
+        alert(msg);
+    }
+}
+
+function openDepletedShelfModal(shelfCode) {
+    pendingDepletedShelf = shelfCode;
+    const modal = document.getElementById('depleted-shelf-modal');
+    const label = document.getElementById('depleted-shelf-code-display');
+    if (label) label.textContent = shelfCode;
+    if (modal) modal.style.display = 'flex';
+}
+window.openDepletedShelfModal = openDepletedShelfModal;
+
+function closeDepletedShelfModal() {
+    const modal = document.getElementById('depleted-shelf-modal');
+    if (modal) modal.style.display = 'none';
+    pendingDepletedShelf = null;
+}
+window.closeDepletedShelfModal = closeDepletedShelfModal;
+
+async function confirmArchiveDepletedShelf() {
+    if (!pendingDepletedShelf) return;
+    const shelfCode = pendingDepletedShelf;
+
+    try {
+        const formData = new FormData();
+        formData.append('action', 'archive_location');
+        formData.append('location_code', shelfCode);
+        formData.append('reason', 'Depleted via Inventory Migration');
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]')?.value || '');
+
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        });
+
+        const json = await response.json();
+        closeDepletedShelfModal();
+
+        const notifyEngine = window.Notifications || window.IQA_Notify;
+        if (json.success) {
+            if (notifyEngine && typeof notifyEngine.success === 'function') {
+                notifyEngine.success(`Shelf ${shelfCode} has been archived.`);
+            }
+            if (window.AppSync && typeof window.AppSync.sync === 'function') {
+                await window.AppSync.sync('inventory-list', true);
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        closeDepletedShelfModal();
+    }
+}
+window.confirmArchiveDepletedShelf = confirmArchiveDepletedShelf;
+

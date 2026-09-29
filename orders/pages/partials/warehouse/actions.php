@@ -385,7 +385,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
 
 
     if ($_POST['action'] === 'rename_zone' && isset($_POST['old_loc']) && isset($_POST['new_loc'])) {
-        $old_loc = $_POST['old_loc'];
+        $old_loc = trim($_POST['old_loc']);
         $new_loc = trim($_POST['new_loc']);
         $new_status = $_POST['location_status'] ?? 'Idle';
 
@@ -400,6 +400,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 // Update items in inventory from old to new location code
                 $stmt = $conn_wh->prepare("UPDATE inventory SET location_code = ? WHERE location_code = ?");
                 $stmt->execute([$new_loc, $old_loc]);
+
+                // Cascade update to location photos
+                $stmt_photos = $conn_wh->prepare("UPDATE location_photos SET location_code = ? WHERE location_code = ?");
+                $stmt_photos->execute([$new_loc, $old_loc]);
+
+                // Cascade update to relocation logs
+                $conn_wh->prepare("UPDATE inventory_move_logs SET source_location = ? WHERE source_location = ?")->execute([$new_loc, $old_loc]);
+                $conn_wh->prepare("UPDATE inventory_move_logs SET target_location = ? WHERE target_location = ?")->execute([$new_loc, $old_loc]);
 
                 if ($exists) {
                     // Merge: update status and timestamp of the existing target location, then delete old location entry
@@ -418,7 +426,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                     $msg = "zone_updated";
                 }
 
+                Audit::log('RENAME_LOCATION', $old_loc, "Renamed location to {$new_loc} (status: {$new_status})", 'warehouse');
+
                 $conn_wh->commit();
+
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => true, 'old_loc' => $old_loc, 'new_loc' => $new_loc, 'status' => $new_status, 'msg' => $msg]);
+                    exit();
+                }
+
                 $redir_zone = $_POST['active_zone'] ?? $_GET['zone'] ?? '';
                 $redirect_url = "index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&msg=" . $msg;
                 if (!empty($redir_zone)) {
@@ -428,6 +445,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 exit();
             } catch (Exception $e) {
                 $conn_wh->rollBack();
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                    exit();
+                }
                 die("Failed to update zone: " . $e->getMessage());
             }
         }
@@ -548,19 +570,99 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
         exit();
     }
 
+    if ($_POST['action'] === 'archive_location' && isset($_POST['location_code'])) {
+        $loc_code = trim($_POST['location_code']);
+        $reason = trim($_POST['reason'] ?? 'Manually archived by operator');
+
+        $stmt_arch = $conn_wh->prepare("UPDATE locations SET is_archived = 1, archived_at = CURRENT_TIMESTAMP, archived_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE location_code = ?");
+        $stmt_arch->execute([$reason, $loc_code]);
+
+        Audit::log('ARCHIVE_LOCATION', $loc_code, "Archived location: {$reason}", 'warehouse');
+
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'location_code' => $loc_code, 'is_archived' => 1]);
+            exit();
+        }
+
+        $redir_zone = $_POST['active_zone'] ?? $_GET['zone'] ?? '';
+        $redirect_url = "index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&msg=location_archived";
+        if (!empty($redir_zone)) {
+            $redirect_url .= "&zone=" . urlencode($redir_zone);
+        }
+        header("Location: " . $redirect_url);
+        exit();
+    }
+
+    if ($_POST['action'] === 'restore_location' && isset($_POST['location_code'])) {
+        $loc_code = trim($_POST['location_code']);
+
+        $stmt_rest = $conn_wh->prepare("UPDATE locations SET is_archived = 0, archived_at = NULL, archived_reason = NULL, status = 'Working', updated_at = CURRENT_TIMESTAMP WHERE location_code = ?");
+        $stmt_rest->execute([$loc_code]);
+
+        Audit::log('RESTORE_LOCATION', $loc_code, "Restored location to active status", 'warehouse');
+
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'location_code' => $loc_code, 'is_archived' => 0]);
+            exit();
+        }
+
+        $redir_zone = $_POST['active_zone'] ?? $_GET['zone'] ?? '';
+        $redirect_url = "index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&msg=location_restored";
+        if (!empty($redir_zone)) {
+            $redirect_url .= "&zone=" . urlencode($redir_zone);
+        }
+        header("Location: " . $redirect_url);
+        exit();
+    }
+
     if ($_POST['action'] === 'delete_zone' && isset($_POST['old_loc'])) {
-        $old_loc = $_POST['old_loc'];
+        $old_loc = trim($_POST['old_loc']);
+        $force = !empty($_POST['force_delete']);
+
+        // Safety Check: verify if active inventory remains
+        $stmt_cnt = $conn_wh->prepare("SELECT COUNT(*) FROM inventory WHERE location_code = ?");
+        $stmt_cnt->execute([$old_loc]);
+        $item_count = (int)$stmt_cnt->fetchColumn();
+
+        if ($item_count > 0 && !$force) {
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false, 
+                    'error' => "Cannot delete shelf '{$old_loc}': it contains {$item_count} items. Please migrate stock or archive the shelf."
+                ]);
+                exit();
+            }
+            die("Security Error: Cannot delete location '{$old_loc}' because it still contains {$item_count} items. Please migrate stock first.");
+        }
+
         $conn_wh->beginTransaction();
         try {
-            // Bulk delete items
-            $stmt = $conn_wh->prepare("DELETE FROM inventory WHERE location_code = ?");
-            $stmt->execute([$old_loc]);
+            if ($item_count > 0 && $force) {
+                $stmt = $conn_wh->prepare("DELETE FROM inventory WHERE location_code = ?");
+                $stmt->execute([$old_loc]);
+            }
 
             // Delete location tracking
             $stmt_loc = $conn_wh->prepare("DELETE FROM locations WHERE location_code = ?");
             $stmt_loc->execute([$old_loc]);
 
+            // Cascade delete location photos
+            $stmt_photo = $conn_wh->prepare("DELETE FROM location_photos WHERE location_code = ?");
+            $stmt_photo->execute([$old_loc]);
+
+            Audit::log('DELETE_LOCATION', $old_loc, "Deleted location (forced=" . ($force ? 'yes' : 'no') . ")", 'warehouse');
+
             $conn_wh->commit();
+
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'deleted_location' => $old_loc]);
+                exit();
+            }
+
             $redir_zone = $_POST['active_zone'] ?? $_GET['zone'] ?? '';
             $redirect_url = "index.php?view=warehouse&sector=" . urlencode($selected_sector) . "&msg=zone_deleted";
             if (!empty($redir_zone)) {
@@ -570,6 +672,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
             exit();
         } catch (Exception $e) {
             $conn_wh->rollBack();
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                exit();
+            }
             die("Delete failed: " . $e->getMessage());
         }
     }

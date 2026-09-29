@@ -10,44 +10,52 @@
 function switchGateViewMode(mode) {
     const zonesContainer = document.getElementById('gate-view-zones-container');
     const allLocsContainer = document.getElementById('gate-view-all-locs-container');
+    const archContainer = document.getElementById('gate-view-archived-container');
     const btnZones = document.getElementById('btn-gate-view-zones');
     const btnAll = document.getElementById('btn-gate-view-all');
+    const btnArch = document.getElementById('btn-gate-view-archived');
 
-    if (!zonesContainer || !allLocsContainer) return;
+    const updateBtn = (btn, isActive) => {
+        if (!btn) return;
+        if (isActive) {
+            btn.classList.add('active');
+            btn.style.background = 'white';
+            btn.style.color = 'var(--text-main)';
+            btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = 'transparent';
+            btn.style.color = '#64748b';
+            btn.style.boxShadow = 'none';
+        }
+    };
 
     if (mode === 'all_locations') {
-        zonesContainer.style.display = 'none';
-        allLocsContainer.style.display = 'block';
+        if (zonesContainer) zonesContainer.style.display = 'none';
+        if (allLocsContainer) allLocsContainer.style.display = 'block';
+        if (archContainer) archContainer.style.display = 'none';
 
-        if (btnZones) {
-            btnZones.classList.remove('active');
-            btnZones.style.background = 'transparent';
-            btnZones.style.color = '#64748b';
-            btnZones.style.boxShadow = 'none';
-        }
-        if (btnAll) {
-            btnAll.classList.add('active');
-            btnAll.style.background = 'white';
-            btnAll.style.color = 'var(--text-main)';
-            btnAll.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        }
+        updateBtn(btnZones, false);
+        updateBtn(btnAll, true);
+        updateBtn(btnArch, false);
         sessionStorage.setItem('wh_gate_view_mode', 'all_locations');
-    } else {
-        zonesContainer.style.display = 'block';
-        allLocsContainer.style.display = 'none';
+    } else if (mode === 'archived') {
+        if (zonesContainer) zonesContainer.style.display = 'none';
+        if (allLocsContainer) allLocsContainer.style.display = 'none';
+        if (archContainer) archContainer.style.display = 'block';
 
-        if (btnZones) {
-            btnZones.classList.add('active');
-            btnZones.style.background = 'white';
-            btnZones.style.color = 'var(--text-main)';
-            btnZones.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        }
-        if (btnAll) {
-            btnAll.classList.remove('active');
-            btnAll.style.background = 'transparent';
-            btnAll.style.color = '#64748b';
-            btnAll.style.boxShadow = 'none';
-        }
+        updateBtn(btnZones, false);
+        updateBtn(btnAll, false);
+        updateBtn(btnArch, true);
+        sessionStorage.setItem('wh_gate_view_mode', 'archived');
+    } else {
+        if (zonesContainer) zonesContainer.style.display = 'block';
+        if (allLocsContainer) allLocsContainer.style.display = 'none';
+        if (archContainer) archContainer.style.display = 'none';
+
+        updateBtn(btnZones, true);
+        updateBtn(btnAll, false);
+        updateBtn(btnArch, false);
         sessionStorage.setItem('wh_gate_view_mode', 'zones');
     }
 
@@ -68,11 +76,15 @@ function getActiveGateGrid() {
     const allLocsGrid = document.getElementById('gate-all-locs-grid');
     if (allLocsGrid && allLocsGrid.offsetParent !== null) return allLocsGrid;
 
-    // 3. Default to Zones grid
+    // 3. Check if in Archived mode
+    const archGrid = document.getElementById('gate-archived-locs-grid');
+    if (archGrid && archGrid.offsetParent !== null) return archGrid;
+
+    // 4. Default to Zones grid
     const zonesGrid = document.getElementById('gate-zones-grid');
     if (zonesGrid && zonesGrid.offsetParent !== null) return zonesGrid;
 
-    return singleZoneGrid || allLocsGrid || zonesGrid;
+    return singleZoneGrid || allLocsGrid || archGrid || zonesGrid;
 }
 
 /**

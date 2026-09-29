@@ -157,6 +157,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
             <thead>
                 <?php if ($selected_sector === 'Laptops'): ?>
                 <tr>
+                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll" title="Select All"></th>
                     <?php if ($show_location_col): ?><th style="width: 8%;">Shelf</th><?php endif; ?>
                     <th style="width: 10%;">Brand</th>
                     <th style="width: 10%;">Model</th>
@@ -174,6 +175,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                 </tr>
                 <?php elseif ($selected_sector === 'Gaming'): ?>
                 <tr>
+                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll" title="Select All"></th>
                     <?php if ($show_location_col): ?><th style="width: 8%;">Shelf</th><?php endif; ?>
                     <th style="width: 10%;">Brand</th>
                     <th style="width: 10%;">Model</th>
@@ -191,6 +193,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                 </tr>
                 <?php elseif ($selected_sector === 'Desktops'): ?>
                 <tr>
+                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll" title="Select All"></th>
                     <?php if ($show_location_col): ?><th style="width: 10%;">Shelf</th><?php endif; ?>
                     <th style="width: 12%;">Brand</th>
                     <th style="width: 15%;">Model</th>
@@ -203,6 +206,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                 </tr>
                 <?php else: ?>
                 <tr>
+                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll" title="Select All"></th>
                     <?php if ($show_location_col): ?><th style="width: 10%;">Shelf</th><?php endif; ?>
                     <th style="width: 12%;">Brand</th>
                     <th style="width: 15%;">Model</th>
@@ -232,16 +236,31 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                 </tr>
                 <?php foreach ($items as $item):
                     $specs = json_decode($item['specs_json'], true) ?: [];
+                    $created_date_only = '';
+                    $created_time_only = '';
+                    if (!empty($item['created_at'])) {
+                        $date_created_obj = new DateTime($item['created_at'], new DateTimeZone('UTC'));
+                        $date_created_obj->setTimezone(new DateTimeZone('America/Los_Angeles'));
+                        $created_date_only = $date_created_obj->format('m/d/y');
+                        $created_time_only = $date_created_obj->format('h:i A');
+                    }
                     ?>
                     <tr class="inventory-card summary-row" data-id="<?= $item['id'] ?>"
+                        data-sector-theme="<?= htmlspecialchars($item['sector'] ?? $selected_sector) ?>"
                         data-sector="<?= htmlspecialchars($item['sector'] ?? $selected_sector) ?>"
                         data-location="<?= htmlspecialchars($item['location_code'] ?? '') ?>"
                         data-brand="<?= htmlspecialchars($item['brand']) ?>"
                         data-model="<?= htmlspecialchars($item['model']) ?>"
                         data-qty="<?= (int)$item['quantity'] ?>"
                         data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
+                        data-created-date="<?= $created_date_only ?>"
+                        data-created-time="<?= $created_time_only ?>"
                         data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
                         data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($item['sector'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['series'] ?? '') . ' ' . ($specs['notes'] ?? '') . ' ' . ($specs['condition'] ?? ''))) ?>">
+
+                        <td style="width: 40px; text-align: center;" class="col-select">
+                            <input type="checkbox" class="row-select" data-id="<?= $item['id'] ?>" data-max-qty="<?= (int)$item['quantity'] ?>">
+                        </td>
 
                         <?php if ($show_location_col): ?>
                             <td class="editable-cell" data-field="location_code">
@@ -321,6 +340,11 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                         </td>
                         <td style="text-align:right;">
                             <div class="action-buttons">
+                                <button type="button" class="btn-migrate-row"
+                                    onclick="openItemMigrationModal(<?= htmlspecialchars(json_encode($item), ENT_QUOTES) ?>)"
+                                    title="Migrate / Relocate Stock"
+                                    style="background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.6; padding: 0 4px; transition: opacity 0.2s;"
+                                    onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">⇄</button>
                                 <button type="button" class="btn-clone-row" style="background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.5; padding: 0 4px;" title="Clone Row">➕</button>
                                 <button type="button" class="btn-label"
                                     onclick="downloadWarehouseLabel(<?= (int) $item['id'] ?>, this)"
@@ -340,6 +364,7 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
 
                 <!-- Permanent blank row at the bottom for rapid intake -->
                 <tr class="summary-row new-blank-row" data-id="new">
+                    <td style="width: 40px; text-align: center; color: #cbd5e1;">•</td>
                     <?php if ($show_location_col): ?>
                         <td class="editable-cell" data-field="location_code">
                             <input type="text" class="cell-input text-center" list="zone-shelves-list" placeholder="Shelf..." value="<?= htmlspecialchars($default_shelf) ?>" style="font-weight: 800; color: #2563eb;" title="Intake Shelf">
@@ -426,10 +451,10 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
             <tfoot style="border-top: 2px solid #e2e8f0; background: #f8fafc;">
                 <tr>
                     <?php
-                    $total_cols_sp = 9;
-                    if ($selected_sector === 'Laptops') $total_cols_sp = 13;
-                    elseif ($selected_sector === 'Gaming') $total_cols_sp = 13;
-                    elseif ($selected_sector === 'Desktops') $total_cols_sp = 8;
+                    $total_cols_sp = 10;
+                    if ($selected_sector === 'Laptops') $total_cols_sp = 14;
+                    elseif ($selected_sector === 'Gaming') $total_cols_sp = 14;
+                    elseif ($selected_sector === 'Desktops') $total_cols_sp = 9;
                     if ($show_location_col) $total_cols_sp += 1;
                     ?>
                     <td colspan="<?= $total_cols_sp - 4 ?>" style="padding: 15px;">

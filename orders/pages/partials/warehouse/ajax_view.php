@@ -35,17 +35,34 @@ if (UI::is_ajax()) {
 
         foreach ($items as $item):
             $specs = json_decode($item['specs_json'], true) ?: [];
+            $created_date = '';
+            $created_date_only = '';
+            $created_time_only = '';
+            if (!empty($item['created_at'])) {
+                $date_created_obj = new DateTime($item['created_at'], new DateTimeZone('UTC'));
+                $date_created_obj->setTimezone(new DateTimeZone('America/Los_Angeles'));
+                $created_date = $date_created_obj->format('m/d/y');
+                $created_date_only = $date_created_obj->format('m/d/y');
+                $created_time_only = $date_created_obj->format('h:i A');
+            }
 
             if ($is_spreadsheet): ?>
                 <tr class="inventory-card summary-row" data-id="<?= $item['id'] ?>"
+                    data-sector-theme="<?= htmlspecialchars($item['sector'] ?? $selected_sector) ?>"
                     data-sector="<?= htmlspecialchars($item['sector'] ?? $selected_sector) ?>"
                     data-location="<?= htmlspecialchars($item['location_code'] ?? '') ?>"
                     data-brand="<?= htmlspecialchars($item['brand']) ?>"
                     data-model="<?= htmlspecialchars($item['model']) ?>"
                     data-qty="<?= (int)$item['quantity'] ?>"
                     data-price="<?= htmlspecialchars($item['price'] ?? '0.00') ?>"
+                    data-created-date="<?= $created_date_only ?>"
+                    data-created-time="<?= $created_time_only ?>"
                     data-specs='<?= htmlspecialchars($item['specs_json'], ENT_QUOTES) ?>'
                     data-search="<?= htmlspecialchars(strtolower($item['brand'] . ' ' . $item['model'] . ' ' . ($item['location_code'] ?? '') . ' ' . ($item['sector'] ?? '') . ' ' . ($specs['cpu'] ?? '') . ' ' . ($specs['ram'] ?? '') . ' ' . ($specs['storage'] ?? '') . ' ' . ($specs['series'] ?? '') . ' ' . ($specs['notes'] ?? '') . ' ' . ($specs['condition'] ?? ''))) ?>">
+
+                    <td style="width: 40px; text-align: center;" class="col-select">
+                        <input type="checkbox" class="row-select" data-id="<?= $item['id'] ?>" data-max-qty="<?= (int)$item['quantity'] ?>">
+                    </td>
 
                     <?php if ($show_location_col): ?>
                         <td class="editable-cell" data-field="location_code">
@@ -125,6 +142,11 @@ if (UI::is_ajax()) {
                     </td>
                     <td style="text-align:right;">
                         <div class="action-buttons">
+                            <button type="button" class="btn-migrate-row"
+                                onclick="openItemMigrationModal(<?= htmlspecialchars(json_encode($item), ENT_QUOTES) ?>)"
+                                title="Migrate / Relocate Stock"
+                                style="background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.6; padding: 0 4px; transition: opacity 0.2s;"
+                                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">⇄</button>
                             <button type="button" class="btn-clone-row" style="background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.5; padding: 0 4px;" title="Clone Row">➕</button>
                             <button type="button" class="btn-label"
                                 onclick="downloadWarehouseLabel(<?= (int) $item['id'] ?>, this)"

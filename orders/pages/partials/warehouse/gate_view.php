@@ -10,12 +10,30 @@ $active_zone_name = $_GET['zone'] ?? null;
 // Fetch working zones dataset
 $working_zones = $conn_wh->query("
     SELECT wz.*,
-        (SELECT COUNT(*) FROM locations l WHERE l.working_zone_name = wz.name) as location_count,
-        (SELECT SUM((SELECT COUNT(*) FROM inventory i WHERE i.location_code = l.location_code)) FROM locations l WHERE l.working_zone_name = wz.name) as total_items,
-        (SELECT COUNT(*) FROM locations l WHERE l.working_zone_name = wz.name AND l.status IN ('Audit', 'Idle')) as alert_count
+        (SELECT COUNT(*) FROM locations l WHERE l.working_zone_name = wz.name AND COALESCE(l.is_archived, 0) = 0) as location_count,
+        (SELECT SUM((SELECT COUNT(*) FROM inventory i WHERE i.location_code = l.location_code)) FROM locations l WHERE l.working_zone_name = wz.name AND COALESCE(l.is_archived, 0) = 0) as total_items,
+        (SELECT COUNT(*) FROM locations l WHERE l.working_zone_name = wz.name AND l.status IN ('Audit', 'Idle') AND COALESCE(l.is_archived, 0) = 0) as alert_count
     FROM working_zones wz
     ORDER BY wz.name ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch archived locations
+try {
+    $stmt_arch = $conn_wh->query("
+        SELECT l.*,
+            (SELECT COUNT(*) FROM inventory i WHERE i.location_code = l.location_code) as item_count,
+            ls.color as status_color
+        FROM locations l
+        LEFT JOIN (
+            SELECT name, color FROM location_statuses GROUP BY name
+        ) ls ON l.status = ls.name
+        WHERE l.is_archived = 1
+        ORDER BY l.archived_at DESC, l.location_code ASC
+    ");
+    $archived_locs = $stmt_arch ? $stmt_arch->fetchAll(PDO::FETCH_ASSOC) : [];
+} catch (Exception $e) {
+    $archived_locs = [];
+}
 ?>
 <div class="location-gate">
     <div class="gate-options-container">
@@ -46,6 +64,13 @@ $working_zones = $conn_wh->query("
                                 style="border:none; background:transparent; color:#64748b; font-weight:700; font-size:0.8rem; padding:6px 14px; border-radius:8px; cursor:pointer; transition:all 0.2s;">
                                 📍 All Locations (<?= count($existing_locs) ?>)
                             </button>
+                            <?php if (!empty($archived_locs)): ?>
+                                <button type="button" id="btn-gate-view-archived" onclick="switchGateViewMode('archived')"
+                                    class="gate-toggle-btn"
+                                    style="border:none; background:transparent; color:#64748b; font-weight:700; font-size:0.8rem; padding:6px 14px; border-radius:8px; cursor:pointer; transition:all 0.2s;">
+                                    🗄️ Archived (<?= count($archived_locs) ?>)
+                                </button>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
 
@@ -123,6 +148,49 @@ $working_zones = $conn_wh->query("
                     $grid_id = 'gate-all-locs-grid';
                     include __DIR__ . '/locations_grid.php';
                     ?>
+                </div>
+
+                <!-- Mode 3: Archived Shelves Grid -->
+                <div id="gate-view-archived-container" style="display: none;">
+                    <div style="margin-bottom:15px; color:#64748b; font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                        <span>🗄️</span>
+                        <span>These shelves are archived. You can click <strong>Restore</strong> on any shelf to return it to active inventory.</span>
+                    </div>
+                    <div class="loc-grid" id="gate-archived-locs-grid">
+                        <?php foreach ($archived_locs as $al): ?>
+                            <div class="loc-item-wrapper" style="position:relative;">
+                                <div class="loc-item gate-loc-item" style="border: 2px dashed #cbd5e1; background: #f8fafc; padding: 18px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+                                    data-loc-name="<?= htmlspecialchars(strtolower($al['location_code'])) ?>"
+                                    data-zone-name="<?= htmlspecialchars(strtolower($al['working_zone_name'] ?? 'General')) ?>"
+                                    data-status="archived"
+                                    data-count="0">
+                                    <div style="position:absolute; top:8px; left:12px; font-size:0.6rem; font-weight:900; text-transform:uppercase; color:#ef4444; letter-spacing:0.05em;">
+                                        Archived
+                                    </div>
+                                    <?php if (!empty($al['working_zone_name'])): ?>
+                                        <div class="loc-zone-badge" style="position:absolute; top:8px; right:12px; font-size:0.55rem; font-weight:800; background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:6px;">
+                                            <?= htmlspecialchars($al['working_zone_name']) ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <span class="loc-icon" style="font-size:1.6rem; margin-top:10px;">🗄️</span>
+                                    <span class="loc-name" style="font-size:1.05rem; font-weight:800; color:#64748b; margin-top:4px; text-decoration:line-through;">
+                                        <?= htmlspecialchars($al['location_code']) ?>
+                                    </span>
+                                    <div style="font-size:0.7rem; color:#94a3b8; font-weight:600; margin:4px 0 10px 0;">
+                                        <?= htmlspecialchars($al['archived_reason'] ?: 'Empty') ?>
+                                    </div>
+                                    <form method="POST" action="" style="margin:0;">
+                                        <?= UI::csrf_field() ?>
+                                        <input type="hidden" name="action" value="restore_location">
+                                        <input type="hidden" name="location_code" value="<?= htmlspecialchars($al['location_code']) ?>">
+                                        <button type="submit" class="btn-export" style="background:#10b981; color:white; border:none; padding:5px 12px; font-size:0.75rem; font-weight:800; border-radius:8px; cursor:pointer;" title="Restore this shelf to active status">
+                                            ♻️ Restore Shelf
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             <?php endif; ?>
 
