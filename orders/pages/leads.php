@@ -81,13 +81,10 @@ $call_today = array_filter($all_leads, function($l) use ($today) {
     return !empty($l['callback_date']) && $l['callback_date'] <= $today && strtolower($l['account_status'] ?? '') !== 'lost' && strtolower($l['account_status'] ?? '') !== 'inactive';
 });
 
-// --- LIVEWIRE-STYLE AJAX VIEW HANDLER ---
-if (UI::is_ajax()) {
-    if (ob_get_level() > 0) ob_clean();
-
-    // 1. Render priority cards section HTML
-    ob_start();
-    if (count($call_today) > 0) {
+if (!function_exists('render_priority_followups_html')) {
+    function render_priority_followups_html($call_today) {
+        if (count($call_today) === 0) return '';
+        ob_start();
         ?>
         <section class="tasks-section" style="margin-bottom: 35px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 20px; padding: 25px;">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
@@ -107,8 +104,16 @@ if (UI::is_ajax()) {
             </div>
         </section>
         <?php
+        return ob_get_clean();
     }
-    $priority_html = ob_get_clean();
+}
+
+// --- LIVEWIRE-STYLE AJAX VIEW HANDLER ---
+if (UI::is_ajax()) {
+    if (ob_get_level() > 0) ob_clean();
+
+    // 1. Render priority cards section HTML
+    $priority_html = render_priority_followups_html($call_today);
 
     // 2. Render table rows HTML
     ob_start();
@@ -212,28 +217,7 @@ if (UI::is_ajax()) {
 
 <div class="orders-container">
 
-    <div id="priority-section-container">
-        <?php if (count($call_today) > 0): ?>
-        <!-- Urgent Follow-ups Section -->
-        <section class="tasks-section" style="margin-bottom: 35px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 20px; padding: 25px;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-                <span style="font-size:1.5rem;">☎️</span>
-                <h2 style="margin:0; font-size:1.1rem; font-weight:900; color:#9f1239; text-transform:uppercase; letter-spacing:0.05em;">Priority Follow-ups Today</h2>
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;">
-                <?php foreach($call_today as $task): ?>
-                <div class="task-card" onclick='openLeadModal(<?= json_encode($task, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>)' style="background:white; padding:15px; border-radius:15px; border:1px solid #fecdd3; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 6px -1px rgba(159, 18, 57, 0.05);">
-                    <div style="font-weight:800; color:#1e293b;"><?= htmlspecialchars($task['company_name']) ?></div>
-                    <div style="font-size:0.75rem; color:#be123c; font-weight:700; margin-top:4px;">📅 Scheduled: <?= htmlspecialchars($task['callback_date']) ?></div>
-                    <div style="font-size:0.8rem; color:#64748b; margin-top:8px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                        <?= htmlspecialchars($task['internal_notes'] ?: 'No notes recorded.') ?>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
-        <?php endif; ?>
-    </div>
+    <div id="priority-section-container"><?= render_priority_followups_html($call_today) ?></div>
 
     <!-- Live Search & Filters -->
     <div class="leads-controls-bar">

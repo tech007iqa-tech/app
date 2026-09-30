@@ -3,7 +3,7 @@
 /* CRM & Leads Premium Styles */
 
 .tasks-section {
-    animation: slideInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s ease;
 }
 
 .task-card {
@@ -14,17 +14,6 @@
     transform: translateY(-3px);
     box-shadow: 0 10px 15px -3px rgba(159, 18, 57, 0.1);
     border-color: #e11d48 !important;
-}
-
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* Modal Split View Adjustments */

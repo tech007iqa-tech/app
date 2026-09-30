@@ -671,8 +671,14 @@
                 });
 
             } else {
-                if (container.innerHTML !== newHTML) {
-                    container.innerHTML = newHTML;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = (newHTML || '').trim();
+
+                const currentHtmlNormalized = container.innerHTML.trim();
+                const newHtmlNormalized = tempDiv.innerHTML.trim();
+
+                if (currentHtmlNormalized !== newHtmlNormalized) {
+                    container.innerHTML = tempDiv.innerHTML;
                     if (targetId === 'photo-count-badge') {
                         const count = parseInt(newHTML) || 0;
                         container.style.backgroundColor = count > 0 ? '#10b981' : '#94a3b8';
