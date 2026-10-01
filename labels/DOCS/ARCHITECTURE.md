@@ -59,18 +59,38 @@ Tracks all system-wide changes to hardware records for accountability.
 
 ---
 
-## 4. Document Generation (Structural Surgery)
-The app avoids heavy PHP frameworks or Composer bundles, using a native **"Structural Surgery"** approach to generate OpenDocument files (`.odt`).
+---
 
-### The Generation Ecosystem:
+## 4. Dual Printing Engine Architecture
+
+### A. Direct Web Thermal Printing (Universal & Zero Setup)
+Located at [`print_label.php`](file:///c:/xampp/htdocs/app/labels/print_label.php).
+- **Format:** Calibrated specifically for thermal continuous rolls using `@page { size: 2in 1in; margin: 0; }`.
+- **Zero Host Software:** Works natively in Google Chrome, Microsoft Edge, Safari, and Firefox on Windows, macOS, or Linux without any desktop daemon.
+- **Vector Barcodes:** Barcodes are rendered as lightweight, lossless SVG vectors (`<svg viewBox="0 0 100 20">`) ensuring razor-sharp scanning on 203 DPI and 300 DPI thermal print heads (Zebra, Rollo, Brother, MUNBYN).
+- **Print Modes:** Supports printing Sticker A (Brand/Barcode), Sticker B (Specs), or Dual Batches (`mode=both`, `mode=a`, `mode=b`).
+
+### B. Document Generation (Structural Surgery — ODT)
+The app maintains a native **"Structural Surgery"** approach to generate OpenDocument files (`.odt`) for Windows workstations:
 1. **Master Template**: A clean ODF file (`templates/label_template.odt`) serves as the structural backbone.
 2. **Structural XML Surgery**: The PowerShell engine (`templates/scripts/generate_odt.ps1`) extracts the original XML from the template and uses **Regex grafting** to inject dynamic data into the `<office:text>` container. It utilizes custom inheriting styles (e.g., `P5B` for Specs with Page Breaks) to ensure precise top-alignment on labels without empty-paragraph artifacts.
 3. **ODF Compliance**: The engine surgically removes `Configurations2/` and `manifest.rdf` to prevent LibreOffice warnings, then rebuilds `manifest.xml` for strict ODF 1.2 ISO compliance.
+4. **Persistent Documents:** All generated labels are stored in `exports/labels/` for audit trail compliance.
 
-### Label Strategy:
-- **Consolidated Layout:** Technical specifications are grouped into a dense 3-line layout (CPU/Gen, RAM/Storage/Battery, and GPU/OS/BIOS) at 8.5pt font size.
-- **Dual-Phase Output:** Each print generates two pages: a high-visibility Branding label and a technical Specification label.
-- **Persistent Documents:** All generated labels are stored in `exports/labels/` for audit trail compliance.
+---
+
+## 5. Intake Action Pipeline & Validation
+
+### A. The Four Core Actions (`new_label.php`)
+1. **`print` (`🖨️ Print Thermal Label`)**: Validates brand/model, posts to `api/add_label.php`, obtains item ID, and triggers browser-native 2" × 1" thermal roll print.
+2. **`odt` (`📄 Save & Windows ODT`)**: Validates brand/model, posts to `api/add_label.php`, and triggers PowerShell ODT compilation and download.
+3. **`save` (`💾 Save`)**: Persists hardware profile directly into SQLite inventory with confirmation toast without triggering print dialogs.
+4. **`reset` (`✨ Start Fresh`)**: Clears inputs, pills, resets mockup, retains Full Technical Sheet default mode, and smoothly animates viewport back to `Hardware Identity & Model`.
+
+### B. Dynamic Input Validation & Suffix Engine
+- **Core Count**: Validates keystrokes for integers `[0-9]`. Displays dynamic suffix badge (`Core` when 1, `Cores` when ≥2) only while active. Syncs combined formatted string (`4 Cores`) to database.
+- **Clock Frequency**: Validates keystrokes for floating point numbers `[0-9.]` with single-dot enforcement. Displays dynamic suffix badge `GHz` only while active. Syncs formatted string (`2.40 GHz`) to database.
+- **Missing Hardware Flags**: Dedicated `.pill-none` selectors for `No RAM` and `No SSD` / `No Drive` integrated into the live thermal mockup and database schema.
 
 ---
 

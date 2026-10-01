@@ -1,7 +1,12 @@
 <?php
-require_once 'includes/db.php';
-require_once 'includes/functions.php';
-require_once 'includes/header.php';
+// labels/hardware_view.php
+// Detailed Hardware Technical Sheet & Profile Editor
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/hardware_mapping.php';
+require_once __DIR__ . '/includes/header.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $item = null;
@@ -10,207 +15,252 @@ if ($id > 0) {
     try {
         $stmt = $pdo_labels->prepare("SELECT * FROM items WHERE id = :id");
         $stmt->execute([':id' => $id]);
-        $item = $stmt->fetch();
-    } catch (PDOException $e) {
-        // Error handling
-    }
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {}
 }
 
-// Redirect if not found
 if (!$item) {
-    echo "<div class='panel'><h1>404 Not Found</h1><p>This item does not exist.</p><a href='labels.php' class='btn btn-primary'>Back to Inventory</a></div>";
-    require_once 'includes/footer.php';
+    echo "<div class='panel' style='text-align:center; padding:60px 20px;'>
+            <h1 style='font-size:2rem; margin-bottom:12px;'>⚠️ Hardware Record Not Found</h1>
+            <p style='color:var(--text-secondary); margin-bottom:24px;'>The item with ID #$id does not exist or was removed.</p>
+            <a href='labels.php' class='btn btn-primary'>← Return to Inventory</a>
+          </div>";
+    require_once __DIR__ . '/includes/footer.php';
     exit;
 }
 
-$desc  = $item['description'] ?? 'Untested';
-$color = $desc === 'For Parts' ? 'var(--btn-danger-bg)'
-       : ($desc === 'Refurbished' ? 'var(--btn-success-bg)' : '#f39c12');
+$brandModel = htmlspecialchars(($item['brand'] ?? '') . ' ' . ($item['model'] ?? '') . ' ' . ($item['series'] ?? ''));
+$cond = $item['description'] ?? 'Untested';
+$badgeClass = $cond === 'Refurbished' ? 'badge-success' : ($cond === 'For Parts' ? 'badge-danger' : 'badge-warning');
 ?>
 
-<div class="panel flex-between" style="margin-bottom: var(--spacing);">
+<!-- BREADCRUMB & HEADER -->
+<div class="panel flex-between" style="margin-bottom: 24px; padding: 20px 28px;">
     <div>
-        <h1 style="color: <?= $color ?>;">🛠️ <?= htmlspecialchars($desc) ?> Technical Sheet</h1>
-        <p>Detailed specifications for <strong><?= htmlspecialchars($item['brand'] . ' ' . $item['model'] . ' ' . ($item['series'] ?? '')) ?></strong></p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">
+            <a href="labels.php" style="color: var(--accent-color); font-weight: bold;">📦 Inventory</a>
+            <span> / </span>
+            <span>Profile #<?= str_pad($item['id'], 5, '0', STR_PAD_LEFT) ?></span>
+        </div>
+        <h1 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 4px;">
+            🛠️ <?= $brandModel ?>
+        </h1>
+        <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+            <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($cond) ?></span>
+            <span class="badge badge-neutral">📍 LOC: <?= htmlspecialchars($item['warehouse_location'] ?: 'Unassigned') ?></span>
+            <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-secondary);">S/N: <?= htmlspecialchars($item['serial_number'] ?: '—') ?></span>
+        </div>
     </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <button id="btnLaunchODT" class="btn"
-                data-id="<?= (int)$item['id'] ?>"
-                data-brand="<?= htmlspecialchars($item['brand']) ?>"
-                data-model="<?= htmlspecialchars($item['model']) ?>"
-                style="padding:8px 18px; background: var(--text-main); color: white;">
-            🏷️ Launch Label
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn btn-success" onclick="printThermalLabel(<?= (int)$item['id'] ?>)">
+            <span>🖨️ Thermal Print</span>
         </button>
-        <button id="btnDelete" class="btn btn-danger"
-                data-id="<?= (int)$item['id'] ?>"
-                data-label="<?= htmlspecialchars($item['brand'] . ' ' . $item['model']) ?>"
-                style="padding:8px 18px;">
-            🗑️ Delete
+        <button type="button" class="btn btn-dark" onclick="flashOpenLabel(<?= (int)$item['id'] ?>, '<?= addslashes($item['brand']) ?>', '<?= addslashes($item['model']) ?>', this)">
+            <span>📄 Windows ODT</span>
         </button>
-        <a href="labels.php" class="btn" style="background:var(--bg-page); border:1px solid var(--border-color); color:var(--text-secondary); padding:8px 18px;">← Back</a>
+        <button type="button" class="btn btn-danger" id="btnDeleteRecord">
+            <span>🗑️ Delete</span>
+        </button>
+        <a href="labels.php" class="btn btn-secondary">← Back</a>
     </div>
 </div>
 
-<!-- Responsive Layout Styling -->
-<style>
-    .technical-layout {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        grid-template-areas: "main sidebar";
-        gap: var(--spacing);
-        align-items: start;
-    }
-    .main-technical-panel { grid-area: main; }
-    .summary-sidebar { grid-area: sidebar; }
+<div class="hardware-view-grid">
 
-    @media (max-width: 1024px) {
-        .technical-layout {
-            grid-template-columns: 1fr;
-            grid-template-areas: "sidebar" "main";
-        }
-        .summary-sidebar { margin-bottom: 0; }
-    }
-</style>
-
-<!-- Main Content Grid -->
-<form id="refurbForm">
-    <div class="technical-layout">
-
-        <!-- LEFT: Technical Specs & Baseline Form -->
-        <div class="panel main-technical-panel">
-            <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                Detailed Hardware Profile
-            </h3>
-
+    <!-- LEFT COLUMN: TECHNICAL SHEET EDITOR -->
+    <div class="hardware-editor-column">
+        <form id="refurbForm">
+            <?= UI::csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
-<?php
-    $formType = 'edit';
-    include 'includes/hardware_form.php';
-?>
 
-            <hr style="border:0; border-top:1px solid var(--border-color); margin: 25px 0;">
+            <?php
+                $formType = 'edit';
+                include __DIR__ . '/includes/hardware_form.php';
+            ?>
 
-            <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                <div id="saveStatus" style="margin-right: auto; line-height: 40px; font-size: 0.9rem;"></div>
-                <button type="button" id="saveRefurbBtn" class="btn btn-success" style="padding: 10px 30px; font-weight: bold;">
-                    💾 Update Hardware Profile
+            <div class="panel" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px;">
+                <span id="saveStatus" style="font-size: 0.9rem; font-weight: 700;"></span>
+                <button type="button" id="saveRefurbBtn" class="btn btn-success btn-large">
+                    <span>💾 Save &amp; Update Technical Profile</span>
                 </button>
             </div>
-        </div>
+        </form>
+    </div>
 
-        <!-- RIGHT: Summary Sidebar (Context) -->
-        <div class="panel summary-sidebar" style="background: var(--bg-page); border: 2px dashed var(--border-color);">
-            <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--text-secondary);">Inventory Info</h3>
-            <div style="font-size: 0.9rem; line-height: 1.8;">
-                <div class="flex-between"><span>Added Date:</span> <strong><?= format_date($item['created_at']) ?></strong></div>
-                <div class="flex-between"><span>Current Status:</span> <strong style="color: var(--btn-success-bg);"><?= htmlspecialchars($item['status'] ?? '—') ?></strong></div>
-                <div class="flex-between"><span>Warehouse Loc:</span> <strong><?= htmlspecialchars($item['warehouse_location'] ?? '—') ?></strong></div>
+    <!-- RIGHT COLUMN: STICKER PREVIEW & CONTEXT -->
+    <aside class="hardware-sidebar-column">
 
-                <!-- Quick Specs Summary (New Section) -->
-                <div style="margin: 15px 0; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
-                     <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.5px;">Quick Specs</div>
-                     <div class="flex-between"><span>CPU Gen:</span> <strong><?= htmlspecialchars($item['cpu_gen'] ?: '—') ?></strong></div>
-                     <div class="flex-between"><span>Series:</span> <strong><?= htmlspecialchars($item['series'] ?: '—') ?></strong></div>
-                     <div class="flex-between"><span>RAM:</span> <strong><?= htmlspecialchars($item['ram'] ?: 'None') ?></strong></div>
-                     <div class="flex-between"><span>Storage:</span> <strong><?= htmlspecialchars($item['storage'] ?: 'None') ?></strong></div>
-
-                     <details style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
-                        <summary style="font-size: 0.75rem; font-weight: 700; color: var(--accent-color); cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            🔍 Full Technical Snapshot
-                        </summary>
-                        <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary); display: grid; gap: 4px;">
-                            <div class="flex-between"><span>Full Processor:</span> <span style="color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($item['cpu_specs'] ?: '—') ?></span></div>
-                            <div class="flex-between"><span>GPU (Video):</span> <span style="color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($item['gpu'] ?: 'Integrated') ?></span></div>
-                            <div class="flex-between"><span>Battery:</span> <span style="color: var(--text-main); font-weight: 600;"><?= (int)($item['battery'] ?? 0) === 1 ? 'Included' : 'N/A' ?></span></div>
-                            <div class="flex-between"><span>BIOS State:</span> <span style="color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($item['bios_state'] ?: 'Unknown') ?></span></div>
-                            <div class="flex-between"><span>OS Version:</span> <span style="color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($item['os_version'] ?: 'None') ?></span></div>
-                        </div>
-                     </details>
+        <!-- LIVE STICKER PREVIEW -->
+        <div class="live-sticker-preview-box">
+            <div class="preview-box-header">
+                <div class="preview-box-title">
+                    <span style="color:var(--accent-color);">●</span> 2" × 1" Label Preview
                 </div>
             </div>
 
-            <div style="margin-top: 10px; padding: 15px; background: rgba(140, 198, 63, 0.1); border-radius: 8px; color: var(--accent-hover); font-size: 0.85rem;">
-                💡 <strong>Sales Note:</strong> The technical sheet is the primary source for buyers. Keeping CPU, RAM and and health updated here will push accurate data to the Purchase Order.
+            <!-- MOCKUP DISPLAY -->
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div class="thermal-sticker-mockup" id="mockupLabelA">
+                    <div class="mockup-branding">
+                        <div class="mockup-brand-model" id="prevBrandModel"><?= htmlspecialchars(($item['brand'] ?? '') . ' ' . ($item['model'] ?? '')) ?></div>
+                        <div class="mockup-series" id="prevSeries"><?= htmlspecialchars($item['series'] ?? '') ?></div>
+                        <div class="mockup-cpu" id="prevCpu"><?= htmlspecialchars($item['cpu_specs'] ?: ($item['cpu_gen'] ?: 'Processor N/A')) ?></div>
+                    </div>
+
+                    <div class="mockup-barcode">
+                        <svg viewBox="0 0 100 20" preserveAspectRatio="none">
+                            <rect x="0" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="4" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="7" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="12" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="16" y="0" width="4" height="20" fill="#000"/>
+                            <rect x="22" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="25" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="30" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="34" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="37" y="0" width="4" height="20" fill="#000"/>
+                            <rect x="43" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="47" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="50" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="55" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="59" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="64" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="67" y="0" width="4" height="20" fill="#000"/>
+                            <rect x="73" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="77" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="80" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="85" y="0" width="2" height="20" fill="#000"/>
+                            <rect x="89" y="0" width="1" height="20" fill="#000"/>
+                            <rect x="92" y="0" width="3" height="20" fill="#000"/>
+                            <rect x="97" y="0" width="2" height="20" fill="#000"/>
+                        </svg>
+                        <div class="mockup-sn" id="prevSN">S/N: <?= htmlspecialchars($item['serial_number'] ?: 'XXXXXX') ?></div>
+                    </div>
+
+                    <div class="mockup-footer">
+                        <span>#<?= str_pad($item['id'], 5, '0', STR_PAD_LEFT) ?></span>
+                        <span id="prevLoc">LOC: <?= htmlspecialchars($item['warehouse_location'] ?: '—') ?></span>
+                        <span id="prevCond"><?= strtoupper($item['description'] ?: 'UNTESTED') ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button type="button" class="btn btn-sm btn-success" onclick="printThermalLabel(<?= (int)$item['id'] ?>)">🖨️ Thermal</button>
+                <button type="button" class="btn btn-sm btn-dark" onclick="flashOpenLabel(<?= (int)$item['id'] ?>, '<?= addslashes($item['brand']) ?>', '<?= addslashes($item['model']) ?>', this)">📄 ODT</button>
             </div>
         </div>
 
-    </div>
-</form>
+        <!-- AUDIT & HARDWARE METADATA -->
+        <div class="panel" style="margin-top: 20px; padding: 20px;">
+            <h4 style="font-size: 0.9rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 14px;">
+                📋 Hardware Metadata
+            </h4>
+            <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+                <div class="flex-between">
+                    <span style="color: var(--text-muted);">Database ID:</span>
+                    <strong>#<?= str_pad($item['id'], 5, '0', STR_PAD_LEFT) ?></strong>
+                </div>
+                <div class="flex-between">
+                    <span style="color: var(--text-muted);">Intake Date:</span>
+                    <strong><?= format_date($item['created_at']) ?></strong>
+                </div>
+                <div class="flex-between">
+                    <span style="color: var(--text-muted);">Last Updated:</span>
+                    <strong><?= format_date($item['updated_at'] ?? $item['created_at']) ?></strong>
+                </div>
+                <div class="flex-between">
+                    <span style="color: var(--text-muted);">Warehouse Loc:</span>
+                    <strong style="color: var(--accent-color);">📍 <?= htmlspecialchars($item['warehouse_location'] ?: 'Unassigned') ?></strong>
+                </div>
+            </div>
+        </div>
 
-<!-- Add the dynamic JS controls -->
-<script src="assets/js/forms.js"></script>
+    </aside>
+
+</div>
+
+<style>
+.hardware-view-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .hardware-view-grid {
+        grid-template-columns: 1fr;
+    }
+    .hardware-sidebar-column {
+        order: -1;
+    }
+}
+</style>
+
+<!-- Modular Form JS for Sync & Preview -->
+<script src="assets/js/forms.js?v=<?= filemtime(__DIR__ . '/assets/js/forms.js') ?>"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Set active link in sidebar
-    const navLink = document.getElementById('nav-labels');
-    if (navLink) navLink.classList.add('active');
+    // Force Advanced diagnostic section to be visible in hardware_view
+    switchFormMode('advanced');
 
-    const refurbForm = document.getElementById('refurbForm');
-    const saveBtn    = document.getElementById('saveRefurbBtn');
-    const statusMsg  = document.getElementById('saveStatus');
+    const saveBtn = document.getElementById('saveRefurbBtn');
+    const form = document.getElementById('refurbForm');
+    const statusMsg = document.getElementById('saveStatus');
 
-    // ── SAVE ────────────────────────────────────────────────────────────────
-    saveBtn.addEventListener('click', () => {
-        saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ Saving...';
-        statusMsg.textContent = '';
-        statusMsg.style.color = 'var(--text-secondary)';
+    if (saveBtn && form) {
+        saveBtn.addEventListener('click', async () => {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span>⏳ Saving Changes...</span>';
 
-        const formData = new FormData(refurbForm);
+            const formData = new FormData(form);
 
-        fetch('api/edit_label.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(json => {
-            if (json.success) {
-                statusMsg.textContent = '✅ Technical sheet updated successfully!';
-                statusMsg.style.color = 'var(--btn-success-bg)';
-                setTimeout(() => { statusMsg.textContent = ''; }, 3000);
-            } else {
-                statusMsg.textContent = '❌ Error: ' + (json.error || 'Unknown error');
-                statusMsg.style.color = 'var(--btn-danger-bg)';
+            try {
+                const res = await fetch('api/edit_label.php', { method: 'POST', body: formData });
+                const json = await res.json();
+
+                if (json.success) {
+                    Toast.success("Hardware specifications updated successfully!");
+                    statusMsg.innerHTML = '<span style="color:var(--accent-color);">✅ Updated!</span>';
+                    setTimeout(() => { statusMsg.innerHTML = ''; }, 3000);
+                } else {
+                    Toast.error("Update failed: " + (json.error || ''));
+                    statusMsg.innerHTML = '<span style="color:var(--color-danger);">❌ Error</span>';
+                }
+            } catch (err) {
+                Toast.error("Network error saving changes.");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span>💾 Save &amp; Update Technical Profile</span>';
             }
-        })
-        .catch(() => {
-            statusMsg.textContent = '❌ Network error.';
-            statusMsg.style.color = 'var(--btn-danger-bg)';
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '💾 Update Technical Sheet';
         });
-    });
+    }
 
-    // ── LAUNCH ODT (Always Regenerate & Open) ───────────────────────────────
-    document.getElementById('btnLaunchODT').addEventListener('click', async function() {
-        const btn   = this;
-        const id    = btn.dataset.id;
-        const brand = btn.dataset.brand;
-        const model = btn.dataset.model;
-        await flashOpenLabel(id, brand, model, btn);
-    });
+    // Delete Button
+    const delBtn = document.getElementById('btnDeleteRecord');
+    if (delBtn) {
+        delBtn.addEventListener('click', () => {
+            if (!confirm("Permanently delete this hardware profile from warehouse inventory?\n\nThis cannot be undone.")) return;
 
-    // ── DELETE ───────────────────────────────────────────────────────────────
-    document.getElementById('btnDelete').addEventListener('click', function() {
-        const id    = this.dataset.id;
-        const label = this.dataset.label;
+            const fd = new FormData();
+            fd.append('id', <?= (int)$item['id'] ?>);
 
-        if (!confirm(`Delete "${label}" from the warehouse?\n\nThis cannot be undone.`)) return;
-
-        const formData = new FormData();
-        formData.append('id', id);
-
-        fetch('api/delete_label.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(json => {
-            if (json.success) {
-                window.location.href = 'labels.php';
-            } else {
-                alert('Delete failed: ' + (json.error || 'Unknown error'));
-            }
-        })
-        .catch(() => alert('Network error — item was not deleted.'));
-    });
+            fetch('api/delete_label.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(json => {
+                if (json.success) {
+                    window.location.href = 'labels.php';
+                } else {
+                    alert("Delete failed: " + (json.error || ''));
+                }
+            })
+            .catch(() => alert("Network error deleting record."));
+        });
+    }
 });
 </script>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

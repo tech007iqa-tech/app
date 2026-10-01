@@ -1,567 +1,496 @@
-
 /**
- * assets/js/labels.js
- * Drives the labels.php warehouse inventory page.
- *
- * Features:
- *  - Filter bar: debounced live search + status dropdown → fetches api/get_labels.php
- *  - Inline Edit: clicking Edit transforms a row into editable input fields
- *  - Delete: confirm prompt → fetch api/delete_label.php → removes row from DOM
+ * labels/assets/js/labels.js
+ * Modular Inventory Controller: Live Search, Filter Chips, Inline Edit, Delete Modal, Bulk Actions & CSV Export.
  */
 'use strict';
 
-// ─── CONFIGURATION & STATE ───────────────────────────────────────────────────
-
-const CONFIG = {
-    DEBOUNCE_DELAY: 300,
-    API_ENDPOINTS: {
-        GET_LABELS: 'api/get_labels.php',
-        SEARCH_ITEM: 'api/search_item.php',
-        EDIT_LABEL: 'api/edit_label.php',
-        DELETE_LABEL: 'api/delete_label.php'
-    }
-};
-
-const DOM = {
-    filterSearch: document.getElementById('filterSearch'),
-    filterStatus: document.getElementById('filterStatus'),
-    filterMsg: document.getElementById('filterMsg'),
-    tbody: document.getElementById('inventoryTableBody'),
-    selectAll: document.getElementById('selectAll'),
-    bulkBar: document.getElementById('bulkActionBar'),
-    selectedCount: document.getElementById('selectedCount')
-};
-
-let filterTimer = null;
+let currentInventory = [];
+let currentFilterStatus = 'In Warehouse';
 let selectedIds = new Set();
+let deleteCandidateId = null;
+let filterDebounceTimer = null;
 
-// ─── FILTER BAR ─────────────────────────────────────────────────────────────
-
-/**
- * Executes the filter search by fetching data from the API.
- */
-async function runFilter() {
-    const query  = DOM.filterSearch.value.trim();
-    const status = DOM.filterStatus ? DOM.filterStatus.value : 'In Warehouse';
-    DOM.filterMsg.textContent = 'Searching…';
-
-    try {
-        const url = `${CONFIG.API_ENDPOINTS.GET_LABELS}?q=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}`;
-        const response = await fetch(url);
-        const json = await response.json();
-
-        if (!json.success) {
-            DOM.filterMsg.textContent = `Error: ${json.error || 'Unknown'}`;
-            return;
-        }
-
-        DOM.tbody.innerHTML = '';
-
-        if (json.data.length === 0) {
-            DOM.filterMsg.textContent = 'No configurations match your filter.';
-            DOM.tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center empty-table-message">
-                        No matching label profiles found.
-                    </td>
-                </tr>`;
-        } else {
-            DOM.filterMsg.textContent = `${json.data.length} result(s)`;
-            const fragment = document.createDocumentFragment();
-            json.data.forEach(item => fragment.appendChild(buildRow(item)));
-            DOM.tbody.appendChild(fragment);
-        }
-    } catch (error) {
-        console.error('Filter error:', error);
-        DOM.filterMsg.textContent = 'Network error.';
-    }
-}
-
-DOM.filterSearch.addEventListener('input', () => {
-    clearTimeout(filterTimer);
-    filterTimer = setTimeout(runFilter, CONFIG.DEBOUNCE_DELAY);
-});
-
-if (DOM.filterStatus) {
-    DOM.filterStatus.addEventListener('change', runFilter);
-}
-
-// ─── ROW BUILDER ─────────────────────────────────────────────────────────────
-
-// ─── ROW BUILDER ─────────────────────────────────────────────────────────────
-
-/**
- * Builds a display <tr> element from an item data object using <template>.
- */
-function buildRow(item) {
+// ── 1. ROW BUILDER ───────────────────────────────────────────────────────────
+function buildInventoryRow(item) {
     const template = document.getElementById('inventoryRowTemplate');
     const clone = document.importNode(template.content, true);
     const tr = clone.querySelector('tr');
     tr.dataset.id = item.id;
 
-    const F = window.HW_FIELDS;
-    const brand = item[F.BRAND] || '';
-    const model = item[F.MODEL] || '';
-    const series = item[F.SERIES] || '';
-    const sn = item[F.SERIAL_NUMBER] || '';
-    const description = item[F.DESCRIPTION] || 'Untested';
-    const status = item[F.STATUS] || 'In Warehouse';
-    const location = item[F.LOCATION] || 'Unassigned';
-
-    // Link & Name
-    const link = tr.querySelector('.tpl-link');
-    link.href = `hardware_view.php?id=${item.id}`;
-    link.textContent = `${brand} ${model}`;
-    if (description === 'Refurbished') link.classList.add('text-accent');
-
-    tr.querySelector('.tpl-series').textContent = series;
-
-    // Serial Number
-    const snText   = tr.querySelector('.tpl-sn-text');
-    const snEmpty  = tr.querySelector('.tpl-sn-empty');
-    if (sn) {
-        snText.textContent = `S/N: ${sn}`;
-        snText.style.display = 'inline';
-        snEmpty.style.display = 'none';
-    } else {
-        snText.style.display = 'none';
-        snEmpty.style.display = 'inline';
+    // Checkbox
+    const chk = tr.querySelector('.row-select');
+    if (chk) {
+        chk.checked = selectedIds.has(String(item.id));
+        chk.addEventListener('change', () => {
+            if (chk.checked) selectedIds.add(String(item.id));
+            else selectedIds.delete(String(item.id));
+            updateBulkActionBar();
+        });
     }
+
+    // Brand Model & Series
+    const brandModel = `${item.brand || ''} ${item.model || ''}`.trim();
+    const link = tr.querySelector('.tpl-link');
+    if (link) {
+        link.textContent = brandModel || 'Hardware Unit';
+        link.href = `hardware_view.php?id=${item.id}`;
+    }
+
+    const seriesEl = tr.querySelector('.tpl-series');
+    if (seriesEl) seriesEl.textContent = item.series || '—';
+
+    const snEl = tr.querySelector('.tpl-sn-text');
+    if (snEl) snEl.textContent = item.serial_number || 'No S/N';
 
     // CPU
-    tr.querySelector('.tpl-cpu-gen').textContent = item[F.CPU_GEN] || '—';
-    tr.querySelector('.tpl-cpu-specs').textContent = item[F.CPU_SPECS] || '';
+    const cpuSpecsEl = tr.querySelector('.tpl-cpu-specs');
+    if (cpuSpecsEl) cpuSpecsEl.textContent = item.cpu_specs || item.cpu_gen || '—';
 
-    // RAM / Storage
-    tr.querySelector('.tpl-ram').textContent = item[F.RAM] || 'None';
-    tr.querySelector('.tpl-storage').textContent = item[F.STORAGE] || 'None';
+    const cpuGenEl = tr.querySelector('.tpl-cpu-gen');
+    if (cpuGenEl) cpuGenEl.textContent = item.cpu_gen || '';
 
-    // Location / Buyer (Handle Sold logic)
-    const locBox = tr.querySelector('.tpl-location-box');
-    const isSold = (status === 'Sold');
+    // RAM & Storage
+    const ramEl = tr.querySelector('.tpl-ram');
+    if (ramEl) ramEl.textContent = item.ram || 'None';
 
-    if (isSold && item.buyer_name) {
-        locBox.innerHTML = `
-            <div class="text-xs text-secondary" style="margin-bottom:2px;">Sold to:</div>
-            <div class="font-bold text-accent" style="font-size:0.85rem;">${esc(item.buyer_name)}</div>
-            <div class="text-xs" style="color:var(--text-secondary); opacity:0.8;">${esc(item.buyer_order_num)}</div>
-        `;
-    } else {
-        tr.querySelector('.tpl-location').textContent = location;
+    const storageEl = tr.querySelector('.tpl-storage');
+    if (storageEl) storageEl.textContent = item.storage || 'None';
+
+    const battEl = tr.querySelector('.tpl-battery');
+    if (battEl) {
+        const b = item.battery;
+        battEl.textContent = 'Batt: ' + (b == 1 ? 'YES' : (b == '0' ? 'NO' : '—'));
     }
 
-    // Status Badge
-    const badge = tr.querySelector('.tpl-badge');
-    badge.textContent = description;
+    // Location
+    const locEl = tr.querySelector('.tpl-location');
+    if (locEl) locEl.textContent = '📍 ' + (item.warehouse_location || 'Unassigned');
 
-    if (description === 'For Parts') badge.classList.add('status-for-parts');
-    else if (description === 'Refurbished') badge.classList.add('status-refurbished');
-    else badge.classList.add('status-untested');
-
-    if (isSold) {
-        tr.querySelector('.tpl-sold-badge').style.display = 'block';
+    // Condition Badge
+    const badgeEl = tr.querySelector('.tpl-badge');
+    const cond = item.description || 'Untested';
+    if (badgeEl) {
+        badgeEl.textContent = cond.toUpperCase();
+        badgeEl.className = 'badge ' + (cond === 'Refurbished' ? 'badge-success' : (cond === 'For Parts' ? 'badge-danger' : 'badge-warning'));
     }
 
-    // Date
-    tr.querySelector('.tpl-added').textContent = fmtDate(item.created_at);
+    const statusSubEl = tr.querySelector('.tpl-status-sub');
+    if (statusSubEl) statusSubEl.textContent = item.status || 'In Warehouse';
 
-    // Buttons
-    const launchBtn = tr.querySelector('.launch-odt-btn');
-    if (launchBtn) {
-        launchBtn.dataset.id = item.id;
-        launchBtn.dataset.brand = brand;
-        launchBtn.dataset.model = model;
+    // Added Date
+    const addedEl = tr.querySelector('.tpl-added');
+    if (addedEl) {
+        if (item.created_at) {
+            const d = new Date(item.created_at);
+            addedEl.textContent = isNaN(d.getTime()) ? item.created_at.substring(0, 10) : d.toLocaleDateString();
+        } else {
+            addedEl.textContent = '—';
+        }
     }
 
-    const editBtn = tr.querySelector('.edit-btn');
-    if (editBtn) editBtn.dataset.id = item.id;
-
-    const delBtn = tr.querySelector('.delete-btn');
-    if (delBtn) {
-        delBtn.dataset.id = item.id;
-        delBtn.dataset.label = `${brand} ${model}`;
+    // Actions
+    const btnPrint = tr.querySelector('.tpl-btn-print');
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => printThermalLabel(item.id));
     }
 
-    // Selection State & Highlighting
-    const checkbox = tr.querySelector('.row-select');
-    if (checkbox) {
-        const isChecked = selectedIds.has(item.id.toString());
-        checkbox.checked = isChecked;
-        if (isChecked) tr.classList.add('selected-row');
+    const btnView = tr.querySelector('.tpl-btn-view');
+    if (btnView) {
+        btnView.addEventListener('click', () => quickViewHardware(item.id));
+    }
+
+    const btnEdit = tr.querySelector('.tpl-btn-edit');
+    if (btnEdit) {
+        btnEdit.addEventListener('click', () => openInlineEditRow(item.id, tr));
+    }
+
+    const btnDel = tr.querySelector('.tpl-btn-del');
+    if (btnDel) {
+        btnDel.addEventListener('click', () => openDeleteModal(item.id, brandModel));
     }
 
     return tr;
 }
 
-// ─── EVENT DELEGATION ────────────────────────────────────────────────────────
+// ── 2. TABLE HYDRATION & RENDERING ───────────────────────────────────────────
+function renderInventoryTable(items) {
+    const tbody = document.getElementById('inventoryTableBody');
+    const counter = document.getElementById('filterMsg');
+    if (!tbody) return;
 
-/**
- * Uses event delegation to handle clicks on action buttons within the table.
- */
-DOM.tbody.addEventListener('click', (e) => {
-    const target = e.target;
-    const btn = target.closest('.btn');
-    if (!btn) return;
+    currentInventory = items;
+    tbody.innerHTML = '';
 
-    const id = btn.dataset.id;
-    const tr = btn.closest('tr');
-
-    if (btn.classList.contains('edit-btn')) {
-        onEditClick(id, tr);
-    } else if (btn.classList.contains('delete-btn')) {
-        onDeleteClick(id, btn.dataset.label);
-    } else if (btn.classList.contains('launch-odt-btn')) {
-        onOpenClick(btn);
-    } else if (btn.classList.contains('save-edit-btn')) {
-        saveEdit(tr, id);
-    } else if (btn.classList.contains('cancel-edit-btn')) {
-        cancelEdit(tr);
+    if (counter) {
+        counter.textContent = `Showing ${items.length} item(s)`;
     }
-});
 
-// ─── EDIT ────────────────────────────────────────────────────────────────────
-
-/**
- * Handles the edit button click by fetching fresh data and opening the edit row.
- */
-async function onEditClick(id, tr) {
-    try {
-        const response = await fetch(`${CONFIG.API_ENDPOINTS.SEARCH_ITEM}?id=${id}`);
-        const json = await response.json();
-
-        if (!json.success) {
-            alert(`Could not load item: ${json.error}`);
-            return;
-        }
-
-        const itemToEdit = json.data.results[0];
-        openEditRow(tr, itemToEdit);
-    } catch (error) {
-        console.error('Edit load error:', error);
-        alert('Network error while loading item data.');
-    }
-}
-
-/**
- * Transforms a display row into an editable form using <template>.
- */
-function openEditRow(tr, item) {
-    tr.dataset.originalHtml = tr.innerHTML;
-    const F = window.HW_FIELDS;
-
-    const template = document.getElementById('editRowTemplate');
-    const clone = document.importNode(template.content, true);
-    const editTr = clone.querySelector('tr');
-
-    // Populate Fields
-    editTr.querySelector('input[name="id"]').value = item.id;
-    editTr.querySelectorAll('.edit-field').forEach(field => {
-        const val = item[field.name];
-        if (field.tagName === 'SELECT') {
-            field.value = val || 'Untested';
-        } else {
-            field.value = val || '';
-        }
-    });
-
-    editTr.querySelector('.tpl-edit-added').textContent = fmtDate(item.created_at);
-    editTr.querySelector('.save-edit-btn').dataset.id = item.id;
-
-    // Add hidden fields for all mapping keys not present in the visible row inputs
-    const hiddenContainer = editTr.querySelector('.tpl-edit-cell-main');
-    const existingInputs = new Set([...editTr.querySelectorAll('input, select')].map(i => i.name));
-
-    Object.values(F).forEach(dbField => {
-        if (!existingInputs.has(dbField)) {
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = dbField;
-            hidden.value = item[dbField] ?? '';
-            hiddenContainer.appendChild(hidden);
-        }
-    });
-
-    // Swap Row
-    tr.innerHTML = '';
-    while (editTr.firstChild) {
-        tr.appendChild(editTr.firstChild);
-    }
-    tr.classList.add('edit-mode-row');
-}
-
-/**
- * Cancels the edit mode and restores the original row content.
- */
-function cancelEdit(tr) {
-    if (tr.dataset.originalHtml) {
-        tr.innerHTML = tr.dataset.originalHtml;
-        tr.classList.remove('edit-mode-row');
-        delete tr.dataset.originalHtml;
-    }
-}
-
-/**
- * Saves the edited data by sending it to the API.
- */
-async function saveEdit(tr, id) {
-    const saveBtn = tr.querySelector('.save-edit-btn');
-    const originalBtnText = saveBtn.textContent;
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = '⏳…';
-
-    const formData = new FormData();
-    formData.append('id', id);
-
-    // Collect all inputs and selects (including hidden ones)
-    tr.querySelectorAll('input, select').forEach(field => {
-        if (field.name) formData.append(field.name, field.value);
-    });
-
-    try {
-        const response = await fetch(CONFIG.API_ENDPOINTS.EDIT_LABEL, { method: 'POST', body: formData });
-        const json = await response.json();
-
-        if (!json.success) {
-            alert(`Save failed: ${json.error || 'Unknown error'}`);
-            saveBtn.disabled = false;
-            saveBtn.textContent = originalBtnText;
-            return;
-        }
-
-        const newTr = buildRow(json.data.item);
-        tr.replaceWith(newTr);
-    } catch (error) {
-        console.error('Save error:', error);
-        alert('Network error — changes were not saved.');
-        saveBtn.disabled = false;
-        saveBtn.textContent = originalBtnText;
-    }
-}
-
-
-// ─── DELETE ──────────────────────────────────────────────────────────────────
-
-/**
- * Handles the delete button click with a confirmation prompt.
- */
-async function onDeleteClick(id, label) {
-    if (!confirm(`Delete "${label}" (#${pad(id, 5)}) from the warehouse?\n\nThis cannot be undone.`)) return;
-
-    const formData = new FormData();
-    formData.append('id', id);
-
-    try {
-        const response = await fetch(CONFIG.API_ENDPOINTS.DELETE_LABEL, { method: 'POST', body: formData });
-        const json = await response.json();
-
-        if (!json.success) {
-            alert(`Delete failed: ${json.error || 'Unknown error'}`);
-            return;
-        }
-
-        const tr = document.querySelector(`tr[data-id="${id}"]`);
-        if (tr) {
-            tr.style.transition = 'opacity 0.3s, transform 0.3s';
-            tr.style.opacity = '0';
-            tr.style.transform = 'translateX(20px)';
-            setTimeout(() => tr.remove(), 300);
-        }
-    } catch (error) {
-        console.error('Delete error:', error);
-        alert('Network error — item was not deleted.');
-    }
-}
-
-// ─── REPRINT & OPEN ──────────────────────────────────────────────────────────
-
-function onReprintClick(id) {
-    if (window.openPrintConfig) {
-        window.openPrintConfig(id);
-    } else {
-        alert('Print engine not loaded.');
-    }
-}
-
-async function onOpenClick(btn) {
-    const { id, brand, model } = btn.dataset;
-    if (typeof flashOpenLabel === 'function') {
-        await flashOpenLabel(id, brand, model, btn);
-    } else {
-        console.error('flashOpenLabel function not found.');
-    }
-}
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-
-function esc(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-// ─── INITIALIZATION (Phase 2 Hydration) ──────────────────────────────────────
-
-(function init() {
-    if (window.INITIAL_INVENTORY && Array.isArray(window.INITIAL_INVENTORY)) {
-        const data = window.INITIAL_INVENTORY;
-        if (data.length > 0) {
-            DOM.tbody.innerHTML = '';
-            const fragment = document.createDocumentFragment();
-            data.forEach(item => fragment.appendChild(buildRow(item)));
-            DOM.tbody.appendChild(fragment);
-            DOM.filterMsg.textContent = `${data.length} items loaded`;
-        } else {
-            DOM.tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center empty-table-message" style="padding: 50px;">
-                        No items found. <a href="new_label.php" class="btn btn-primary" style="margin-top:10px; display:inline-block;">Print your first label →</a>
-                    </td>
-                </tr>`;
-            DOM.filterMsg.textContent = 'Warehouse empty.';
-        }
-    }
-})();
-
-// ─── BULK ACTIONS LOGIC ──────────────────────────────────────────────────────
-
-function updateBulkBar() {
-    const count = selectedIds.size;
-    DOM.selectedCount.textContent = count;
-    DOM.bulkBar.style.display = count > 0 ? 'flex' : 'none';
-}
-
-let lastLabelsChecked = null;
-
-DOM.selectAll.addEventListener('change', (e) => {
-    const isChecked = e.target.checked;
-    const checkboxes = DOM.tbody.querySelectorAll('.row-select');
-    checkboxes.forEach(cb => {
-        const tr = cb.closest('tr');
-        if (tr.style.display !== 'none') {
-            cb.checked = isChecked;
-            const id = tr.dataset.id;
-            if (isChecked) {
-                selectedIds.add(id);
-                tr.classList.add('selected-row');
-            } else {
-                selectedIds.delete(id);
-                tr.classList.remove('selected-row');
-            }
-        }
-    });
-    updateBulkBar();
-});
-
-DOM.tbody.addEventListener('click', (e) => {
-    if (e.target.classList.contains('row-select')) {
-        const currentCb = e.target;
-        const checkboxes = Array.from(DOM.tbody.querySelectorAll('.row-select')).filter(cb => cb.closest('tr').style.display !== 'none');
-
-        if (e.shiftKey && lastLabelsChecked && lastLabelsChecked !== currentCb) {
-            let start = checkboxes.indexOf(currentCb);
-            let end = checkboxes.indexOf(lastLabelsChecked);
-
-            if (start > -1 && end > -1) {
-                const range = checkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
-                const isChecked = currentCb.checked;
-
-                range.forEach(cb => {
-                    cb.checked = isChecked;
-                    const tr = cb.closest('tr');
-                    const id = tr.dataset.id;
-                    if (isChecked) {
-                        selectedIds.add(id);
-                        tr.classList.add('selected-row');
-                    } else {
-                        selectedIds.delete(id);
-                        tr.classList.remove('selected-row');
-                    }
-                });
-            }
-        } else {
-            const tr = currentCb.closest('tr');
-            const id = tr.dataset.id;
-            if (currentCb.checked) {
-                selectedIds.add(id);
-                tr.classList.add('selected-row');
-            } else {
-                selectedIds.delete(id);
-                tr.classList.remove('selected-row');
-                DOM.selectAll.checked = false;
-            }
-        }
-
-        lastLabelsChecked = currentCb;
-        updateBulkBar();
-    }
-});
-
-document.getElementById('cancelBulkBtn').addEventListener('click', () => {
-    selectedIds.clear();
-    DOM.selectAll.checked = false;
-    DOM.tbody.querySelectorAll('.row-select').forEach(cb => {
-        cb.checked = false;
-        cb.closest('tr').classList.remove('selected-row');
-    });
-    updateBulkBar();
-});
-
-document.getElementById('applyBulkBtn').addEventListener('click', async () => {
-    const status = document.getElementById('bulkStatus').value;
-    const location = document.getElementById('bulkLocation').value.trim();
-
-    if (!status && !location) {
-        alert("Please select a status or enter a location to apply.");
+    if (items.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center; padding: 40px; color: var(--text-muted); font-style: italic;">
+                    No hardware units matched your filter.
+                </td>
+            </tr>`;
         return;
     }
 
-    if (!confirm(`Apply changes to ${selectedIds.size} items?`)) return;
+    const fragment = document.createDocumentFragment();
+    items.forEach(it => fragment.appendChild(buildInventoryRow(it)));
+    tbody.appendChild(fragment);
+}
 
-    const btn = document.getElementById('applyBulkBtn');
-    btn.disabled = true;
-    btn.textContent = '⌛ Applying...';
+// ── 3. FILTERING & SEARCH ENGINE ─────────────────────────────────────────────
+async function executeInventoryFilter() {
+    const searchInput = document.getElementById('filterSearch');
+    const query = searchInput ? searchInput.value.trim() : '';
+    const counter = document.getElementById('filterMsg');
+
+    if (counter) counter.textContent = 'Searching records...';
 
     try {
-        const response = await fetch('api/bulk_update.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ids: Array.from(selectedIds),
-                status: status,
-                location: location,
-                csrf_token: document.querySelector('input[name="csrf_token"]').value
-            })
-        });
+        const url = `api/get_labels.php?q=${encodeURIComponent(query)}&status=${encodeURIComponent(currentFilterStatus)}`;
+        const res = await fetch(url);
+        const json = await res.json();
 
-        const json = await response.json();
-        if (json.success) {
-            IQA_Notify.success(`Successfully updated ${selectedIds.size} items!`);
-            selectedIds.clear();
-            DOM.selectAll.checked = false;
-            updateBulkBar();
-            runFilter(); // Refresh the list
+        if (json.success && Array.isArray(json.data)) {
+            renderInventoryTable(json.data);
         } else {
-            IQA_Notify.error(`Error: ${json.error}`);
+            Toast.error("Failed to load inventory filter: " + (json.error || ''));
         }
     } catch (err) {
-        IQA_Notify.error("Network error during bulk update.");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Apply to All';
+        console.error(err);
+        Toast.error("Network error fetching inventory.");
+    }
+}
+
+// ── 4. INLINE ROW EDITING ───────────────────────────────────────────────────
+function openInlineEditRow(id, tr) {
+    const item = currentInventory.find(it => String(it.id) === String(id));
+    if (!item) return;
+
+    const tpl = document.getElementById('editRowTemplate');
+    const clone = document.importNode(tpl.content, true);
+    const editTr = clone.querySelector('tr');
+    editTr.dataset.id = id;
+
+    // Fill fields
+    const F = window.HW_FIELDS || {};
+    editTr.querySelector('input[name="id"]').value = id;
+    editTr.querySelector(`input[name="${F.BRAND || 'brand'}"]`).value = item.brand || '';
+    editTr.querySelector(`input[name="${F.MODEL || 'model'}"]`).value = item.model || '';
+    editTr.querySelector(`input[name="${F.SERIES || 'series'}"]`).value = item.series || '';
+    editTr.querySelector(`input[name="${F.SERIAL_NUMBER || 'serial_number'}"]`).value = item.serial_number || '';
+    editTr.querySelector(`input[name="${F.CPU_SPECS || 'cpu_specs'}"]`).value = item.cpu_specs || '';
+    editTr.querySelector(`input[name="${F.CPU_GEN || 'cpu_gen'}"]`).value = item.cpu_gen || '';
+    editTr.querySelector(`input[name="${F.RAM || 'ram'}"]`).value = item.ram || '';
+    editTr.querySelector(`input[name="${F.STORAGE || 'storage'}"]`).value = item.storage || '';
+    editTr.querySelector(`input[name="${F.LOCATION || 'warehouse_location'}"]`).value = item.warehouse_location || '';
+
+    const descSel = editTr.querySelector(`select[name="${F.DESCRIPTION || 'description'}"]`);
+    if (descSel && item.description) descSel.value = item.description;
+
+    // Save Button
+    const saveBtn = editTr.querySelector('.save-edit-btn');
+    saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        const fd = new FormData();
+        editTr.querySelectorAll('.edit-field, input[name="id"]').forEach(input => {
+            fd.append(input.name, input.value);
+        });
+
+        try {
+            const res = await fetch('api/edit_label.php', { method: 'POST', body: fd });
+            const json = await res.json();
+
+            if (json.success) {
+                Toast.success("Updated successfully!");
+                // Update local model
+                Object.assign(item, {
+                    brand: fd.get(F.BRAND || 'brand'),
+                    model: fd.get(F.MODEL || 'model'),
+                    series: fd.get(F.SERIES || 'series'),
+                    serial_number: fd.get(F.SERIAL_NUMBER || 'serial_number'),
+                    cpu_specs: fd.get(F.CPU_SPECS || 'cpu_specs'),
+                    cpu_gen: fd.get(F.CPU_GEN || 'cpu_gen'),
+                    ram: fd.get(F.RAM || 'ram'),
+                    storage: fd.get(F.STORAGE || 'storage'),
+                    warehouse_location: fd.get(F.LOCATION || 'warehouse_location'),
+                    description: fd.get(F.DESCRIPTION || 'description')
+                });
+                const newRow = buildInventoryRow(item);
+                editTr.replaceWith(newRow);
+            } else {
+                Toast.error("Update failed: " + (json.error || ''));
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save';
+            }
+        } catch (err) {
+            Toast.error("Network error saving changes.");
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save';
+        }
+    });
+
+    // Cancel Button
+    const cancelBtn = editTr.querySelector('.cancel-edit-btn');
+    cancelBtn.addEventListener('click', () => {
+        editTr.replaceWith(tr);
+    });
+
+    tr.replaceWith(editTr);
+}
+
+// ── 5. DELETE MODAL & CONFIRMATION ──────────────────────────────────────────
+function openDeleteModal(id, label) {
+    deleteCandidateId = id;
+    const modal = document.getElementById('deleteModal');
+    const text = document.getElementById('deleteConfirmText');
+    if (text) {
+        text.innerHTML = `Are you sure you want to delete <strong>${label}</strong> (#${String(id).padStart(5, '0')}) from inventory?`;
+    }
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    deleteCandidateId = null;
+    const modal = document.getElementById('deleteModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// ── 6. BULK ACTIONS & SELECTION ─────────────────────────────────────────────
+function updateBulkActionBar() {
+    const bar = document.getElementById('bulkActionBar');
+    const countSpan = document.getElementById('selectedCount');
+    const selectAll = document.getElementById('selectAll');
+
+    if (countSpan) countSpan.textContent = selectedIds.size;
+
+    if (bar) {
+        bar.style.display = selectedIds.size > 0 ? 'flex' : 'none';
+    }
+
+    if (selectAll) {
+        const visibleCheckboxes = document.querySelectorAll('#inventoryTableBody .row-select');
+        selectAll.checked = visibleCheckboxes.length > 0 && Array.from(visibleCheckboxes).every(c => c.checked);
+    }
+}
+
+// ── 7. CSV EXPORT ────────────────────────────────────────────────────────────
+function exportInventoryToCSV() {
+    if (!currentInventory || currentInventory.length === 0) {
+        Toast.warning("No records to export.");
+        return;
+    }
+
+    const headers = [
+        "Item ID", "Brand", "Model", "Series", "CPU Specs", "CPU Gen", "Cores",
+        "RAM", "Storage", "Location", "Condition", "Status", "Serial Number",
+        "GPU", "Battery", "OS", "Created At"
+    ];
+
+    const escapeCsv = (str) => {
+        if (str === null || str === undefined) return '""';
+        const s = String(str).replace(/"/g, '""');
+        return `"${s}"`;
+    };
+
+    const rows = [headers.join(',')];
+
+    currentInventory.forEach(it => {
+        const line = [
+            it.id,
+            escapeCsv(it.brand),
+            escapeCsv(it.model),
+            escapeCsv(it.series),
+            escapeCsv(it.cpu_specs),
+            escapeCsv(it.cpu_gen),
+            escapeCsv(it.cpu_cores),
+            escapeCsv(it.ram),
+            escapeCsv(it.storage),
+            escapeCsv(it.warehouse_location),
+            escapeCsv(it.description),
+            escapeCsv(it.status),
+            escapeCsv(it.serial_number),
+            escapeCsv(it.gpu),
+            it.battery == 1 ? "Yes" : (it.battery == '0' ? "No" : ""),
+            escapeCsv(it.os_version),
+            escapeCsv(it.created_at)
+        ];
+        rows.push(line.join(','));
+    });
+
+    const csvContent = rows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().substring(0, 10);
+    link.href = url;
+    link.download = `Warehouse_Inventory_${timestamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    Toast.success(`Exported ${currentInventory.length} items to CSV`);
+}
+
+// ── 8. DOM INITIALIZATION ───────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Initial Table Render from injected data
+    if (window.INITIAL_INVENTORY && Array.isArray(window.INITIAL_INVENTORY)) {
+        renderInventoryTable(window.INITIAL_INVENTORY);
+    }
+
+    // 2. Filter Pills Click
+    document.querySelectorAll('.filter-status-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-status-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilterStatus = btn.dataset.status;
+            executeInventoryFilter();
+        });
+    });
+
+    // 3. Search Input Debouncing
+    const searchInput = document.getElementById('filterSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(executeInventoryFilter, 280);
+        });
+    }
+
+    const clearBtn = document.getElementById('clearFilterBtn');
+    if (clearBtn && searchInput) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            executeInventoryFilter();
+            searchInput.focus();
+        });
+    }
+
+    // 4. Select All Checkbox
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            const isChecked = selectAll.checked;
+            document.querySelectorAll('#inventoryTableBody .row-select').forEach(chk => {
+                chk.checked = isChecked;
+                const tr = chk.closest('tr');
+                if (tr && tr.dataset.id) {
+                    if (isChecked) selectedIds.add(String(tr.dataset.id));
+                    else selectedIds.delete(String(tr.dataset.id));
+                }
+            });
+            updateBulkActionBar();
+        });
+    }
+
+    // 5. Bulk Actions Apply
+    const applyBulkBtn = document.getElementById('applyBulkBtn');
+    if (applyBulkBtn) {
+        applyBulkBtn.addEventListener('click', async () => {
+            if (selectedIds.size === 0) return;
+
+            const bulkStatus = document.getElementById('bulkStatus').value;
+            const bulkLoc = document.getElementById('bulkLocation').value.trim();
+
+            if (!bulkStatus && !bulkLoc) {
+                Toast.warning("Please choose a status or location to apply.");
+                return;
+            }
+
+            const csrfToken = document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : '';
+
+            applyBulkBtn.disabled = true;
+            applyBulkBtn.textContent = 'Applying...';
+
+            try {
+                const res = await fetch('api/bulk_update.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        csrf_token: csrfToken,
+                        ids: Array.from(selectedIds),
+                        status: bulkStatus || null,
+                        location: bulkLoc || null
+                    })
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    Toast.success(`Updated ${selectedIds.size} items!`);
+                    selectedIds.clear();
+                    updateBulkActionBar();
+                    executeInventoryFilter();
+                } else {
+                    Toast.error("Bulk update failed: " + (json.error || ''));
+                }
+            } catch (err) {
+                Toast.error("Network error performing bulk update.");
+            } finally {
+                applyBulkBtn.disabled = false;
+                applyBulkBtn.textContent = 'Apply Changes';
+            }
+        });
+    }
+
+    // Cancel Bulk
+    const cancelBulkBtn = document.getElementById('cancelBulkBtn');
+    if (cancelBulkBtn) {
+        cancelBulkBtn.addEventListener('click', () => {
+            selectedIds.clear();
+            document.querySelectorAll('#inventoryTableBody .row-select').forEach(c => c.checked = false);
+            updateBulkActionBar();
+        });
+    }
+
+    // 6. Delete Confirmation
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!deleteCandidateId) return;
+
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = 'Deleting...';
+
+            const fd = new FormData();
+            fd.append('id', deleteCandidateId);
+
+            try {
+                const res = await fetch('api/delete_label.php', { method: 'POST', body: fd });
+                const json = await res.json();
+
+                if (json.success) {
+                    Toast.success("Item deleted from inventory.");
+                    const row = document.querySelector(`tr[data-id="${deleteCandidateId}"]`);
+                    if (row) {
+                        row.style.opacity = '0';
+                        row.style.transform = 'scale(0.95)';
+                        setTimeout(() => row.remove(), 250);
+                    }
+                    currentInventory = currentInventory.filter(it => String(it.id) !== String(deleteCandidateId));
+                    selectedIds.delete(String(deleteCandidateId));
+                    updateBulkActionBar();
+                    closeDeleteModal();
+                } else {
+                    Toast.error("Delete failed: " + (json.error || ''));
+                }
+            } catch (err) {
+                Toast.error("Network error deleting item.");
+            } finally {
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.textContent = 'Yes, Delete Item';
+            }
+        });
+    }
+
+    // 7. CSV Export Button
+    const exportBtn = document.getElementById('btnExportCSV');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportInventoryToCSV);
     }
 });
-
-function pad(n, len) {
-    return String(n).padStart(len, '0');
-}
-
-function fmtDate(ts) {
-    if (!ts) return '—';
-    const d = new Date(ts);
-    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}

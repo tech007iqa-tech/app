@@ -1,10 +1,10 @@
 <?php
 // api/bulk_update.php
 header('Content-Type: application/json');
+require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/hardware_mapping.php';
-require_once __DIR__ . '/../../core/Security.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 

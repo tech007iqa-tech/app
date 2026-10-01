@@ -1,252 +1,321 @@
 <?php
-// labels.php
-require_once 'includes/db.php';
-require_once 'includes/functions.php';
-require_once 'includes/hardware_mapping.php';
-require_once 'includes/header.php';
+// labels/labels.php
+// Warehouse Inventory Tracker & Management Page
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/hardware_mapping.php';
+require_once __DIR__ . '/includes/header.php';
 
-// Initial server-side load (no filter) — JS takes over on filter/search
+// Initial server-side load (Limit 200 items)
 $inventory = [];
 try {
     $stmt = $pdo_labels->query("SELECT * FROM items ORDER BY created_at DESC LIMIT 200");
     $inventory = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    error_log("Database error in labels.php: " . $e->getMessage());
-}
+} catch (Exception $e) {}
 ?>
 
-<!-- Page Header + Filter Bar -->
-<div class="panel mb-spacing">
-    <div class="flex-between mb-15">
-        <div>
-            <h1>📦 Labeled Inventory</h1>
-            <?= UI::csrf_field() ?>
-            <p>Master list of hardware configurations. Reuse these for printing labels or building orders.</p>
-        </div>
-        <a href="new_label.php" class="btn btn-primary">➕ Create New Label Profile</a>
+<!-- INVENTORY HEADER & FILTER BAR -->
+<div class="panel flex-between" style="margin-bottom: 20px; padding: 20px 28px;">
+    <div>
+        <h1 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 4px;">📦 Warehouse Inventory Tracker</h1>
+        <?= UI::csrf_field() ?>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Real-time hardware stock. Search, inline-edit, bulk update, and print thermal labels.
+        </p>
     </div>
-
-    <!-- Bulk Action Bar (Hidden by default) -->
-    <div id="bulkActionBar" class="bulk-action-bar" style="display:none;">
-        <div class="bulk-info">
-            <span id="selectedCount">0</span> items selected
-        </div>
-        <div class="bulk-actions">
-            <select id="bulkStatus" class="filter-select" style="width: auto;">
-                <option value="">-- Change Status --</option>
-                <option value="Tested">✅ Tested</option>
-                <option value="In Warehouse">📦 In Warehouse</option>
-                <option value="For Parts">🛠️ For Parts</option>
-            </select>
-            <input type="text" id="bulkLocation" placeholder="New Location" style="width: 120px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <button id="applyBulkBtn" class="btn btn-success">Apply to All</button>
-            <button id="cancelBulkBtn" class="btn btn-secondary-outline">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Filter Controls -->
-    <div class="filter-controls">
-        <input type="text" id="filterSearch"
-               placeholder="Search brand, model, series, location, S/N, ID…"
-               class="filter-search-input">
-
-        <select id="filterStatus" class="filter-select" style="padding:10px; border-radius:8px; border:1px solid var(--border-color); color:var(--text-main);">
-            <option value="In Warehouse">📦 In Warehouse</option>
-            <option value="all">🌐 View All</option>
-        </select>
-
-        <button id="clearFilterBtn" class="btn btn-secondary-outline">
-            ✕ Clear
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" id="btnExportCSV" class="btn btn-secondary" title="Export filtered records to Excel CSV">
+            <span>📥 Export CSV</span>
         </button>
+        <a href="new_label.php" class="btn btn-success">
+            <span>➕ Intake New Hardware</span>
+        </a>
     </div>
-
-    <div id="filterMsg" class="filter-message"></div>
 </div>
 
-<!-- Inventory Table -->
-<div class="panel">
+<!-- FILTER & SEARCH PANEL -->
+<div class="panel" style="padding: 18px 24px; margin-bottom: 20px;">
+    <!-- Bulk Action Bar (Visible when items selected) -->
+    <div id="bulkActionBar" class="bulk-action-bar-modern" style="display:none;">
+        <div class="bulk-count-badge">
+            <span id="selectedCount">0</span> items selected
+        </div>
+        <div class="bulk-controls-group">
+            <select id="bulkStatus" class="bulk-select">
+                <option value="">-- Change Condition --</option>
+                <option value="Refurbished">✅ Refurbished / Tested</option>
+                <option value="Untested">⏳ Untested</option>
+                <option value="For Parts">🛠️ For Parts / Defect</option>
+            </select>
+            <input type="text" id="bulkLocation" placeholder="New Location (e.g. Shelf B-2)" class="bulk-input">
+            <button type="button" id="applyBulkBtn" class="btn btn-sm btn-success">Apply Changes</button>
+            <button type="button" id="cancelBulkBtn" class="btn btn-sm btn-secondary">Deselect All</button>
+        </div>
+    </div>
+
+    <!-- Filter Pills Row -->
+    <div class="filter-pills-shelf">
+        <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Filter Status:</span>
+        <button type="button" class="filter-status-pill active" data-status="In Warehouse">📦 In Warehouse</button>
+        <button type="button" class="filter-status-pill" data-status="Refurbished">✅ Refurbished</button>
+        <button type="button" class="filter-status-pill" data-status="Untested">⏳ Untested</button>
+        <button type="button" class="filter-status-pill" data-status="For Parts">🛠️ For Parts</button>
+        <button type="button" class="filter-status-pill" data-status="Sold">🚚 Sold / Archive</button>
+        <button type="button" class="filter-status-pill" data-status="all">🌐 All Records</button>
+    </div>
+
+    <!-- Search Bar with Instant Debounce -->
+    <div class="search-filter-controls">
+        <div class="search-input-box" style="flex: 1; position: relative;">
+            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: var(--text-muted);">🔎</span>
+            <input type="text" id="filterSearch" placeholder="Search by ID, Brand, Model, S/N, Location, or Processor..." autocomplete="off" style="padding-left: 42px; height: 48px; border-radius: var(--border-radius-full);">
+            <button type="button" id="clearFilterBtn" class="clear-search-btn" title="Clear Search">✕</button>
+        </div>
+
+        <div id="filterMsg" class="filter-results-counter">
+            Showing <?= count($inventory) ?> item(s)
+        </div>
+    </div>
+</div>
+
+<!-- INVENTORY DATA TABLE PANEL -->
+<div class="panel" style="padding: 0; overflow: hidden;">
     <div class="table-container">
-        <table class="data-table">
+        <table class="data-table" id="inventoryTable">
             <thead>
                 <tr>
-                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAll"></th>
-                    <th>Brand &amp; Model</th>
-                    <th>CPU</th>
-                    <th>RAM / Storage</th>
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="selectAll" class="row-select" title="Select All">
+                    </th>
+                    <th>Device &amp; S/N</th>
+                    <th>Processor (CPU)</th>
+                    <th>RAM &amp; Storage</th>
                     <th>Location</th>
                     <th>Condition</th>
                     <th>Added</th>
-                    <th>Actions</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody id="inventoryTableBody">
-                <!-- Data Hydrated by labels.js via #inventoryRowTemplate -->
-                <tr>
-                    <td colspan="7" class="text-center empty-table-message" style="padding: 50px;">
-                        <div class="loader-spinner" style="margin-bottom:10px;">⏳</div>
-                        Waking up the warehouse...
-                    </td>
-                </tr>
+                <!-- Hydrated via JavaScript buildRow() or window.INITIAL_INVENTORY -->
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Inject Initial Data for JS Hydration -->
-<script>
-    window.INITIAL_INVENTORY = <?= json_encode($inventory) ?>;
-</script>
+<!-- DELETE CONFIRMATION MODAL -->
+<div id="deleteModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeDeleteModal()">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 style="color:var(--color-danger);">🗑️ Confirm Permanent Delete</h3>
+            <button type="button" class="modal-close-btn" onclick="closeDeleteModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="deleteConfirmText" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); margin-bottom: 12px;">
+                Are you sure you want to remove this hardware item from inventory?
+            </p>
+            <div style="padding: 12px; background: var(--color-danger-soft); border-radius: var(--border-radius-sm); color: var(--color-danger); font-size: 0.82rem;">
+                ⚠️ This will permanently remove the record from <code>labels.sqlite</code>.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete Item</button>
+        </div>
+    </div>
+</div>
 
-<!-- TEMPLATES FOR DYNAMIC UI -->
-<!-- Template A: Display Row (Used by buildRow in labels.js) -->
+<!-- ROW TEMPLATE FOR FAST HYDRATION -->
 <template id="inventoryRowTemplate">
     <tr data-id="">
-        <td style="text-align: center;"><input type="checkbox" class="row-select"></td>
-        <td data-label="Model">
-            <a href="#" class="tpl-link font-bold text-lg no-underline text-main">BRAND MODEL</a>
-            <div class="tpl-series text-sm text-secondary">SERIES</div>
-            <div class="tpl-sn text-xs" style="margin-top:4px; font-family:monospace; color:var(--text-secondary);">
-                <span class="tpl-sn-text">S/N</span>
-                <span class="tpl-sn-empty" style="opacity:0.5; display:none;">No Serial</span>
+        <td style="text-align: center;">
+            <input type="checkbox" class="row-select">
+        </td>
+        <td>
+            <a href="#" class="tpl-link font-bold text-main" style="font-size: 0.95rem;">BRAND MODEL</a>
+            <div class="tpl-series text-secondary" style="font-size: 0.78rem;">SERIES</div>
+            <div class="tpl-sn" style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 2px;">
+                S/N: <span class="tpl-sn-text">—</span>
             </div>
         </td>
-        <td data-label="CPU" class="text-sm">
-            <div class="tpl-cpu-gen">GEN</div>
-            <div class="tpl-cpu-specs text-xs text-secondary">SPECS</div>
+        <td>
+            <div class="tpl-cpu-specs font-bold text-main" style="font-size: 0.85rem;">SPECS</div>
+            <div class="tpl-cpu-gen text-secondary" style="font-size: 0.75rem;">GEN</div>
         </td>
-        <td data-label="RAM/HDD" class="text-sm">
-            <span class="tpl-ram">RAM</span> / <span class="tpl-storage">STORAGE</span>
-        </td>
-        <td data-label="Location">
-            <div class="tpl-location-box">
-                <span class="tpl-location font-bold text-main">LOCATION</span>
+        <td>
+            <div style="font-size: 0.85rem; font-weight: 700;">
+                <span class="tpl-ram">16 GB</span> &nbsp;/&nbsp; <span class="tpl-storage">256 GB</span>
             </div>
+            <div class="tpl-battery text-muted" style="font-size: 0.72rem;">Batt: YES</div>
         </td>
-        <td data-label="Status">
-            <div class="tpl-status-box">
-                <span class="tpl-badge status-badge">CONDITION</span>
-                <div class="tpl-sold-badge" style="margin-top:4px; display:none;">
-                    <span class="status-badge" style="background:#4b5563; font-size:10px;">🚚 SOLD</span>
-                </div>
-            </div>
+        <td>
+            <span class="badge badge-neutral tpl-location" style="font-size: 0.75rem; font-weight: 800;">📍 A-1-1</span>
         </td>
-        <td data-label="Added" class="tpl-added text-xs text-secondary">DATE</td>
-        <td class="whitespace-nowrap">
+        <td>
+            <span class="badge tpl-badge">UNTESTED</span>
+            <div class="tpl-status-sub" style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">In Warehouse</div>
+        </td>
+        <td class="tpl-added text-secondary" style="font-size: 0.78rem; white-space: nowrap;">DATE</td>
+        <td style="text-align: right; white-space: nowrap;">
             <div class="action-strip">
-                <button class="btn launch-odt-btn" data-id="" data-brand="" data-model="" title="Generate & Open ODT Label" style="background: var(--text-main); color: white;">🏷️ Label</button>
-                <button class="btn edit-btn" data-id="">✏️ Edit</button>
-                <button class="btn btn-danger delete-btn" data-id="" data-label="">🗑 Del</button>
+                <button type="button" class="btn btn-sm btn-success tpl-btn-print" title="Thermal Label Direct Print">🖨️ Print</button>
+                <button type="button" class="btn btn-sm btn-secondary tpl-btn-view" title="Quick View Specs">👁️</button>
+                <button type="button" class="btn btn-sm btn-secondary tpl-btn-edit" title="Edit Hardware Record">✏️</button>
+                <button type="button" class="btn btn-sm btn-danger tpl-btn-del" title="Delete Hardware Record">🗑️</button>
             </div>
         </td>
     </tr>
 </template>
 
-<!-- Template B: Inline Edit Row (Used by openEditRow in labels.js) -->
+<!-- INLINE EDIT ROW TEMPLATE -->
 <template id="editRowTemplate">
-    <tr class="edit-mode-row">
-        <td style="vertical-align:top;" class="tpl-edit-cell-main">
+    <tr class="edit-mode-row" style="background: var(--bg-surface-2) !important;">
+        <td></td>
+        <td>
             <input type="hidden" name="id">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['BRAND'] ?>" placeholder="Brand" style="width:90px;margin-bottom:4px;padding:6px;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['MODEL'] ?>" placeholder="Model" style="width:100px;margin-bottom:4px;padding:6px;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['SERIES'] ?>" placeholder="Series" style="width:85px;margin-bottom:4px;padding:6px;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['SERIAL_NUMBER'] ?>" placeholder="Serial S/N" style="width:85px;padding:6px;font-family:monospace;font-size:0.75rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['BRAND'] ?>" placeholder="Brand" style="margin-bottom:4px; height:34px; font-size:0.85rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['MODEL'] ?>" placeholder="Model" style="margin-bottom:4px; height:34px; font-size:0.85rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['SERIES'] ?>" placeholder="Series" style="margin-bottom:4px; height:34px; font-size:0.85rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['SERIAL_NUMBER'] ?>" placeholder="Serial S/N" style="height:34px; font-size:0.75rem; font-family:var(--font-mono);">
         </td>
-        <td style="vertical-align:top;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_GEN'] ?>" placeholder="Gen" style="width:110px;margin-bottom:4px;padding:6px;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_SPECS'] ?>" placeholder="Specs" style="width:110px;margin-bottom:4px;padding:6px;">
-            <div style="display:flex;gap:4px;">
-                <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_CORES'] ?>" placeholder="Cores" style="width:53px;padding:6px;font-size:0.75rem;">
-                <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_SPEED'] ?>" placeholder="Speed" style="width:53px;padding:6px;font-size:0.75rem;">
-            </div>
+        <td>
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_SPECS'] ?>" placeholder="CPU Model" style="margin-bottom:4px; height:34px; font-size:0.85rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['CPU_GEN'] ?>" placeholder="Generation" style="height:34px; font-size:0.85rem;">
         </td>
-        <td style="vertical-align:top;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['RAM'] ?>" placeholder="RAM" style="width:65px;margin-bottom:4px;padding:6px;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['STORAGE'] ?>" placeholder="Storage" style="width:100px;padding:6px;">
+        <td>
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['RAM'] ?>" placeholder="RAM" style="margin-bottom:4px; height:34px; font-size:0.85rem;">
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['STORAGE'] ?>" placeholder="Storage" style="height:34px; font-size:0.85rem;">
         </td>
-        <td style="vertical-align:top;">
-            <input type="text" class="edit-field" name="<?= HW_FIELDS['LOCATION'] ?>" placeholder="Location" style="width:95px;padding:6px;">
+        <td>
+            <input type="text" class="edit-field" name="<?= HW_FIELDS['LOCATION'] ?>" placeholder="Location" style="height:34px; font-size:0.85rem;">
         </td>
-        <td style="vertical-align:top;">
-            <select class="edit-field" name="<?= HW_FIELDS['DESCRIPTION'] ?>" style="padding:6px;width:110px;">
+        <td>
+            <select class="edit-field" name="<?= HW_FIELDS['DESCRIPTION'] ?>" style="height:34px; font-size:0.85rem;">
                 <option value="Untested">Untested</option>
                 <option value="Refurbished">Refurbished</option>
                 <option value="For Parts">For Parts</option>
             </select>
         </td>
-        <td class="tpl-edit-added text-xs text-secondary" style="vertical-align:top; padding-top:12px;">DATE</td>
-        <td class="whitespace-nowrap" style="vertical-align:top;">
-            <div style="display:flex; flex-direction:column; gap:6px;">
-                <button class="btn btn-success save-edit-btn" data-id="" style="font-size:0.75rem;padding:5px 10px;">💾 Save</button>
-                <button class="btn cancel-edit-btn" style="font-size:0.75rem;padding:5px 10px;background:var(--bg-page);border:1px solid var(--border-color);color:var(--text-main);">✕ Cancel</button>
+        <td class="tpl-edit-added" style="font-size:0.75rem; color:var(--text-muted); vertical-align:middle;">DATE</td>
+        <td style="text-align: right; vertical-align: middle;">
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+                <button type="button" class="btn btn-sm btn-success save-edit-btn">💾 Save</button>
+                <button type="button" class="btn btn-sm btn-secondary cancel-edit-btn">✕ Cancel</button>
             </div>
         </td>
     </tr>
 </template>
 
-<script src="assets/js/labels.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById('nav-labels').classList.add('active');
-
-        // Clear filter button
-        document.getElementById('clearFilterBtn').addEventListener('click', () => {
-            const search = document.getElementById('filterSearch');
-            search.value = '';
-            search.dispatchEvent(new Event('input'));
-        });
-    });
-</script>
-
 <style>
-    .mb-spacing { margin-bottom: var(--spacing); }
-    .mb-15 { margin-bottom: 15px; }
-    .filter-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .filter-search-input { flex: 1; min-width: 240px; }
-    .btn-secondary-outline { background: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 10px 14px; }
-    .filter-message { margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary); min-height: 18px; }
-    .data-table .text-center { text-align: center; }
-    .empty-table-message { padding: 30px; font-style: italic; color: var(--text-secondary); }
-    .empty-table-message .btn-link { color: var(--accent-color); text-decoration: underline; }
-    .font-bold { font-weight: bold; }
-    .text-lg { font-size: 1.1rem; }
-    .text-sm { font-size: 0.9rem; }
-    .text-xs { font-size: 0.85rem; }
-    .text-secondary { color: var(--text-secondary); }
-    .text-main { color: var(--text-main); }
-    .text-accent { color: var(--accent-color); }
-    .no-underline { text-decoration: none; }
-    .whitespace-nowrap { white-space: nowrap; }
-    .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #fff; display: inline-block; }
-    .status-for-parts { background: #ef4444; }
-    .status-refurbished { background: var(--accent-color); }
-    .status-untested { background: #f39c12; }
-    .edit-mode-row { background: var(--bg-surface-2) !important; }
+.filter-pills-shelf {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
 
-    /* Bulk Actions */
-    .bulk-action-bar {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        background: var(--accent-gradient);
-        color: white;
-        padding: 15px 25px;
-        margin: -25px -25px 20px -25px;
-        border-radius: 16px 16px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        animation: slideDown 0.3s ease forwards;
-    }
-    .bulk-info { font-weight: 800; font-size: 1.1rem; }
-    .bulk-actions { display: flex; gap: 10px; align-items: center; }
-    .bulk-actions input, .bulk-actions select { background: white; color: var(--text-main); }
+.filter-status-pill {
+    padding: 6px 14px;
+    border-radius: var(--border-radius-full);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface-2);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
 
-    @keyframes slideDown {
-        from { transform: translateY(-100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
+.filter-status-pill:hover {
+    color: var(--text-main);
+    border-color: var(--accent-color);
+}
+
+.filter-status-pill.active {
+    background: var(--accent-color);
+    color: #ffffff;
+    border-color: var(--accent-color);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.search-filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+}
+
+.clear-search-btn:hover {
+    color: var(--text-main);
+}
+
+.filter-results-counter {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Bulk Bar Modern */
+.bulk-action-bar-modern {
+    background: var(--text-main);
+    color: var(--bg-page);
+    border-radius: var(--border-radius-md);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    animation: fadeIn 0.2s ease;
+}
+
+.bulk-count-badge {
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.bulk-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bulk-select, .bulk-input {
+    height: 36px;
+    border-radius: var(--border-radius-sm);
+    padding: 0 10px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-panel);
+    color: var(--text-main);
+}
 </style>
 
-<?php require_once 'includes/footer.php'; ?>
+<!-- Inject Initial Data -->
+<script>
+    window.INITIAL_INVENTORY = <?= json_encode($inventory) ?>;
+</script>
 
+<!-- Modular Inventory Controller -->
+<script src="assets/js/labels.js?v=<?= filemtime(__DIR__ . '/assets/js/labels.js') ?>"></script>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
