@@ -264,10 +264,17 @@
                                                 class="status-badge status-<?= htmlspecialchars($item['status']) ?>"><?= htmlspecialchars($item['status']) ?></span>
                                         <?php endif; ?>
                                         <?php
-                                        $cond = $specs['condition'] ?? 'Used';
+                                        $cond = !empty($specs['condition']) ? $specs['condition'] : 'B Grade';
                                         $cond_class = 'cond-' . strtolower(str_replace(' ', '-', $cond));
                                         ?>
-                                        <span class="condition-badge <?= $cond_class ?>"><?= htmlspecialchars($cond) ?></span>
+                                        <button type="button" 
+                                            class="condition-badge-btn condition-badge <?= $cond_class ?>" 
+                                            data-id="<?= (int)$item['id'] ?>"
+                                            onclick="cycleWarehouseCondition(this, event)" 
+                                            oncontextmenu="openConditionPicker(this, event)"
+                                            title="Click to swap condition | Right-click for options">
+                                            <?= htmlspecialchars($cond) ?>
+                                        </button>
                                         <?php if ($item['sector'] === 'Laptops'): ?>
                                             <span class="battery-badge <?= empty($specs['battery']) ? 'missing' : '' ?>"
                                                 title="Battery Status">

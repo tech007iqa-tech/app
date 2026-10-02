@@ -277,7 +277,7 @@
                             style="width:100%; height:42px; border-radius:10px; border:1px solid #ddd; padding: 0 12px; font-weight:700;">
                             <option value="A Grade" style="background-color: #dcfce740; color: #0b3f1eff;">A Grade
                             </option>
-                            <option value="B Grade" style="background-color: #e0f2fe40; color: #014468ff;">B Grade
+                            <option value="B Grade" selected style="background-color: #e0f2fe40; color: #014468ff;">B Grade
                             </option>
                             <option value="C Grade" style="background-color: #faf5ff40; color: #531888ff;">C Grade
                             </option>

@@ -239,32 +239,51 @@ function renderGrid(passcodes, seqKey) {
     updatePrintCardSource(passcodes, seqKey);
 }
 
-function updatePrintCardSource(passcodes, seqKey) {
+function getPasscardHtml() {
     const source = document.getElementById('ppp-printable-card-source');
-    if (!source) return;
+    if (source && source.innerHTML.trim().length > 100) {
+        return source.innerHTML.trim();
+    }
+    return generatePasscardHtmlFromDOM();
+}
 
+function generatePasscardHtmlFromDOM() {
     const state = typeof getSettingsState === 'function' ? getSettingsState() : {};
-    const username = state.username || '';
+    const username = state.username || document.getElementById('account_username')?.value || 'User';
+
+    const keyInput = document.getElementById('ppp_display_key');
+    const seqKey = (pendingSeqKey || keyInput?.value || state.seq_key || '').trim();
 
     const lengthInput = document.getElementById('ppp_length_input');
-    const length = lengthInput ? (parseInt(lengthInput.value) || 30) : 30;
+    const length = lengthInput ? (parseInt(lengthInput.value) || 30) : (state.saved_pass_len || 30);
 
+    const tbody = document.getElementById('ppp-grid-tbody');
     let tableRowsHtml = '';
-    for (let r = 0; r < 25; r++) {
-        const rowLabel = String(r + 1).padStart(2, '0');
-        let cellsHtml = '';
-        for (let c = 0; c < 5; c++) {
-            cellsHtml += `<td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap;'>${passcodes[r * 5 + c] || ''}</td>`;
-        }
-        tableRowsHtml += `<tr>
-            <td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; background: #fafafa; white-space: nowrap;'>${rowLabel}</td>
-            ${cellsHtml}
-        </tr>`;
+
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach((tr, r) => {
+            const rowLabel = String(r + 1).padStart(2, '0');
+            const cells = tr.querySelectorAll('.ppp-cell');
+            let cellsHtml = '';
+            cells.forEach(td => {
+                cellsHtml += `<td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap;'>${td.innerText || ''}</td>`;
+            });
+            const rowBg = (r % 2 === 0) ? '#fafafa' : '#ffffff';
+            tableRowsHtml += `<tr style='background: ${rowBg};'>
+                <td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; white-space: nowrap;'>${rowLabel}</td>
+                ${cellsHtml}
+            </tr>`;
+        });
     }
 
-    source.innerHTML = `
-        <div style="border: 2px dashed #333; border-radius: 12px; padding: 20px; max-width: 100%; width: 100%; box-sizing: border-box; background: white; color: black; font-family: 'Courier New', Courier, monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin: 20px auto;">
-            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">
+    if (!tableRowsHtml) {
+        return '';
+    }
+
+    const cardHtml = `
+        <div style="border: 2px dashed #333; border-radius: 12px; padding: 20px; max-width: 100%; width: 100%; box-sizing: border-box; background: white; color: black; font-family: 'Courier New', Courier, monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin: 10px auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">
                 <strong style="font-size: 16px; letter-spacing: 1px;">PERFECT PAPER PASSCARD</strong>
                 <span style="font-size: 14px; font-weight: bold;">User: ${username}</span>
             </div>
@@ -291,18 +310,131 @@ function updatePrintCardSource(passcodes, seqKey) {
             </div>
         </div>
     `;
+
+    const source = document.getElementById('ppp-printable-card-source');
+    if (source) source.innerHTML = cardHtml;
+
+    return cardHtml;
+}
+
+function updatePrintCardSource(passcodes, seqKey) {
+    const source = document.getElementById('ppp-printable-card-source');
+    const state = typeof getSettingsState === 'function' ? getSettingsState() : {};
+    const username = state.username || document.getElementById('account_username')?.value || 'User';
+
+    const lengthInput = document.getElementById('ppp_length_input');
+    const length = lengthInput ? (parseInt(lengthInput.value) || 30) : 30;
+
+    let tableRowsHtml = '';
+    for (let r = 0; r < 25; r++) {
+        const rowLabel = String(r + 1).padStart(2, '0');
+        let cellsHtml = '';
+        for (let c = 0; c < 5; c++) {
+            cellsHtml += `<td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap;'>${passcodes[r * 5 + c] || ''}</td>`;
+        }
+        const rowBg = (r % 2 === 0) ? '#fafafa' : '#ffffff';
+        tableRowsHtml += `<tr style='background: ${rowBg};'>
+            <td style='padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; white-space: nowrap;'>${rowLabel}</td>
+            ${cellsHtml}
+        </tr>`;
+    }
+
+    const cardHtml = `
+        <div style="border: 2px dashed #333; border-radius: 12px; padding: 20px; max-width: 100%; width: 100%; box-sizing: border-box; background: white; color: black; font-family: 'Courier New', Courier, monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin: 10px auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">
+                <strong style="font-size: 16px; letter-spacing: 1px;">PERFECT PAPER PASSCARD</strong>
+                <span style="font-size: 14px; font-weight: bold;">User: ${username}</span>
+            </div>
+            <div style="font-size: 10px; margin-bottom: 15px; word-break: break-all; border: 1px solid #ddd; padding: 8px; background: #f9f9f9; border-radius: 6px;">
+                <strong>SEQUENCE KEY:</strong><br>${seqKey}
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; table-layout: auto;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #000; background: #eee;">
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; width: 50px;">Row</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">A</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">B</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">C</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">D</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">E</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRowsHtml}
+                </tbody>
+            </table>
+            <div style="margin-top: 15px; text-align: center; font-size: 9px; color: #666; border-top: 1px solid #eee; padding-top: 8px;">
+                GRC Perfect Paper Passwords &bull; Password Length: ${length} &bull; Keep this card secure and offline.
+            </div>
+        </div>
+    `;
+
+    if (source) {
+        source.innerHTML = cardHtml;
+    }
+
+    const modalContent = document.getElementById('ppp-view-modal-content');
+    if (modalContent) {
+        modalContent.innerHTML = cardHtml;
+    }
 }
 
 function printPPPCard() {
-    const source = document.getElementById('ppp-printable-card-source');
-    if (!source) return;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Print PPP Passcard</title></head><body style="margin:20px;">' + source.innerHTML + '</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
+    const cardHtml = getPasscardHtml();
+    if (!cardHtml) {
+        alert("Please generate or load a Sequence Key first.");
+        return;
+    }
+
+    const state = typeof getSettingsState === 'function' ? getSettingsState() : {};
+    const username = state.username || document.getElementById('account_username')?.value || 'User';
+
+    let iframe = document.getElementById('ppp-print-iframe');
+    if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'ppp-print-iframe';
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.style.visibility = 'hidden';
+        document.body.appendChild(iframe);
+    }
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Print PPP Passcard - ${username}</title>
+            <style>
+                @page { size: auto; margin: 10mm; }
+                body {
+                    margin: 0;
+                    padding: 10px;
+                    font-family: 'Courier New', Courier, monospace;
+                    background: white;
+                    color: black;
+                }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                }
+            </style>
+        </head>
+        <body>
+            ${cardHtml}
+        </body>
+        </html>
+    `);
+    doc.close();
+
     setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
     }, 250);
 }
 
@@ -311,23 +443,194 @@ function printQRCode() {
     const qrImgSrc = qrImg ? qrImg.src : '';
     const captionEl = document.getElementById('ppp_qr_caption_key');
     const key = captionEl ? captionEl.innerText : '';
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Print QR Code</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;height:90vh;margin:0;font-family:monospace;text-align:center;}img{max-width:300px;margin-bottom:20px;}.key{font-size:1.2rem;word-break:break-all;max-width:600px;}</style></head><body><img src="' + qrImgSrc + '" alt="QR Code"><div class="key"><strong>Sequence Key:</strong><br>' + key + '</div></body></html>');
-    printWindow.document.close();
-    printWindow.focus();
+
+    let iframe = document.getElementById('ppp-qr-print-iframe');
+    if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'ppp-qr-print-iframe';
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.style.visibility = 'hidden';
+        document.body.appendChild(iframe);
+    }
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write('<html><head><title>Print QR Code</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;height:90vh;margin:0;font-family:monospace;text-align:center;}img{max-width:300px;margin-bottom:20px;}.key{font-size:1.2rem;word-break:break-all;max-width:600px;}</style></head><body><img src="' + qrImgSrc + '" alt="QR Code"><div class="key"><strong>Sequence Key:</strong><br>' + key + '</div></body></html>');
+    doc.close();
+
     setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
     }, 250);
 }
 
+let activePasscardModalEscHandler = null;
+
 function viewPPPCard() {
-    const source = document.getElementById('ppp-printable-card-source');
-    if (!source) return;
-    const viewWindow = window.open('', '_blank');
-    viewWindow.document.write('<html><head><title>PPP Passcard</title></head><body style="margin:20px;">' + source.innerHTML + '</body></html>');
-    viewWindow.document.close();
-    viewWindow.focus();
+    const cardHtml = getPasscardHtml();
+    if (!cardHtml) {
+        alert("Please generate or load a Sequence Key first.");
+        return;
+    }
+
+    const modal = document.getElementById('pppPasscardViewModal');
+    const container = document.getElementById('ppp-view-modal-content');
+    if (modal && container) {
+        container.innerHTML = cardHtml;
+        modal.style.display = 'flex';
+
+        if (activePasscardModalEscHandler) {
+            window.removeEventListener('keydown', activePasscardModalEscHandler);
+        }
+        activePasscardModalEscHandler = (e) => {
+            if (e.key === 'Escape') closePPPCardModal();
+        };
+        window.addEventListener('keydown', activePasscardModalEscHandler);
+        return;
+    }
+
+    openPasscardInNewTab();
+}
+
+function closePPPCardModal() {
+    const modal = document.getElementById('pppPasscardViewModal');
+    if (modal) modal.style.display = 'none';
+    if (activePasscardModalEscHandler) {
+        window.removeEventListener('keydown', activePasscardModalEscHandler);
+        activePasscardModalEscHandler = null;
+    }
+}
+
+function openPasscardInNewTab() {
+    const cardHtml = getPasscardHtml();
+    if (!cardHtml) {
+        alert("Please generate or load a Sequence Key first.");
+        return;
+    }
+
+    const state = typeof getSettingsState === 'function' ? getSettingsState() : {};
+    const username = state.username || document.getElementById('account_username')?.value || 'User';
+
+    const w = window.open('', '_blank');
+    if (!w) {
+        alert("Popup was blocked by your browser. Please allow popups or use the View / Print modal.");
+        return;
+    }
+
+    w.document.open();
+    w.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>PPP Passcard - ${username}</title>
+            <style>
+                @page { size: auto; margin: 10mm; }
+                body {
+                    margin: 0;
+                    padding: 30px;
+                    font-family: 'Courier New', Courier, monospace;
+                    background: #f1f5f9;
+                    color: black;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .actions {
+                    margin-bottom: 20px;
+                    display: flex;
+                    gap: 10px;
+                }
+                .btn {
+                    padding: 10px 18px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    border-radius: 8px;
+                    border: none;
+                    cursor: pointer;
+                    background: #4f46e5;
+                    color: white;
+                }
+                @media print {
+                    .actions { display: none; }
+                    body { background: white; padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="actions">
+                <button class="btn" onclick="window.print()">🖨️ Print Passcard</button>
+                <button class="btn" style="background:#64748b;" onclick="window.close()">Close Window</button>
+            </div>
+            <div style="max-width: 650px; width: 100%;">
+                ${cardHtml}
+            </div>
+        </body>
+        </html>
+    `);
+    w.document.close();
+    w.focus();
+}
+
+function downloadPPPCardHtml() {
+    const cardHtml = getPasscardHtml();
+    if (!cardHtml) {
+        alert("Please generate or load a Sequence Key first.");
+        return;
+    }
+
+    const state = typeof getSettingsState === 'function' ? getSettingsState() : {};
+    const username = state.username || document.getElementById('account_username')?.value || 'User';
+    const key = (pendingSeqKey || state.seq_key || '').substring(0, 8);
+
+    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PPP Passcard - ${username}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: 'Courier New', Courier, monospace;
+            background: #f8fafc;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .actions { margin-bottom: 20px; display: flex; gap: 10px; }
+        .btn { padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; background: #4f46e5; color: white; }
+        @media print {
+            .actions { display: none; }
+            body { background: white; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="actions">
+        <button class="btn" onclick="window.print()">🖨️ Print Passcard</button>
+    </div>
+    <div style="max-width: 650px; width: 100%;">
+        ${cardHtml}
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ppp-passcard-${username.toLowerCase()}-${key || 'card'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 async function onRowClick(rowElement, rowNum) {

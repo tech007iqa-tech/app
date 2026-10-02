@@ -197,10 +197,11 @@ if (!empty($selected_loc)) {
                         <div>
                             <label style="display:block; font-size:0.7rem; font-weight:800; text-transform:uppercase; margin-bottom:5px; color:var(--text-secondary, #64748b);">Condition</label>
                             <select name="condition" style="width:100%; height:42px; border-radius:8px; border:1px solid var(--border-color, #cbd5e1); padding:0 10px; font-size:0.85rem; background:var(--bg-body, #ffffff); color:var(--text-main, #0f172a); font-weight:700;">
-                                <option value="Used">Used</option>
-                                <option value="Refurbished">Refurbished</option>
-                                <option value="New">New</option>
-                                <option value="For Parts">For Parts</option>
+                                <option value="B Grade" selected>B Grade</option>
+                                <option value="A Grade">A Grade</option>
+                                <option value="C Grade">C Grade</option>
+                                <option value="No Power">No Power</option>
+                                <option value="No Post">No Post</option>
                             </select>
                         </div>
                         <div>

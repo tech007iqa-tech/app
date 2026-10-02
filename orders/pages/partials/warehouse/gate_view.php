@@ -72,6 +72,15 @@ try {
                                 </button>
                             <?php endif; ?>
                         </div>
+
+                        <!-- Multi-Zone Compare Toggle Button -->
+                        <button type="button" id="btn-gate-toggle-compare" onclick="toggleZoneCompareMode()"
+                            class="btn-gate-compare"
+                            style="border:1px solid #bae6fd; background:#e0f2fe; color:#0284c7; font-weight:800; font-size:0.8rem; padding:6px 14px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; box-shadow:0 1px 3px rgba(2,132,199,0.12);"
+                            title="Compare multiple working zones (or hold-click any zone card)">
+                            <span>⚖️ Compare Zones</span>
+                            <span class="hold-hint" style="font-size:0.62rem; background:rgba(2,132,199,0.18); padding:1px 5px; border-radius:4px; font-weight:800; letter-spacing:0.02em;">Hold Click</span>
+                        </button>
                     <?php endif; ?>
 
                     <div class="search-container" style="max-width: 200px; margin: 0;">
@@ -123,6 +132,9 @@ try {
                     </span>
                     <button type="button" onclick="document.getElementById('zone-photos-modal').style.display='flex'" class="btn-export" style="background: var(--accent-secondary); color: var(--text-main); border: 1px solid var(--border-color); display: inline-flex; width: auto; height: 36px; padding: 0 14px; border-radius: 10px; font-weight: 600; cursor: pointer; align-items: center; justify-content: center; gap: 6px;">
                         📸 View Zone Photos (<?= count($zone_photos) ?>)
+                    </button>
+                    <button type="button" onclick="openZoneComparisonModal(['<?= htmlspecialchars($active_zone_name) ?>'])" class="btn-export" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; font-weight:800; display:inline-flex; width:auto; height:36px; padding:0 14px; border-radius:10px; align-items:center; gap:6px; cursor:pointer;" title="Compare this zone with other zones">
+                        ⚖️ Compare with other Zones...
                     </button>
                 </div>
 

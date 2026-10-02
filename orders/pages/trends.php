@@ -1,4 +1,3 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <?php
 /**
  * Trends & Market Analytics Control Center (Main Orchestrator)
@@ -6,6 +5,8 @@
  */
 
 require_once 'core/database.php';
+
+$user_role = $user_role ?? ($_SESSION['role'] ?? 'Operator');
 
 // 1. Process Actions (B2B Untested & Tested Market AJAX Endpoints)
 include __DIR__ . '/partials/trends_actions.php';
@@ -17,19 +18,46 @@ include __DIR__ . '/partials/trends_data.php';
 <!-- Trends State Hydration Payload -->
 <script id="trends-state" type="application/json">
 <?= json_encode([
-    'filter'             => $filter,
-    'user_role'          => $user_role ?? ($_SESSION['role'] ?? ''),
-    'totals'             => $totals,
-    'top_buyer_name'     => $top_buyer_name,
-    'top_buyer_qty'      => $top_buyer_qty,
-    'popular_brand'      => $popular_brand,
-    'popular_brand_qty'  => $popular_brand_qty,
-    'peak_month'         => $peak_month,
-    'total_ryzen_sold'   => $total_ryzen_sold,
-    'cpu_distribution'   => $cpu_distribution,
-    'price_history'      => $price_history
+    'filter'             => $filter ?? 'all',
+    'user_role'          => $user_role,
+    'totals'             => $totals ?? ['total_qty' => 0, 'total_orders' => 0, 'avg_order_val' => 0.00],
+    'top_buyer_name'     => $top_buyer_name ?? 'None',
+    'top_buyer_qty'      => $top_buyer_qty ?? 0,
+    'popular_brand'      => $popular_brand ?? 'None',
+    'popular_brand_qty'  => $popular_brand_qty ?? 0,
+    'peak_month'         => $peak_month ?? 'N/A',
+    'total_ryzen_sold'   => $total_ryzen_sold ?? 0,
+    'cpu_distribution'   => $cpu_distribution ?? [],
+    'price_history'      => $price_history ?? []
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>
 </script>
+
+<?php if ($user_role === 'Operator'): ?>
+<div class="trends-container">
+    <div class="trends-header">
+        <div>
+            <h1 style="font-weight: 900; font-size: 1.8rem; margin: 0; display: flex; align-items: center; gap: 10px;">
+                💵 B2B Untested Pricing Matrix
+            </h1>
+            <p class="subtitle" style="margin-top: 4px;">
+                Live pricing matrix reference for untested B2B units, inventory valuation, and intake lots.
+            </p>
+        </div>
+    </div>
+
+    <!-- Global Flexible Search Input -->
+    <div class="trends-search-wrapper" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: var(--bg-surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <input type="text" id="trends-search" class="trends-search-input" placeholder="🔍 Type to filter rows (by model, specs, price, CPU etc)..." oninput="handleSearch(this.value)" style="flex: 1; border: none; background: transparent; color: var(--text-main); font-size: 0.95rem; outline: none;">
+        <button type="button" id="clear-search" class="clear-search-btn" onclick="clearSearchInput()" style="display: none; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; padding: 0 5px;">✕</button>
+    </div>
+
+    <!-- 4. Tab Views (Operator sees ONLY B2B Untested Matrix) -->
+    <div id="tab-matrix" class="tab-content active" style="display: block;">
+        <?php include __DIR__ . '/partials/b2b_untested_matrix.php'; ?>
+    </div>
+</div>
+<?php else: ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="trends-container">
     <div class="trends-header">
@@ -56,14 +84,19 @@ include __DIR__ . '/partials/trends_data.php';
     <!-- 3. Dynamic Summary Cards Board & Configuration -->
     <?php include __DIR__ . '/partials/trends_widgets.php'; ?>
 
+    <?php
+    $valid_tabs = ['tab-velocity', 'tab-pricing', 'tab-cpu', 'tab-customers', 'tab-matrix', 'tab-tested'];
+    $active_tab = (isset($_GET['tab']) && in_array($_GET['tab'], $valid_tabs)) ? $_GET['tab'] : (isset($_GET['tested_cat']) ? 'tab-tested' : 'tab-velocity');
+    ?>
+
     <!-- Interactive Navigation Tabs -->
     <div class="tab-nav">
-        <button type="button" class="tab-btn active" onclick="switchTrendsTab('tab-velocity')">🔥 Model Demand</button>
-        <button type="button" class="tab-btn" onclick="switchTrendsTab('tab-pricing')">📊 Pricing Curves</button>
-        <button type="button" class="tab-btn" onclick="switchTrendsTab('tab-cpu')">💻 CPU Generations</button>
-        <button type="button" class="tab-btn" onclick="switchTrendsTab('tab-customers')">👥 Customer Insights</button>
-        <button type="button" class="tab-btn" onclick="switchTrendsTab('tab-matrix')">💵 B2B Untested</button>
-        <button type="button" class="tab-btn" onclick="switchTrendsTab('tab-tested')">🎯 Tested Market</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-velocity' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-velocity')">🔥 Model Demand</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-pricing' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-pricing')">📊 Pricing Curves</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-cpu' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-cpu')">💻 CPU Generations</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-customers' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-customers')">👥 Customer Insights</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-matrix' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-matrix')">💵 B2B Untested</button>
+        <button type="button" class="tab-btn <?= $active_tab === 'tab-tested' ? 'active' : '' ?>" onclick="switchTrendsTab('tab-tested')">🎯 Tested Market</button>
     </div>
 
     <!-- Global Flexible Search Input -->
@@ -78,14 +111,15 @@ include __DIR__ . '/partials/trends_data.php';
     <?php include __DIR__ . '/partials/trends_tab_cpu.php'; ?>
     <?php include __DIR__ . '/partials/trends_tab_customers.php'; ?>
 
-    <div id="tab-matrix" class="tab-content">
+    <div id="tab-matrix" class="tab-content <?= $active_tab === 'tab-matrix' ? 'active' : '' ?>">
         <?php include __DIR__ . '/partials/b2b_untested_matrix.php'; ?>
     </div>
 
-    <div id="tab-tested" class="tab-content">
+    <div id="tab-tested" class="tab-content <?= $active_tab === 'tab-tested' ? 'active' : '' ?>">
         <?php include __DIR__ . '/partials/tested_market_tab.php'; ?>
     </div>
 </div>
 
 <!-- 5. Dialog Modals -->
 <?php include __DIR__ . '/partials/trends_modals.php'; ?>
+<?php endif; ?>

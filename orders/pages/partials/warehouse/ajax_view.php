@@ -128,8 +128,21 @@ if (UI::is_ajax()) {
                         </td>
                     <?php endif; ?>
 
-                    <td class="editable-cell" data-field="condition">
-                        <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['condition'] ?? 'Used') ?>" list="condition-options-list" placeholder="...">
+                    <?php
+                    $row_cond = !empty($specs['condition']) ? $specs['condition'] : 'B Grade';
+                    $row_cond_class = 'cond-' . strtolower(str_replace(' ', '-', $row_cond));
+                    ?>
+                    <td class="editable-cell" data-field="condition" style="text-align: center;">
+                        <div class="condition-cell-wrapper" style="display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+                            <button type="button" 
+                                class="condition-badge-btn condition-badge <?= $row_cond_class ?>" 
+                                onclick="cycleWarehouseCondition(this, event)" 
+                                oncontextmenu="openConditionPicker(this, event)"
+                                title="Click to swap condition | Right-click for options">
+                                <?= htmlspecialchars($row_cond) ?>
+                            </button>
+                            <input type="hidden" class="cell-input" value="<?= htmlspecialchars($row_cond) ?>">
+                        </div>
                     </td>
                     <td class="editable-cell numeric" data-field="quantity">
                         <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
@@ -312,10 +325,17 @@ if (UI::is_ajax()) {
                                         class="status-badge status-<?= htmlspecialchars($item['status']) ?>"><?= htmlspecialchars($item['status']) ?></span>
                                 <?php endif; ?>
                                 <?php
-                                $cond = $specs['condition'] ?? 'Used';
+                                $cond = !empty($specs['condition']) ? $specs['condition'] : 'B Grade';
                                 $cond_class = 'cond-' . strtolower(str_replace(' ', '-', $cond));
                                 ?>
-                                <span class="condition-badge <?= $cond_class ?>"><?= htmlspecialchars($cond) ?></span>
+                                <button type="button" 
+                                    class="condition-badge-btn condition-badge <?= $cond_class ?>" 
+                                    data-id="<?= (int)$item['id'] ?>"
+                                    onclick="cycleWarehouseCondition(this, event)" 
+                                    oncontextmenu="openConditionPicker(this, event)"
+                                    title="Click to swap condition | Right-click for options">
+                                    <?= htmlspecialchars($cond) ?>
+                                </button>
                                 <?php if ($item['sector'] === 'Laptops'): ?>
                                     <span class="battery-badge <?= empty($specs['battery']) ? 'missing' : '' ?>" title="Battery Status">
                                         🔋
@@ -383,6 +403,7 @@ if (UI::is_ajax()) {
         <?php if ($is_spreadsheet): ?>
             <!-- Permanent blank row at the bottom in spreadsheet AJAX response -->
             <tr class="summary-row new-blank-row" data-id="new">
+                <td style="width: 40px; text-align: center; color: #cbd5e1;">•</td>
                 <?php if ($show_location_col): ?>
                     <td class="editable-cell" data-field="location_code">
                         <input type="text" class="cell-input text-center" list="zone-shelves-list" placeholder="Shelf..." value="<?= htmlspecialchars($default_shelf ?? '') ?>" style="font-weight: 800; color: #2563eb;" title="Intake Shelf">
@@ -446,8 +467,17 @@ if (UI::is_ajax()) {
                     </td>
                 <?php endif; ?>
 
-                <td class="editable-cell" data-field="condition">
-                    <input type="text" class="cell-input" list="condition-options-list" placeholder="Condition...">
+                <td class="editable-cell" data-field="condition" style="text-align: center;">
+                    <div class="condition-cell-wrapper" style="display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+                        <button type="button" 
+                            class="condition-badge-btn condition-badge cond-b-grade" 
+                            onclick="cycleWarehouseCondition(this, event)" 
+                            oncontextmenu="openConditionPicker(this, event)"
+                            title="Click to swap condition | Right-click for options">
+                            B Grade
+                        </button>
+                        <input type="hidden" class="cell-input" value="B Grade">
+                    </div>
                 </td>
                 <td class="editable-cell numeric" data-field="quantity">
                     <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">

@@ -4,6 +4,48 @@
  * Queries orders database, performs CPU categorizations, calculates summary statistics, and provides fallbacks.
  */
 
+$user_role = $user_role ?? ($_SESSION['role'] ?? 'Operator');
+
+// If Operator, load ONLY pricing matrix rules and bypass orders.db analytics entirely
+if ($user_role === 'Operator') {
+    $velocity = [];
+    $price_history = [];
+    $cpu_distribution = [];
+    $customer_insights = [];
+    $totals = ['total_qty' => 0, 'total_orders' => 0, 'avg_order_val' => 0.00];
+    $top_buyer_name = "None";
+    $top_buyer_qty = 0;
+    $popular_brand = "None";
+    $popular_brand_qty = 0;
+    $peak_month = "N/A";
+    $total_ryzen_sold = 0;
+    $is_using_mock_data = false;
+    $filter = 'all';
+
+    try {
+        $conn_wh = Database::warehouse();
+        $pricing_rules_raw = $conn_wh->query("SELECT * FROM pricing_rules ORDER BY category ASC, id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        $pricing_matrix = [];
+        $matrix_category_items = [];
+        foreach ($pricing_rules_raw as $rule) {
+            $cat = $rule['category'];
+            $gen = $rule['cpu_gen'];
+            $pricing_matrix[$cat][$gen][$rule['grade']] = $rule['price'];
+            if (!isset($matrix_category_items[$cat])) {
+                $matrix_category_items[$cat] = [];
+            }
+            if (!in_array($gen, $matrix_category_items[$cat])) {
+                $matrix_category_items[$cat][] = $gen;
+            }
+        }
+    } catch (Exception $e) {
+        $pricing_matrix = [];
+        $matrix_category_items = [];
+    }
+    return;
+}
+
 $filter = $_GET['filter'] ?? 'all';
 $date_condition = "";
 if ($filter === '30d') {

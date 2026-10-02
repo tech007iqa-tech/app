@@ -98,6 +98,45 @@ function openOrderPreviewModal(event, orderId) {
                         grandTotal += subtotal;
 
                         const desc = [item.series, item.cpu].filter(v => v && v !== 'N/A').join(' / ') || item.description || '';
+                        
+                        // Extract and normalize condition (Tested, Untested, For Parts, Grades)
+                        let cond = (item.condition || '').trim();
+                        const combinedDesc = [cond, item.description || '', item.notes || ''].join(' ');
+                        if (!cond) {
+                            if (/\b(for parts|parts|part|not working|drilled)\b/i.test(combinedDesc)) {
+                                cond = 'For Parts';
+                            } else if (/\b(untested|un-tested)\b/i.test(combinedDesc)) {
+                                cond = 'Untested';
+                            } else if (/\b(tested|working)\b/i.test(combinedDesc)) {
+                                cond = 'Tested';
+                            } else {
+                                const gm = combinedDesc.match(/\b([A-D]\s*grade|grade\s*[A-D])\b/i);
+                                if (gm) {
+                                    cond = gm[0].toUpperCase();
+                                }
+                            }
+                        }
+
+                        let condBadgeHtml = '';
+                        if (cond) {
+                            let badgeClass = 'item-cond-other';
+                            const cl = cond.toLowerCase();
+                            if (cl.includes('part') || cl.includes('not working') || cl.includes('drilled')) {
+                                badgeClass = 'item-cond-parts';
+                            } else if (cl.includes('untested')) {
+                                badgeClass = 'item-cond-untested';
+                            } else if (cl.includes('tested') || cl.includes('working')) {
+                                badgeClass = 'item-cond-tested';
+                            } else if (cl.includes('a grade') || cl.includes('grade a')) {
+                                badgeClass = 'item-cond-grade-a';
+                            } else if (cl.includes('b grade') || cl.includes('grade b')) {
+                                badgeClass = 'item-cond-grade-b';
+                            } else if (cl.includes('c grade') || cl.includes('grade c')) {
+                                badgeClass = 'item-cond-grade-c';
+                            }
+                            condBadgeHtml = `<span class="item-cond-badge ${badgeClass}">${localEscapeHTML(cond)}</span>`;
+                        }
+
                         const tr = document.createElement('tr');
 
                         let isHighlighted = false;
@@ -122,7 +161,10 @@ function openOrderPreviewModal(event, orderId) {
                         }
                         tr.innerHTML = `
                             <td style="padding: 12px 10px; ${isHighlighted ? 'border-left: 4px solid var(--accent-color);' : ''}">
-                                <div style="font-weight: 700; color: var(--text-main);">${localEscapeHTML(item.brand)} ${localEscapeHTML(item.model)}</div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; color: var(--text-main);">${localEscapeHTML(item.brand)} ${localEscapeHTML(item.model)}</span>
+                                    ${condBadgeHtml}
+                                </div>
                                 ${desc ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">${localEscapeHTML(desc)}</div>` : ''}
                             </td>
                             <td style="padding: 12px 10px; text-align: center; font-weight: 700; color: var(--text-main);">${qty}</td>
@@ -319,7 +361,7 @@ function updateMatrixCell(category, cpu_gen, grade, price, targetInput) {
     const parsedPrice = parseFloat(price);
     const sanitizedPrice = isNaN(parsedPrice) ? 0.00 : parsedPrice;
 
-    fetch('index.php?view=trends&action=update_pricing_matrix', {
+    return fetch('index.php?view=trends&action=update_pricing_matrix', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

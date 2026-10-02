@@ -61,10 +61,10 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                 <button type="button" class="btn-main" onclick="openAddCategoryModal()" style="padding: 8px 14px; font-size: 0.82rem; height: auto; border-radius: 20px; background: #8b5cf6; box-shadow: none;">
                     + Add Category Tab
                 </button>
+                <button type="button" class="btn-main" onclick="openAddRuleModal()" style="padding: 8px 14px; font-size: 0.82rem; height: auto; border-radius: 20px; background: #3b82f6; box-shadow: none;">
+                    + Add Model Row
+                </button>
             <?php endif; ?>
-            <button type="button" class="btn-main" onclick="openAddRuleModal()" style="padding: 8px 14px; font-size: 0.82rem; height: auto; border-radius: 20px; background: #3b82f6; box-shadow: none;">
-                + Add Model Row
-            </button>
         </div>
     </div>
 
@@ -109,12 +109,14 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                         <th style="width: 140px;">Sell-Through %</th>
                         <th style="width: 140px;">Per Unit Price</th>
                         <th style="width: 110px;">Date</th>
-                        <th style="width: 70px;">Action</th>
+                        <?php if ($is_admin): ?>
+                            <th style="width: 70px;">Action</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($rules)): ?>
-                        <tr><td colspan="7" style="text-align: center; padding: 25px; color: var(--text-secondary);">No RAM pricing rules found in this category.</td></tr>
+                        <tr><td colspan="<?= $is_admin ? 7 : 6 ?>" style="text-align: center; padding: 25px; color: var(--text-secondary);">No RAM pricing rules found in this category.</td></tr>
                     <?php else: ?>
                         <?php foreach ($rules as $r): ?>
                             <?php
@@ -126,36 +128,57 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                             ?>
                             <tr data-rule-id="<?= $r['id'] ?>" data-search="<?= htmlspecialchars($search_blob) ?>">
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['brand_series'] ?? 'Memory') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'brand_series', this.value, this)">
+                                    <?php if ($is_admin): ?>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['brand_series'] ?? 'Memory') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'brand_series', this.value, this)">
+                                    <?php else: ?>
+                                        <strong><?= htmlspecialchars($r['brand_series'] ?? 'Memory') ?></strong>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['model_number'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'model_number', this.value, this)">
+                                    <?php if ($is_admin): ?>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['model_number'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'model_number', this.value, this)">
+                                    <?php else: ?>
+                                        <span><?= htmlspecialchars($r['model_number'] ?? '') ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
-                                        <input type="number" step="any" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'price', this.value, this)" style="padding-left: 20px; font-weight: 700;">
-                                    </div>
+                                    <?php if ($is_admin): ?>
+                                        <div style="position: relative; display: flex; align-items: center;">
+                                            <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
+                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'price', this.value, this)" style="padding-left: 20px; font-weight: 700;">
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="matrix-price-pill <?= $price > 0 ? 'has-price' : 'zero-price' ?>">
+                                            <span class="matrix-currency">$</span>
+                                            <span class="matrix-val"><?= number_format($price, 2) ?></span>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: flex; align-items: center;">
-                                        <input type="number" step="any" class="matrix-cell-input input-st" value="<?= number_format($st, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sale_through', this.value / 100, this)" style="padding-right: 20px; font-weight: 700;">
-                                        <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
-                                    </div>
+                                    <?php if ($is_admin): ?>
+                                        <div style="position: relative; display: flex; align-items: center;">
+                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-st" value="<?= number_format($st, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sale_through', this.value / 100, this)" style="padding-right: 20px; font-weight: 700;">
+                                            <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
+                                        </div>
+                                    <?php else: ?>
+                                        <strong><?= number_format($st, 1) ?>%</strong>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="font-weight: 800; color: #10b981;">
                                     $<span class="calc-per-unit"><?= number_format($per_unit, 2) ?></span>
                                 </td>
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['effective_date'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'effective_date', this.value, this)" style="text-align: center;">
-                                </td>
-                                <td style="text-align: center;">
                                     <?php if ($is_admin): ?>
-                                        <button type="button" onclick="deleteTestedRule(<?= $r['id'] ?>)" title="Delete Row" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem;">✕</button>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['effective_date'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'effective_date', this.value, this)" style="text-align: center;">
                                     <?php else: ?>
-                                        <span style="color: var(--text-secondary); font-size: 0.85rem;">—</span>
+                                        <span style="color: var(--text-secondary);"><?= htmlspecialchars($r['effective_date'] ?? '—') ?></span>
                                     <?php endif; ?>
                                 </td>
+                                <?php if ($is_admin): ?>
+                                    <td style="text-align: center;">
+                                        <button type="button" onclick="deleteTestedRule(<?= $r['id'] ?>)" title="Delete Row" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem;">✕</button>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -180,12 +203,14 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                         <th style="width: 120px; text-align: right;">Boot2BIOS ($)</th>
                         <th style="width: 130px; text-align: right;">Opp. Boot2BIOS</th>
                         <th style="width: 95px; text-align: center;">Date</th>
-                        <th style="width: 60px; text-align: center;">Action</th>
+                        <?php if ($is_admin): ?>
+                            <th style="width: 60px; text-align: center;">Action</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($rules)): ?>
-                        <tr><td colspan="13" style="text-align: center; padding: 25px; color: var(--text-secondary);">No laptop pricing rules found in this category. Click "+ Add Model Row" to create one.</td></tr>
+                        <tr><td colspan="<?= $is_admin ? 13 : 12 ?>" style="text-align: center; padding: 25px; color: var(--text-secondary);">No laptop pricing rules found in this category. Click "+ Add Model Row" to create one.</td></tr>
                     <?php else: ?>
                         <?php foreach ($rules as $r): ?>
                             <?php
@@ -197,10 +222,18 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                             ?>
                             <tr data-rule-id="<?= $r['id'] ?>" data-search="<?= htmlspecialchars($search_blob) ?>">
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['brand_series'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'brand_series', this.value, this)">
+                                    <?php if ($is_admin): ?>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['brand_series'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'brand_series', this.value, this)">
+                                    <?php else: ?>
+                                        <strong><?= htmlspecialchars($r['brand_series'] ?? '') ?></strong>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['model_number'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'model_number', this.value, this)">
+                                    <?php if ($is_admin): ?>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['model_number'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'model_number', this.value, this)">
+                                    <?php else: ?>
+                                        <span><?= htmlspecialchars($r['model_number'] ?? '') ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="text-align: center;">
                                     <?php if ($is_admin): ?>
@@ -212,22 +245,41 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['cpu'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'cpu', this.value, this)">
+                                    <?php if ($is_admin): ?>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['cpu'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'cpu', this.value, this)">
+                                    <?php else: ?>
+                                        <span><?= htmlspecialchars($r['cpu'] ?? '') ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
-                                        <input type="number" step="any" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-left: 20px; font-weight: 700;">
-                                    </div>
+                                    <?php if ($is_admin): ?>
+                                        <div style="position: relative; display: flex; align-items: center;">
+                                            <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
+                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-left: 20px; font-weight: 700;">
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="matrix-price-pill <?= $price > 0 ? 'has-price' : 'zero-price' ?>">
+                                            <span class="matrix-currency">$</span>
+                                            <span class="matrix-val"><?= number_format($price, 2) ?></span>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <div style="position: relative; display: flex; align-items: center;">
-                                        <input type="number" step="any" class="matrix-cell-input input-st" value="<?= number_format($st_pct, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-right: 20px; font-weight: 700;">
-                                        <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
-                                    </div>
+                                    <?php if ($is_admin): ?>
+                                        <div style="position: relative; display: flex; align-items: center;">
+                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-st" value="<?= number_format($st_pct, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-right: 20px; font-weight: 700;">
+                                            <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
+                                        </div>
+                                    <?php else: ?>
+                                        <strong><?= number_format($st_pct, 1) ?>%</strong>
+                                    <?php endif; ?>
                                 </td>
-                                <td>
-                                    <input type="number" class="matrix-cell-input inline-text" value="<?= (int)$r['sold_count'] ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sold_count', this.value, this)" style="text-align: center;">
+                                <td style="text-align: center;">
+                                    <?php if ($is_admin): ?>
+                                        <input type="number" onwheel="this.blur()" class="matrix-cell-input inline-text" value="<?= (int)$r['sold_count'] ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sold_count', this.value, this)" style="text-align: center;">
+                                    <?php else: ?>
+                                        <strong><?= (int)$r['sold_count'] ?></strong>
+                                    <?php endif; ?>
                                 </td>
                                 <!-- Derived Formula Columns -->
                                 <td style="font-weight: 700; color: var(--text-main); text-align: right;">
@@ -242,16 +294,18 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                 <td style="font-weight: 700; color: #8b5cf6; text-align: right;">
                                     $<span class="calc-opp-boot2bios"><?= number_format($tiers['opp_boot2bios'], 2) ?></span>
                                 </td>
-                                <td>
-                                    <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['effective_date'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'effective_date', this.value, this)" style="text-align: center;">
-                                </td>
                                 <td style="text-align: center;">
                                     <?php if ($is_admin): ?>
-                                        <button type="button" onclick="deleteTestedRule(<?= $r['id'] ?>)" title="Delete Row" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem;">✕</button>
+                                        <input type="text" class="matrix-cell-input inline-text" value="<?= htmlspecialchars($r['effective_date'] ?? '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'effective_date', this.value, this)" style="text-align: center;">
                                     <?php else: ?>
-                                        <span style="color: var(--text-secondary); font-size: 0.85rem;">—</span>
+                                        <span style="color: var(--text-secondary);"><?= htmlspecialchars($r['effective_date'] ?? '—') ?></span>
                                     <?php endif; ?>
                                 </td>
+                                <?php if ($is_admin): ?>
+                                    <td style="text-align: center;">
+                                        <button type="button" onclick="deleteTestedRule(<?= $r['id'] ?>)" title="Delete Row" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem;">✕</button>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

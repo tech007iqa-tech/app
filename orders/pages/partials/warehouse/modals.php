@@ -180,4 +180,7 @@
 <!-- Warehouse Item Migration & Depleted Shelf Modals -->
 <?php include __DIR__ . '/migration_modal.php'; ?>
 
+<!-- Warehouse Multi-Zone Live Comparison Modal & Floating Dock -->
+<?php include __DIR__ . '/zone_comparison_modal.php'; ?>
+
 

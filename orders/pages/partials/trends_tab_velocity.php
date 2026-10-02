@@ -4,7 +4,7 @@
  */
 ?>
 <!-- Tab 1: Demand Velocity (Best-selling Laptops) -->
-<div id="tab-velocity" class="tab-content active">
+<div id="tab-velocity" class="tab-content <?= ($active_tab ?? 'tab-velocity') === 'tab-velocity' ? 'active' : '' ?>">
     <div class="trends-grid" style="display: flex; flex-direction: column;">
 
         <!-- Interactive Table -->
@@ -25,7 +25,7 @@
 
             <div class="scroll-hint">↔️ Swipe horizontally to view all columns</div>
             <div class="trends-table-container">
-                <table class="trends-table" id="table-velocity" style="width: max-content; margin-right: 0;margin-left:0">
+                <table class="trends-table" id="table-velocity">
                     <thead>
                         <tr>
                             <th onclick="sortTable('table-velocity', 0, 'num')">

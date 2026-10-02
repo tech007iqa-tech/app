@@ -34,9 +34,11 @@ if ($user_role === 'Technician') {
 }
 
 if ($user_role === 'Operator') {
-    $allowed_operator_keys = ['warehouse', 'import_warehouse', 'inbound', 'settings'];
+    $allowed_operator_keys = ['warehouse', 'import_warehouse', 'inbound', 'settings', 'trends'];
     if (!in_array($active_key, $allowed_operator_keys)) {
         $active_key = 'warehouse';
+    } elseif ($active_key === 'trends') {
+        $_GET['tab'] = 'tab-matrix';
     }
 } elseif ($user_role === 'Front Desk') {
     $allowed_front_desk_keys = ['trends', 'calendar', 'settings'];
@@ -52,6 +54,16 @@ $active_route = $routes[$active_key];
 // Global State Initialization
 $selected_sector = $_GET['sector'] ?? 'Laptops';
 $selected_loc = $_GET['loc'] ?? null;
+$selected_zone = $_GET['zone'] ?? null;
+
+if ($selected_loc && !$selected_zone) {
+    try {
+        $conn_wh_check = Database::warehouse();
+        $stmt_zc = $conn_wh_check->prepare("SELECT working_zone_name FROM locations WHERE location_code = ? LIMIT 1");
+        $stmt_zc->execute([$selected_loc]);
+        $selected_zone = $stmt_zc->fetchColumn() ?: null;
+    } catch (Exception $e) {}
+}
 
 // Order Creation Logic (Move here to prevent headers already sent)
 if (isset($_GET['action']) && $_GET['action'] === 'create_new_order' && isset($_GET['customer_id'])) {
@@ -121,72 +133,228 @@ $page_content = ob_get_clean();
 <body class="modern-theme">
     <?= UI::theme_init_script() ?>
     <?= UI::render_notifications() ?>
-    <div class="breadcrumb-container" role="banner" style="max-width: 800px; margin: 0 auto 20px auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+    <div class="breadcrumb-container" role="banner">
         <nav class="breadcrumbs">
             <?php if ($user_role === 'Admin'): ?>
                 <a href="index.php"
-                    class="crumb <?= !isset($_GET['customer_id']) && !isset($_GET['view']) ? 'active' : '' ?>">
+                    class="crumb <?= !isset($_GET['customer_id']) && (!isset($_GET['view']) || $_GET['view'] === 'default') ? 'active' : '' ?>">
                     <span class="step-num">1</span> Customers
                 </a>
 
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'register'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">2</span> Register
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">2</span> Register
+                    </a>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['customer_id'])): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">2</span> Order Entry
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">2</span> Order Entry <?= isset($_GET['order_id']) ? '(' . htmlspecialchars($_GET['order_id']) . ')' : '' ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'warehouse'): ?>
+                    <span class="separator">/</span>
+                    <?php if (!$selected_loc && !$selected_zone): ?>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">🏬</span> Warehouse
+                        </a>
+                    <?php elseif ($selected_zone && !$selected_loc): ?>
+                        <a href="index.php?view=warehouse" class="crumb">
+                            <span class="step-num">🏬</span> Warehouse
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">🏢</span> Zone <?= htmlspecialchars($selected_zone) ?>
+                        </a>
+                    <?php elseif ($selected_loc): ?>
+                        <a href="index.php?view=warehouse" class="crumb">
+                            <span class="step-num">🏬</span> Warehouse
+                        </a>
+                        <?php if ($selected_zone): ?>
+                            <span class="separator">/</span>
+                            <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?>&zone=<?= urlencode($selected_zone) ?>" class="crumb">
+                                <span class="step-num">🏢</span> Zone <?= htmlspecialchars($selected_zone) ?>
+                            </a>
+                        <?php endif; ?>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">📍</span> Shelf <?= htmlspecialchars($selected_loc) ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'import_warehouse'): ?>
+                    <span class="separator">/</span>
+                    <a href="index.php?view=warehouse" class="crumb">
+                        <span class="step-num">🏬</span> Warehouse
+                    </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📥</span> Import Manifest
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'orders'): ?>
+                    <span class="separator">/</span>
+                    <?php if (isset($_GET['type']) && $_GET['type'] === 'completed'): ?>
+                        <a href="index.php?view=orders" class="crumb">
+                            <span class="step-num">📦</span> All Orders
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">✅</span> Finalized History
+                        </a>
+                    <?php elseif (isset($_GET['type']) && $_GET['type'] === 'active'): ?>
+                        <a href="index.php?view=orders" class="crumb">
+                            <span class="step-num">📦</span> All Orders
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">⚡</span> Active Batches
+                        </a>
+                    <?php else: ?>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">📦</span> All Orders
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'import_sales'): ?>
+                    <span class="separator">/</span>
+                    <a href="index.php?view=orders" class="crumb">
+                        <span class="step-num">📦</span> All Orders
+                    </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📥</span> Import Sales
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'leads'): ?>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">🎯</span> Leads
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'trends'): ?>
+                    <span class="separator">/</span>
+                    <?php if (isset($_GET['tab']) && $_GET['tab'] === 'tab-matrix'): ?>
+                        <a href="index.php?view=trends" class="crumb">
+                            <span class="step-num">📈</span> Trends
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">💵</span> B2B Untested
+                        </a>
+                    <?php else: ?>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">📈</span> Trends Analysis
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'calendar'): ?>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📅</span> Calendar
+                    </a>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'inbound'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">📥</span> Inbound
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📥</span> Inbound
+                    </a>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'settings'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">⚙️</span> Settings
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">⚙️</span> Settings
+                    </a>
                 <?php endif; ?>
+
             <?php elseif ($user_role === 'Front Desk'): ?>
                 <a href="index.php?view=calendar" class="crumb <?= !isset($_GET['view']) || $_GET['view'] === 'calendar' ? 'active' : '' ?>">
                     <span class="step-num">📅</span> Calendar Portal
                 </a>
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'trends'): ?>
-                <span class="separator">/</span>
-                <a href="index.php?view=trends" class="crumb active">
-                    <span class="step-num">📈</span> Trends Analysis
-                </a>
+                    <span class="separator">/</span>
+                    <?php if (isset($_GET['tab']) && $_GET['tab'] === 'tab-matrix'): ?>
+                        <a href="index.php?view=trends" class="crumb">
+                            <span class="step-num">📈</span> Trends
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">💵</span> B2B Untested
+                        </a>
+                    <?php else: ?>
+                        <a href="index.php?view=trends" class="crumb active">
+                            <span class="step-num">📈</span> Trends Analysis
+                        </a>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'settings'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">⚙️</span> Personal Settings
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">⚙️</span> Personal Settings
+                    </a>
                 <?php endif; ?>
+
             <?php else: ?>
-                <a href="index.php?view=warehouse" class="crumb <?= !isset($_GET['view']) || $_GET['view'] === 'warehouse' ? 'active' : '' ?>">
+                <a href="index.php?view=warehouse" class="crumb <?= (!isset($_GET['zone']) && !isset($_GET['loc']) && (!isset($_GET['view']) || $_GET['view'] === 'warehouse')) ? 'active' : '' ?>">
                     <span class="step-num">🏬</span> Warehouse Portal
                 </a>
-                <?php if (isset($_GET['view']) && $_GET['view'] === 'inbound'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">📥</span> Inbound Portal
-                </a>
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'warehouse'): ?>
+                    <?php if ($selected_zone && !$selected_loc): ?>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">🏢</span> Zone <?= htmlspecialchars($selected_zone) ?>
+                        </a>
+                    <?php elseif ($selected_loc): ?>
+                        <?php if ($selected_zone): ?>
+                            <span class="separator">/</span>
+                            <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?>&zone=<?= urlencode($selected_zone) ?>" class="crumb">
+                                <span class="step-num">🏢</span> Zone <?= htmlspecialchars($selected_zone) ?>
+                            </a>
+                        <?php endif; ?>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">📍</span> Shelf <?= htmlspecialchars($selected_loc) ?>
+                        </a>
+                    <?php endif; ?>
                 <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'import_warehouse'): ?>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📥</span> Import Manifest
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'inbound'): ?>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">📥</span> Inbound Portal
+                    </a>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['view']) && $_GET['view'] === 'trends'): ?>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">💵</span> B2B Untested
+                    </a>
+                <?php endif; ?>
+
                 <?php if (isset($_GET['view']) && $_GET['view'] === 'settings'): ?>
-                <span class="separator">/</span>
-                <a href="#" class="crumb active">
-                    <span class="step-num">⚙️</span> Personal Settings
-                </a>
+                    <span class="separator">/</span>
+                    <a href="#" class="crumb active">
+                        <span class="step-num">⚙️</span> Personal Settings
+                    </a>
                 <?php endif; ?>
             <?php endif; ?>
         </nav>
@@ -222,8 +390,14 @@ $page_content = ob_get_clean();
                 <?php endif; ?>
 
                 <?php if ($user_role === 'Admin' || $user_role === 'Front Desk'): ?>
-                    <a href="index.php?view=trends" class="dropdown-item <?= isset($_GET['view']) && $_GET['view'] === 'trends' ? 'active' : '' ?>">
+                    <a href="index.php?view=trends" class="dropdown-item <?= isset($_GET['view']) && $_GET['view'] === 'trends' && (!isset($_GET['tab']) || $_GET['tab'] !== 'tab-matrix') ? 'active' : '' ?>">
                         <span>📈</span> Trends Analysis
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($user_role === 'Admin' || $user_role === 'Operator'): ?>
+                    <a href="index.php?view=trends&tab=tab-matrix" class="dropdown-item <?= isset($_GET['view']) && $_GET['view'] === 'trends' && isset($_GET['tab']) && $_GET['tab'] === 'tab-matrix' ? 'active' : '' ?>">
+                        <span>💵</span> B2B Untested
                     </a>
                 <?php endif; ?>
 

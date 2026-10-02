@@ -265,4 +265,84 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+.item-cond-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    line-height: 1.2;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.item-cond-untested {
+    background-color: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+}
+.item-cond-tested {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+.item-cond-parts {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+.item-cond-grade-a {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+.item-cond-grade-b {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+.item-cond-grade-c {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border-color: #fdba74;
+}
+.item-cond-other {
+    background-color: var(--bg-surface-2, #f1f5f9);
+    color: var(--text-secondary, #64748b);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .item-cond-untested {
+    background-color: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+[data-theme="dark"] .item-cond-tested {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .item-cond-parts {
+    background-color: rgba(239, 68, 68, 0.18);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-a {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-b {
+    background-color: rgba(14, 165, 233, 0.18);
+    color: #38bdf8;
+    border-color: rgba(14, 165, 233, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-c {
+    background-color: rgba(249, 115, 22, 0.18);
+    color: #fb923c;
+    border-color: rgba(249, 115, 22, 0.35);
+}
 </style>

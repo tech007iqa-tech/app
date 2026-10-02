@@ -108,9 +108,16 @@ Many warehouse managers perform hardware audits using iPads. To prevent styling 
   - Tab 2 (*Pricing Curves*) supports dynamic mode toggling via `setPricingChartViewMode('split' | 'combo')`.
   - Mode selection is persisted in `sessionStorage` (`pricing_chart_view_mode`) and hydrated on load.
   - `comboPricingChart` plots Gross Realized Valuation bars on Left Axis (`yValuation`) and Realized ASP curve on Right Axis (`yAsp`) with synchronized dual metrics.
-- **Live Matrix Micro-Feedback & Cell Glow (Phase 3)**:
-  - In `tab-matrix` (*B2B Untested*) and `tab-tested` (*Tested Market Reference*), inline cell changes call `showMatrixSaveToast(msg, targetInput)` in `trends_modals.js`.
-  - The edited cell dynamically animates with `.cell-saved-pulse` and a floating confirmation toast (`#matrixSaveToast`) confirms the saved value.
+- **Live Matrix Micro-Feedback & Cell Glow (Phase 3 & 4)**:
+  - In `tab-matrix` (*B2B Untested*):
+    - **Regular Users (Operator, Front Desk)**: Strictly read-only access. Prices render as clean, non-editable chips (`.matrix-price-pill`). Category and row creation/deletion buttons and Action columns are hidden.
+    - **Elevated Users (Admin)**: Features a dual-mode interface:
+      - `🔒 Reference Mode` (Default): Clean reading view. Clicking any price pill opens a single-cell quick inline editor with instant auto-save and Esc cancel.
+      - `✏️ Bulk Edit Mode`: Unlocks all grid cells with spreadsheet-style keyboard ergonomics (<kbd>Enter</kbd> saves and moves to next row in column, <kbd>Tab</kbd> navigates across row). Mouse-wheel number stepping is disabled to prevent accidental price alteration when scrolling.
+  - In `tab-tested` (*Tested Market Reference*): Non-Admins receive read-only formatted displays. Actions require Admin privileges.
+  - In both matrices, inline cell updates trigger `showMatrixSaveToast(msg, targetInput)` in `trends_modals.js` with `.cell-saved-pulse` and live server persistence.
+- **Server-Side Tab Synchronization**:
+  - `trends.php` reads `$_GET['tab']` and `$_GET['tested_cat']` during PHP render to mark the requested tab and navigation button as `active` server-side, eliminating client-side tab flashing.
 - **Financial Timeline Ordering**: Time-series charts must sort chronologically from left to right (oldest to newest month), while the audit table maintains reverse-chronological order for rapid auditing.
 - **1-Click CSV Exports**:
   - **Tab 2 Financial Ledger**: `exportFinancialLedgerCSV()` exports all ledger rows, MoM growth %, share %, and the period totals footer with UTF-8 BOM encoding.
@@ -125,6 +132,10 @@ Many warehouse managers perform hardware audits using iPads. To prevent styling 
 ---
 
 ## 🎯 Leads & CRM Architecture & Rules (`view=leads`)
+- **Dual-Pane Detail Modal & Stacked Timeline**:
+  - The right column of `#leadModal` features a vertically stacked timeline:
+    1. **Top Box: 📦 Past Orders List (`#lead-past-orders`)**: Displays order history (Order ID, Date, Total Units, Order Total, Status badge) with manifest preview links.
+    2. **Bottom Box: 📜 Interaction Logs (`#interaction-history`)**: Chronological communication timeline (calls, emails, WhatsApp/messages, notes) with quick-log action buttons.
 - **Table Sorting**: All 9 data columns (`Customer / Lead`, `Status`, `Source`, `Interest`, `Last Order`, `Balance`, `Last Contact`, `Next Call`, `Notes`) must be sortable using `sortLeadsTable(colIndex, type)` with raw unformatted values in `data-sort-val`.
 - **Follow-Up Urgency Tagging**: The `Next Call` column must dynamically display visual status chips:
   - 🔴 **Overdue** (`callback_date < today`)

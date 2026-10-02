@@ -7,6 +7,12 @@ function initWarehouseSpreadsheetEvents() {
     const listContainer = document.getElementById('inventory-list');
     if (!listContainer) return;
 
+    // Prune any duplicate blank rows
+    const initialBlanks = listContainer.querySelectorAll('.new-blank-row');
+    for (let i = 1; i < initialBlanks.length; i++) {
+        initialBlanks[i].remove();
+    }
+
     // Guard against duplicate binding
     if (listContainer.dataset.spreadsheetEventsBound === 'true') return;
     listContainer.dataset.spreadsheetEventsBound = 'true';
@@ -39,18 +45,47 @@ function initWarehouseSpreadsheetEvents() {
         }
     });
 
-    // Keyboard navigation: arrow keys, Enter, and Tab handling
+    // Keyboard navigation: arrow keys, Enter, Space (cycle condition), and Tab handling
     listContainer.addEventListener('keydown', (e) => {
-        if (!e.target || !e.target.classList.contains('cell-input')) return;
+        const isInput = e.target && e.target.classList.contains('cell-input');
+        const isCondBtn = e.target && e.target.classList.contains('condition-badge-btn');
+        if (!isInput && !isCondBtn) return;
 
-        const input = e.target;
-        const cell = input.closest('td');
-        const row = input.closest('tr');
+        const cell = e.target.closest('td');
+        const row = e.target.closest('tr');
         if (!cell || !row) return;
 
         const colIndex = Array.from(row.cells).indexOf(cell);
         const allRows = Array.from(listContainer.querySelectorAll('.summary-row'));
         const rowIndex = allRows.indexOf(row);
+
+        if (isCondBtn) {
+            // Space or C cycles condition immediately
+            if (e.key === ' ' || e.key === 'c' || e.key === 'C') {
+                e.preventDefault();
+                cycleWarehouseCondition(e.target, e);
+                return;
+            }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                focusWarehouseCell(allRows, rowIndex, colIndex + 1);
+                return;
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                focusWarehouseCell(allRows, rowIndex, colIndex - 1);
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.ctrlKey || e.metaKey) {
+                    openConditionPicker(e.target, e);
+                } else {
+                    focusWarehouseCell(allRows, rowIndex + 1, colIndex);
+                }
+                return;
+            }
+        }
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
@@ -70,7 +105,7 @@ function initWarehouseSpreadsheetEvents() {
                 }
                 return;
             }
-            input.blur();
+            if (isInput) e.target.blur();
             focusWarehouseCell(allRows, rowIndex + 1, colIndex);
         }
     });
@@ -91,57 +126,91 @@ function initWarehouseSpreadsheetEvents() {
         if (cloneBtn) {
             e.preventDefault();
             const sourceRow = cloneBtn.closest('tr');
-            const templateRow = listContainer.querySelector('.new-blank-row');
-            if (sourceRow && templateRow) {
+            if (!sourceRow) return;
+
+            // Ensure only one permanent blank row exists in the spreadsheet
+            const allBlankRows = listContainer.querySelectorAll('.new-blank-row');
+            for (let i = 1; i < allBlankRows.length; i++) {
+                allBlankRows[i].remove();
+            }
+
+            const targetRow = listContainer.querySelector('.new-blank-row');
+            if (sourceRow && targetRow) {
                 const brand = sourceRow.querySelector('[data-field="brand"] .cell-input')?.value || '';
                 const model = sourceRow.querySelector('[data-field="model"] .cell-input')?.value || '';
                 const qty = sourceRow.querySelector('[data-field="quantity"] .cell-input')?.value || '1';
                 const price = sourceRow.querySelector('[data-field="price"] .cell-input')?.value || '0';
-                const condition = sourceRow.querySelector('[data-field="condition"] .cell-input')?.value || 'Used';
+                const condition = sourceRow.querySelector('[data-field="condition"] .cell-input')?.value || 'B Grade';
                 const notes = sourceRow.querySelector('[data-field="notes"] .cell-input')?.value || '';
                 const locCode = sourceRow.querySelector('[data-field="location_code"] .cell-input')?.value || '';
 
-                const newRow = templateRow.cloneNode(true);
-                if (locCode && newRow.querySelector('[data-field="location_code"] .cell-input')) {
-                    newRow.querySelector('[data-field="location_code"] .cell-input').value = locCode;
+                if (locCode && targetRow.querySelector('[data-field="location_code"] .cell-input')) {
+                    targetRow.querySelector('[data-field="location_code"] .cell-input').value = locCode;
                 }
-                newRow.querySelector('[data-field="brand"] .cell-input').value = brand;
-                newRow.querySelector('[data-field="model"] .cell-input').value = model;
-                newRow.querySelector('[data-field="quantity"] .cell-input').value = qty;
-                newRow.querySelector('[data-field="price"] .cell-input').value = price;
-                newRow.querySelector('[data-field="condition"] .cell-input').value = condition;
-                newRow.querySelector('[data-field="notes"] .cell-input').value = notes;
+                const brandIn = targetRow.querySelector('[data-field="brand"] .cell-input');
+                if (brandIn) brandIn.value = brand;
+
+                const modelIn = targetRow.querySelector('[data-field="model"] .cell-input');
+                if (modelIn) modelIn.value = model;
+
+                const qtyIn = targetRow.querySelector('[data-field="quantity"] .cell-input');
+                if (qtyIn) qtyIn.value = qty;
+
+                const priceIn = targetRow.querySelector('[data-field="price"] .cell-input');
+                if (priceIn) priceIn.value = price;
+
+                const condIn = targetRow.querySelector('[data-field="condition"] .cell-input');
+                if (condIn) condIn.value = condition;
+
+                const condBtn = targetRow.querySelector('[data-field="condition"] .condition-badge-btn');
+                if (condBtn) {
+                    condBtn.textContent = condition;
+                    const cSlug = condition.toLowerCase().replace(/\s+/g, '-');
+                    condBtn.className = 'condition-badge-btn condition-badge cond-' + cSlug;
+                }
+
+                const notesIn = targetRow.querySelector('[data-field="notes"] .cell-input');
+                if (notesIn) notesIn.value = notes;
 
                 const whMetadata = document.getElementById('warehouse-metadata');
                 const sector = whMetadata ? whMetadata.getAttribute('data-sector') : '';
 
                 if (sector === 'Laptops') {
-                    newRow.querySelector('[data-field="series"] .cell-input').value = sourceRow.querySelector('[data-field="series"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="cpu"] .cell-input').value = sourceRow.querySelector('[data-field="cpu"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="gen"] .cell-input').value = sourceRow.querySelector('[data-field="gen"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="ram"] .cell-input').value = sourceRow.querySelector('[data-field="ram"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="storage"] .cell-input').value = sourceRow.querySelector('[data-field="storage"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="battery"] .cell-input').value = sourceRow.querySelector('[data-field="battery"] .cell-input')?.value || '';
+                    const setVal = (field) => {
+                        const t = targetRow.querySelector(`[data-field="${field}"] .cell-input`);
+                        const s = sourceRow.querySelector(`[data-field="${field}"] .cell-input`);
+                        if (t) t.value = s ? s.value : '';
+                    };
+                    ['series', 'cpu', 'gen', 'ram', 'storage', 'battery'].forEach(setVal);
                 } else if (sector === 'Gaming') {
-                    newRow.querySelector('[data-field="gaming_category"] .cell-input').value = sourceRow.querySelector('[data-field="gaming_category"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="series"] .cell-input').value = sourceRow.querySelector('[data-field="series"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="cpu"] .cell-input').value = sourceRow.querySelector('[data-field="cpu"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="gpu"] .cell-input').value = sourceRow.querySelector('[data-field="gpu"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="ram"] .cell-input').value = sourceRow.querySelector('[data-field="ram"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="storage"] .cell-input').value = sourceRow.querySelector('[data-field="storage"] .cell-input')?.value || '';
+                    const setVal = (field) => {
+                        const t = targetRow.querySelector(`[data-field="${field}"] .cell-input`);
+                        const s = sourceRow.querySelector(`[data-field="${field}"] .cell-input`);
+                        if (t) t.value = s ? s.value : '';
+                    };
+                    ['gaming_category', 'series', 'cpu', 'gpu', 'ram', 'storage'].forEach(setVal);
                 } else if (sector === 'Desktops') {
-                    newRow.querySelector('[data-field="cpu_gen"] .cell-input').value = sourceRow.querySelector('[data-field="cpu_gen"] .cell-input')?.value || '';
+                    const t = targetRow.querySelector('[data-field="cpu_gen"] .cell-input');
+                    const s = sourceRow.querySelector('[data-field="cpu_gen"] .cell-input');
+                    if (t) t.value = s ? s.value : '';
                 } else {
-                    newRow.querySelector('[data-field="type"] .cell-input').value = sourceRow.querySelector('[data-field="type"] .cell-input')?.value || '';
-                    newRow.querySelector('[data-field="voltage"] .cell-input').value = sourceRow.querySelector('[data-field="voltage"] .cell-input')?.value || '';
+                    const t1 = targetRow.querySelector('[data-field="type"] .cell-input');
+                    const s1 = sourceRow.querySelector('[data-field="type"] .cell-input');
+                    if (t1) t1.value = s1 ? s1.value : '';
+                    const t2 = targetRow.querySelector('[data-field="voltage"] .cell-input');
+                    const s2 = sourceRow.querySelector('[data-field="voltage"] .cell-input');
+                    if (t2) t2.value = s2 ? s2.value : '';
                 }
 
-                templateRow.parentNode.appendChild(newRow);
+                // Smooth scroll to intake row and briefly pulse highlight
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                targetRow.classList.remove('row-pulse-highlight');
+                void targetRow.offsetWidth;
+                targetRow.classList.add('row-pulse-highlight');
 
-                const qtyInput = newRow.querySelector('[data-field="quantity"] .cell-input');
-                if (qtyInput) {
-                    qtyInput.focus();
-                    if (typeof qtyInput.select === 'function') qtyInput.select();
+                if (qtyIn) {
+                    qtyIn.focus();
+                    if (typeof qtyIn.select === 'function') qtyIn.select();
                 }
             }
         }
@@ -153,8 +222,13 @@ function focusWarehouseCell(rows, rowIndex, colIndex) {
         const targetRow = rows[rowIndex];
         if (colIndex >= 0 && colIndex < targetRow.cells.length) {
             const targetCell = targetRow.cells[colIndex];
+            const condBtn = targetCell.querySelector('.condition-badge-btn');
+            if (condBtn) {
+                condBtn.focus();
+                return;
+            }
             const targetInput = targetCell.querySelector('.cell-input');
-            if (targetInput) {
+            if (targetInput && targetInput.type !== 'hidden') {
                 targetInput.focus();
                 if (typeof targetInput.select === 'function') {
                     targetInput.select();
@@ -163,6 +237,198 @@ function focusWarehouseCell(rows, rowIndex, colIndex) {
         }
     }
 }
+
+const WAREHOUSE_CONDITIONS = ['B Grade', 'A Grade', 'C Grade', 'No Power', 'No Post'];
+
+const WAREHOUSE_CONDITION_CLASSES = {
+    'B Grade': 'cond-b-grade',
+    'A Grade': 'cond-a-grade',
+    'C Grade': 'cond-c-grade',
+    'No Power': 'cond-no-power',
+    'No Post': 'cond-no-post'
+};
+
+const WAREHOUSE_CONDITION_ICONS = {
+    'B Grade': '🟦',
+    'A Grade': '🟩',
+    'C Grade': '🟧',
+    'No Power': '🟥',
+    'No Post': '🟨'
+};
+
+/**
+ * Rapidly swaps/cycles warehouse condition on a condition badge button.
+ * Click cycles forward; Shift+Click cycles in reverse order.
+ */
+function cycleWarehouseCondition(btn, event) {
+    if (event) {
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    }
+    if (!btn) return;
+
+    const currentText = (btn.textContent || '').trim();
+    let idx = WAREHOUSE_CONDITIONS.findIndex(c => c.toLowerCase() === currentText.toLowerCase());
+
+    if (idx === -1) {
+        idx = 0; // Default to B Grade
+    } else {
+        if (event && event.shiftKey) {
+            idx = (idx - 1 + WAREHOUSE_CONDITIONS.length) % WAREHOUSE_CONDITIONS.length;
+        } else {
+            idx = (idx + 1) % WAREHOUSE_CONDITIONS.length;
+        }
+    }
+
+    const nextCondition = WAREHOUSE_CONDITIONS[idx];
+    applyWarehouseCondition(btn, nextCondition);
+}
+
+/**
+ * Directly applies a specific condition to a badge, updates inputs, and triggers save if existing item.
+ */
+async function applyWarehouseCondition(btn, conditionValue) {
+    if (!btn || !conditionValue) return;
+
+    // Update button text and class
+    btn.textContent = conditionValue;
+    const condClass = WAREHOUSE_CONDITION_CLASSES[conditionValue] || ('cond-' + conditionValue.toLowerCase().replace(/\s+/g, '-'));
+    
+    // Remove existing condition classes and set the new one
+    btn.className = btn.className.split(' ')
+        .filter(c => !c.startsWith('cond-'))
+        .join(' ') + ' ' + condClass;
+
+    // Pop animation feedback
+    btn.classList.add('condition-badge-pop');
+    setTimeout(() => btn.classList.remove('condition-badge-pop'), 250);
+
+    // Update hidden input if present in parent cell
+    const cell = btn.closest('td') || btn.parentElement;
+    const input = cell ? cell.querySelector('.cell-input') : null;
+    if (input) {
+        input.value = conditionValue;
+    }
+
+    const row = btn.closest('tr') || btn.closest('.inventory-card');
+    const rowId = row ? row.getAttribute('data-id') : btn.getAttribute('data-id');
+
+    // If existing item in database, auto-save the update
+    if (rowId && rowId !== 'new') {
+        if (input && typeof handleWarehouseCellSave === 'function') {
+            handleWarehouseCellSave(input);
+        } else if (window.AppSync && typeof window.AppSync.post === 'function') {
+            try {
+                const metadata = document.getElementById('warehouse-metadata');
+                const activeZone = metadata ? (metadata.getAttribute('data-zone') || '') : '';
+                const result = await AppSync.post('api/update_inventory_field.php', {
+                    item_id: rowId,
+                    field: 'condition',
+                    value: conditionValue,
+                    zone: activeZone
+                });
+                if (result.success) {
+                    btn.style.boxShadow = '0 0 0 2px #22c55e';
+                    setTimeout(() => { btn.style.boxShadow = ''; }, 600);
+                }
+            } catch (err) {
+                console.error('Error saving condition:', err);
+            }
+        }
+    }
+}
+
+/**
+ * Opens a floating quick-select menu to jump straight to any condition option.
+ */
+function openConditionPicker(btn, event) {
+    if (event) {
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    }
+    if (!btn) return;
+
+    // Remove any existing picker
+    const existing = document.getElementById('wh-condition-floating-picker');
+    if (existing) existing.remove();
+
+    const currentText = (btn.textContent || '').trim();
+    const picker = document.createElement('div');
+    picker.id = 'wh-condition-floating-picker';
+    picker.className = 'wh-condition-floating-picker';
+
+    WAREHOUSE_CONDITIONS.forEach(opt => {
+        const itemBtn = document.createElement('button');
+        itemBtn.type = 'button';
+        itemBtn.className = 'wh-condition-option-btn' + (opt.toLowerCase() === currentText.toLowerCase() ? ' active' : '');
+        
+        const icon = WAREHOUSE_CONDITION_ICONS[opt] || '🏷️';
+        const isCurrent = opt.toLowerCase() === currentText.toLowerCase();
+
+        itemBtn.innerHTML = `
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+                <span>${icon}</span>
+                <span>${opt}</span>
+            </span>
+            ${isCurrent ? '<span style="color:#0284c7; font-weight:900;">✓</span>' : ''}
+        `;
+
+        itemBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            applyWarehouseCondition(btn, opt);
+            picker.remove();
+        });
+
+        picker.appendChild(itemBtn);
+    });
+
+    document.body.appendChild(picker);
+
+    // Position picker near button or cursor
+    const rect = btn.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY + 4;
+    let left = rect.left + window.scrollX;
+
+    // Viewport overflow check
+    const pickerRect = picker.getBoundingClientRect();
+    if (left + pickerRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - pickerRect.width - 10;
+    }
+    if (rect.bottom + pickerRect.height > window.innerHeight && rect.top > pickerRect.height) {
+        top = rect.top + window.scrollY - pickerRect.height - 4;
+    }
+
+    picker.style.top = `${top}px`;
+    picker.style.left = `${left}px`;
+
+    // Close on click outside or Escape
+    const closeHandler = (e) => {
+        if (!picker.contains(e.target) && e.target !== btn) {
+            picker.remove();
+            document.removeEventListener('click', closeHandler);
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+    const keyHandler = (e) => {
+        if (e.key === 'Escape') {
+            picker.remove();
+            document.removeEventListener('click', closeHandler);
+            document.removeEventListener('keydown', keyHandler);
+            btn.focus();
+        }
+    };
+
+    setTimeout(() => {
+        document.addEventListener('click', closeHandler);
+        document.addEventListener('keydown', keyHandler);
+    }, 10);
+}
+
+// Export condition handlers to window for inline onclick/oncontextmenu attributes
+window.cycleWarehouseCondition = cycleWarehouseCondition;
+window.openConditionPicker = openConditionPicker;
+window.applyWarehouseCondition = applyWarehouseCondition;
+
 
 async function handleWarehouseCellSave(input) {
     const cell = input.closest('td');
@@ -273,7 +539,7 @@ async function createWarehouseRowFromBlank(row) {
 
     const qty = parseInt(row.querySelector('[data-field="quantity"] .cell-input')?.value) || 1;
     const price = parseFloat(row.querySelector('[data-field="price"] .cell-input')?.value) || 0.00;
-    const condition = row.querySelector('[data-field="condition"] .cell-input')?.value.trim() || 'Used';
+    const condition = row.querySelector('[data-field="condition"] .cell-input')?.value.trim() || 'B Grade';
     const notes = row.querySelector('[data-field="notes"] .cell-input')?.value.trim() || '';
 
     const formData = new FormData();
@@ -334,7 +600,12 @@ async function createWarehouseRowFromBlank(row) {
                 } else if (fieldName === 'price') {
                     input.value = '';
                 } else if (fieldName === 'condition') {
-                    input.value = 'Used';
+                    input.value = 'B Grade';
+                    const condBtn = parentCell ? parentCell.querySelector('.condition-badge-btn') : null;
+                    if (condBtn) {
+                        condBtn.textContent = 'B Grade';
+                        condBtn.className = 'condition-badge-btn condition-badge cond-b-grade';
+                    }
                 } else {
                     input.value = '';
                 }

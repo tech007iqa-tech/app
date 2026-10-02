@@ -22,11 +22,19 @@
         $wz_items = (int) ($wz['total_items'] ?? 0);
         $has_alerts = (int) ($wz['alert_count'] ?? 0) > 0;
         ?>
-        <div class="loc-item-wrapper" style="position:relative;">
+        <div class="loc-item-wrapper zone-card-wrapper" data-zone="<?= htmlspecialchars($wz_name) ?>" style="position:relative;">
             <a href="index.php?view=warehouse&sector=<?= urlencode($selected_sector) ?>&zone=<?= urlencode($wz_name) ?>"
-                class="loc-item gate-loc-item" data-loc-name="<?= htmlspecialchars(strtolower($wz_name)) ?>"
+                class="loc-item gate-loc-item gate-zone-card" 
+                data-loc-name="<?= htmlspecialchars(strtolower($wz_name)) ?>"
+                data-zone-name="<?= htmlspecialchars($wz_name) ?>"
                 data-status="<?= $has_alerts ? 'audit' : 'working' ?>" data-count="<?= $wz_locations ?>"
-                title="Open Zone <?= htmlspecialchars($wz_name) ?>">
+                title="Open Zone <?= htmlspecialchars($wz_name) ?> (Hold to Compare)">
+                
+                <!-- Multi-select checkbox indicator for compare mode -->
+                <div class="zone-compare-select-indicator" title="Select for comparison">
+                    <span class="compare-check-mark">✓</span>
+                </div>
+
                 <div style="position:absolute; top:8px; left:12px; font-size:0.6rem; font-weight:900; text-transform:uppercase; color:#3b82f6; letter-spacing:0.05em;">
                     <small><?= $wz_locations ?></small> <?= $wz_locations == 1 ? "<small>Shelf</small>" : "<small>Locations</small>" ?>
                 </div>

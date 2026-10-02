@@ -429,15 +429,42 @@ if (UI::is_ajax()) {
             </form>
         </div>
 
-        <!-- Right Side: Interaction History -->
-        <div style="flex: 0.8; background: #f8fafc; display: flex; flex-direction: column;">
-            <div style="padding: 30px 40px; border-bottom: 1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-weight: 800; font-size: 1rem; margin:0; text-transform:uppercase; letter-spacing:0.05em; color:#64748b;">📜 Timeline Log</h3>
-                <button type="button" onclick="closeLeadModal()" style="background:none; border:none; cursor:pointer; font-size:1.5rem; opacity:0.3;">&times;</button>
+        <!-- Right Side: Dual-Box Stack (Past Orders on Top, Interaction Logs on Bottom) -->
+        <div style="flex: 1; background: var(--bg-surface-2, #f8fafc); display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid var(--border-color, #e2e8f0);">
+            <!-- Modal Header -->
+            <div style="padding: 18px 25px; border-bottom: 1px solid var(--border-color, #e2e8f0); display:flex; justify-content:space-between; align-items:center; background: var(--bg-surface, #ffffff);">
+                <h3 style="font-weight: 800; font-size: 0.95rem; margin:0; display: flex; align-items: center; gap: 8px; color: var(--text-main, #0f172a);">
+                    <span>📜</span> Timeline & Activity Log
+                </h3>
+                <button type="button" onclick="closeLeadModal()" style="background:none; border:none; cursor:pointer; font-size:1.6rem; opacity:0.4; line-height: 1; color: var(--text-main);" title="Close">&times;</button>
             </div>
-            <div id="interaction-history" style="flex:1; overflow-y:auto; padding: 20px 40px;">
-                <!-- Populated via JS -->
-                <div style="padding:40px; text-align:center; opacity:0.3;">No history found.</div>
+
+            <!-- Box 1 (Top): Past Orders -->
+            <div style="border-bottom: 2px solid var(--border-color, #e2e8f0); display: flex; flex-direction: column; max-height: 280px; min-height: 160px; background: var(--bg-surface, #ffffff);">
+                <div style="padding: 10px 20px; background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-color, #3b82f6); display: flex; align-items: center; gap: 6px;">
+                        <span>📦</span> Past Orders <span id="lead-orders-count" style="background: var(--accent-color, #3b82f6); color: white; border-radius: 10px; padding: 1px 7px; font-size: 0.68rem;">0</span>
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-secondary, #64748b);">Order history from orders.db</span>
+                </div>
+                <div id="lead-past-orders" style="flex: 1; overflow-y: auto; padding: 12px 18px;">
+                    <!-- Populated via JS -->
+                    <div style="padding: 20px; text-align: center; opacity: 0.5; font-size: 0.8rem;">Loading past orders...</div>
+                </div>
+            </div>
+
+            <!-- Box 2 (Bottom): Interaction Logs -->
+            <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 200px;">
+                <div style="padding: 10px 20px; background: rgba(139, 92, 246, 0.05); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #8b5cf6; display: flex; align-items: center; gap: 6px;">
+                        <span>💬</span> Communication Logs <span id="lead-logs-count" style="background: #8b5cf6; color: white; border-radius: 10px; padding: 1px 7px; font-size: 0.68rem;">0</span>
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-secondary, #64748b);">Calls, emails & notes</span>
+                </div>
+                <div id="interaction-history" style="flex: 1; overflow-y: auto; padding: 12px 18px;">
+                    <!-- Populated via JS -->
+                    <div style="padding: 20px; text-align: center; opacity: 0.5; font-size: 0.8rem;">Loading interaction history...</div>
+                </div>
             </div>
         </div>
     </div>

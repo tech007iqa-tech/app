@@ -13,7 +13,7 @@ require_once __DIR__ . '/partials/import_warehouse/parser_engine.php';
 require_once __DIR__ . '/partials/import_warehouse/actions.php';
 ?>
 
-<div class="orders-container" style="animation: fadeInDown 0.4s ease-out; width: 100%; max-width: 1400px; margin: 0 auto; padding: 20px;">
+<div class="orders-container" style="animation: fadeInDown 0.4s ease-out; width: 100%; margin: 0 auto;">
     <header class="orders-header" style="margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
         <div>
             <h1 style="font-size: 2rem; font-weight: 900; color: var(--text-main); margin-bottom: 5px;">Migrate CSV Manifest to Working Zones</h1>

@@ -1,4 +1,4 @@
-# 🧠 AI Technical Deep Dive 9/16/2026 11:26 AM
+# 🧠 AI Technical Deep Dive 9/5/2026 10:52 PM
 
 This document details the database schemas, query abstractions, concurrency controls, document generation formulas, and security patterns implemented in the **IQA Warehouse Systems**.
 
@@ -237,7 +237,11 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
     *   **Model Demand Velocity Table Ordering**: Enforced column order: `Rank/Customer` (0, `num/str`), `Brand` (1, `str`), `Model` (2, `str`), `Avg Price` (3, `num`), `Details` (4, `str`), `Latest Sold/Order` (5, `date/str`), `Units Sold` (6, `num`).
     *   **Financial Graphs (Tab 2 Pricing Curves)**: Restored Chart.js rendering for **Average Selling Price (ASP) Timeline** and **Monthly Gross Realized Valuation**. Time-series points sort chronologically (left-to-right) with financial tooltips showing Realized ASP, Invoiced Units, Gross Revenue, and MoM variance.
     *   **Valuation & ASP Dual-Axis Combo Chart Mode (Phase 3)**: Added interactive view mode switcher between `🔀 Split View` (side-by-side ASP and Gross Valuation cards) and `📊 Dual-Axis Combo` (correlating gross valuation on the left axis against weighted ASP on the right axis with synchronized multi-metric hover tooltips). Mode preference persists in `sessionStorage` (`pricing_chart_view_mode`).
-    *   **Live Matrix Micro-Feedback & Cell Glow (Phase 3)**: Added `showMatrixSaveToast()` and `.cell-saved-pulse` in `trends_modals.js` and `trends.css` providing immediate visual feedback upon inline edits to B2B Untested Matrix and Tested Market Reference tables.
+    *   **Live Matrix Micro-Feedback & Dual-Mode Editing (Phase 3 & 4)**:
+        *   **Role-Based Security**: Strictly locked down `trends_actions.php` so only `Admin` can update pricing rules, add rows, or add/delete category tables. Non-Admins (Operators, Front Desk) receive read-only formatted pills (`.matrix-price-pill`) with all mutation controls hidden.
+        *   **Elevated Admin UX**: Added dual-mode switcher (`🔒 Reference Mode` vs `✏️ Bulk Edit Mode`). Reference Mode enables 1-click inline single-cell editing with Enter/Esc shortcuts. Bulk Edit Mode unlocks grid inputs with spreadsheet-style column advance (<kbd>Enter</kbd> commits and focuses next row in column) and disables mouse-wheel stepping on number inputs to eliminate accidental price changes when scrolling.
+        *   **Live Micro-Feedback**: Inline edits trigger `showMatrixSaveToast()` and `.cell-saved-pulse` in `trends_modals.js` and `trends.css`.
+    *   **Server-Side Tab Synchronization**: Enhanced `trends.php` to hydrate `$active_tab` from `$_GET['tab']` and `$_GET['tested_cat']` during server-side PHP execution, preventing the initial client-side tab jump flicker when opening B2B Untested or Tested Market from the navigation bar.
     *   **Safe Chart.js Lifecycle**: Added chart destruction guards (`Chart.getChart()`, `aspChartInstance`, `valuationChartInstance`, `comboPricingChartInstance`) to eliminate canvas collision errors when switching tabs or toggling dark/light themes.
     *   **Tab State & Filter Persistence**: Preserved active tab selection in `sessionStorage` (`trends_active_tab`) and the URL (`?view=trends&tab=...`). Changing the date filter triggers `applyTrendsFilter()` to retain the active tab without resetting.
     *   **Executive Accounting KPIs & Ledger**: Added financial summary cards (Gross Valuation, Weighted ASP, Volume Realized, Peak Month, MoM Velocity) and a settlement ledger with MoM growth badges, period revenue share %, and reconciliation totals footer (`<tfoot>`).
@@ -246,6 +250,9 @@ The audit manager `Audit::log()` commits operational logs to the `users.db` `aud
     *   **Cross-Module Intelligence Links (Phase 4)**: Interactive company name anchors (`.customer-profile-link`) integrated into Tab 4 (*Top B2B Clients by Volume*), Tab 1 (*Model Demand Buyer Names*), and CPU Pricing modal recent sales lists.
     *   **Global Empty-State Polish (Phase 4)**: Added formatted zero-result placeholders across table-level (`.no-results-row`) and tab-level (`.global-no-results`) search filters with custom iconography and single-click filter reset (`clearSearchInput()`).
 *   **Leads & CRM Follow-Up Optimization (`/orders/index.php?view=leads`)**:
+    *   **Stacked Timeline Detail Modal**: Split the right-hand panel of `#leadModal` into two vertically stacked intelligence boxes:
+        1. **Top Box: 📦 Past Orders List (`#lead-past-orders`)**: Dynamically queries customer orders from `orders.db` displaying Order ID, Date, Total Units, Order Total, and Status Badge with manifest preview actions.
+        2. **Bottom Box: 📜 Interaction Logs (`#interaction-history`)**: Chronological communication timeline with method badges, contact dates, and internal notes.
     *   **Universal Column Sorting**: Enabled sorting across all 9 data columns (`sortLeadsTable(colIndex, type)`) with raw sort values embedded in `data-sort-val`.
     *   **Follow-Up Urgency Tagging**: Added automated urgency status badges in the `Next Call` column: 🔴 **Overdue** (past date), 🟡 **Due Today** (scheduled today), 🟢 **Upcoming** (future date).
     *   **Real-Time Search Keyword Highlighting**: Enabled multi-term search highlighting across company names, internal notes, contact channels, and status badges via `highlightLeadNodeWords()`.

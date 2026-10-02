@@ -20,8 +20,9 @@ function openLeadModal(lead) {
     const newNote = document.getElementById('new_interaction_note');
     if (newNote) newNote.value = '';
 
-    // Load Interaction History
+    // Load Timeline Intelligence Stack
     loadInteractionHistory(lead.customer_id);
+    loadCustomerPastOrders(lead.customer_id, lead.company_name);
 
     document.getElementById('leadModal').style.display = 'flex';
 }
@@ -52,11 +53,76 @@ function quickLog(method) {
     }
 }
 
+/**
+ * Load Customer Past Orders into Top Timeline Box
+ */
+async function loadCustomerPastOrders(customerId, companyName) {
+    const ordersContainer = document.getElementById('lead-past-orders');
+    const countBadge = document.getElementById('lead-orders-count');
+    if (!ordersContainer) return;
+
+    ordersContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5; font-size:0.8rem;">Loading past orders...</div>';
+    if (countBadge) countBadge.textContent = '0';
+
+    try {
+        const response = await fetch(`api/get_customer_orders.php?customer_id=${encodeURIComponent(customerId || '')}&company_name=${encodeURIComponent(companyName || '')}`);
+        const data = await response.json();
+
+        if (!data.success || !data.orders || data.orders.length === 0) {
+            ordersContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5; font-size:0.8rem; color:var(--text-secondary);">No past orders found for this customer.</div>';
+            if (countBadge) countBadge.textContent = '0';
+            return;
+        }
+
+        const orders = data.orders;
+        if (countBadge) countBadge.textContent = orders.length;
+
+        ordersContainer.innerHTML = orders.map(order => {
+            const orderId = order.order_id || 'N/A';
+            const dateStr = order.created_at ? order.created_at.substring(0, 10) : '—';
+            const units = parseInt(order.total_units || 0);
+            const totalVal = parseFloat(order.order_total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const status = (order.status || 'completed').toLowerCase();
+            const statusColor = status === 'paid' ? '#10b981' : (status === 'shipped' ? '#3b82f6' : '#f59e0b');
+
+            return `
+                <div style="padding: 10px 12px; margin-bottom: 8px; background: var(--bg-surface, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+                            <a href="index.php?view=orders&type=completed&q=${encodeURIComponent(orderId)}" target="_blank" style="font-family: monospace; font-weight: 800; color: var(--accent-color, #3b82f6); text-decoration: none; font-size: 0.85rem;" title="View order in new tab">
+                                #${orderId} ↗
+                            </a>
+                            <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: ${statusColor}18; color: ${statusColor}; border: 1px solid ${statusColor}33; padding: 1px 6px; border-radius: 4px;">
+                                ${order.status || 'Paid'}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary, #64748b);">
+                            📅 ${dateStr} • 📦 ${units} unit${units === 1 ? '' : 's'}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-weight: 800; font-size: 0.9rem; color: var(--text-main, #0f172a);">$${totalVal}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error("Failed to load customer orders", err);
+        ordersContainer.innerHTML = '<div style="color:#ef4444; padding:20px; text-align:center; font-size:0.8rem;">Error loading past orders.</div>';
+    }
+}
+
+/**
+ * Load Customer Interaction Logs into Bottom Timeline Box
+ */
 async function loadInteractionHistory(customerId) {
     const historyContainer = document.getElementById('interaction-history');
+    const countBadge = document.getElementById('lead-logs-count');
     if (!historyContainer) return;
 
-    historyContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5;">Loading history...</div>';
+    historyContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5; font-size:0.8rem;">Loading communication history...</div>';
+    if (countBadge) countBadge.textContent = '0';
 
     const icons = {
         'phone': '📞',
@@ -70,32 +136,35 @@ async function loadInteractionHistory(customerId) {
         const response = await fetch(`api/get_interaction_logs.php?customer_id=${encodeURIComponent(customerId)}`);
         const logs = await response.json();
 
-        if (logs.length === 0) {
-            historyContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5; font-size:0.8rem;">No previous interaction logs.</div>';
+        if (!Array.isArray(logs) || logs.length === 0) {
+            historyContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5; font-size:0.8rem; color:var(--text-secondary);">No previous interaction logs.</div>';
+            if (countBadge) countBadge.textContent = '0';
             return;
         }
+
+        if (countBadge) countBadge.textContent = logs.length;
 
         historyContainer.innerHTML = logs.map(log => {
             const methodLower = (log.method || 'other').toLowerCase();
             const icon = icons[methodLower] || '📝';
 
             return `
-                <div style="padding:15px; border-bottom:1px solid #f1f5f9; font-size:0.85rem; position:relative; padding-left:45px;">
-                    <div style="position:absolute; left:0; top:15px; width:32px; height:32px; background:white; border:1px solid #e2e8f0; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+                <div style="padding:12px 14px; border-bottom:1px solid var(--border-color, #f1f5f9); font-size:0.85rem; position:relative; padding-left:45px;">
+                    <div style="position:absolute; left:0; top:12px; width:30px; height:30px; background:var(--bg-surface, #ffffff); border:1px solid var(--border-color, #e2e8f0); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                         ${icon}
                     </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span style="font-weight:800; color:var(--text-main);">${log.contact_date}</span>
-                        <span style="font-weight:700; color:#94a3b8; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">${log.method || 'Note'}</span>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span style="font-weight:800; color:var(--text-main); font-size:0.8rem;">${log.contact_date || '—'}</span>
+                        <span style="font-weight:700; color:var(--text-secondary); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em;">${log.method || 'Note'}</span>
                     </div>
-                    <div style="color:#475569; line-height:1.5; font-weight:500;">${log.note}</div>
+                    <div style="color:var(--text-main); opacity:0.85; line-height:1.45; font-weight:500; font-size:0.82rem;">${log.note}</div>
                 </div>
             `;
         }).join('');
 
     } catch (err) {
         console.error("Failed to load history", err);
-        historyContainer.innerHTML = '<div style="color:#ef4444; padding:20px; text-align:center;">Error loading history.</div>';
+        historyContainer.innerHTML = '<div style="color:#ef4444; padding:20px; text-align:center; font-size:0.8rem;">Error loading history.</div>';
     }
 }
 

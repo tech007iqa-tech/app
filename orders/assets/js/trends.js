@@ -34,6 +34,20 @@ function getTrendsState() {
 function initTrendsApp() {
     const state = getTrendsState();
 
+    // If Operator role, only manage tab-matrix and search without analytics graphs or widget lifecycle
+    if (state.user_role === 'Operator') {
+        if (typeof switchTrendsTab === 'function') switchTrendsTab('tab-matrix');
+        const searchInput = document.getElementById('trends-search');
+        const clearBtn = document.getElementById('clear-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                if (clearBtn) clearBtn.style.display = searchInput.value ? 'block' : 'none';
+                if (typeof filterActiveTable === 'function') filterActiveTable();
+            });
+        }
+        return;
+    }
+
     // Handle initial tab selection & search listeners
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTab = urlParams.get('tab') || sessionStorage.getItem('trends_active_tab');
@@ -70,7 +84,7 @@ function initTrendsApp() {
     if (typeof renderWidgetToggles === 'function') renderWidgetToggles();
     if (typeof renderWidgetBoard === 'function') renderWidgetBoard();
 
-    // Disable matrix editing if non-Admin
+    // Disable matrix editing if non-authorized (Only Admin can edit)
     if (state.user_role && state.user_role !== 'Admin') {
         const matrixInputs = document.querySelectorAll('.matrix-cell-input');
         matrixInputs.forEach(input => {

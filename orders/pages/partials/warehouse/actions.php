@@ -304,14 +304,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 'battery' => $_POST['battery'] ?? '',
                 'series' => $_POST['series'] ?? '',
                 'gen' => $_POST['gen'] ?? '',
-                'condition' => $_POST['condition'] ?? 'Used',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? ''
             ];
         } elseif ($sector === 'Gaming') {
             $specs = [
                 'category' => $_POST['gaming_category'] ?? 'Consoles',
                 'series' => $_POST['series'] ?? '',
-                'condition' => $_POST['condition'] ?? 'Used',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? '',
                 'ram' => $_POST['ram'] ?? '',
                 'storage' => $_POST['storage'] ?? '',
@@ -323,11 +323,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 'cpu_gen' => $_POST['cpu_gen'] ?? '',
                 'ram' => $_POST['ram'] ?? '',
                 'storage' => $_POST['storage'] ?? '',
-                'condition' => $_POST['condition'] ?? 'Used',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? ''
             ];
         } else {
-            $specs = ['condition' => $_POST['condition'] ?? 'Used', 'notes' => $_POST['notes'] ?? ''];
+            $specs = ['condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade', 'notes' => $_POST['notes'] ?? ''];
         }
 
         $specs_json = json_encode($specs);
@@ -702,14 +702,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
                 'series' => $_POST['series'] ?? '',
                 'gen' => $_POST['gen'] ?? '',
                 'bios' => $_POST['bios'] ?? '',
-                'condition' => $_POST['condition'] ?? '',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? ''
             ];
         } elseif ($sector === 'Gaming') {
             $specs = [
                 'category' => $_POST['gaming_category'] ?? 'Consoles',
                 'series' => $_POST['series'] ?? '',
-                'condition' => $_POST['condition'] ?? '',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? '',
                 'ram' => $_POST['ram'] ?? '',
                 'storage' => $_POST['storage'] ?? '',
@@ -719,11 +719,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['action'])) {
         } elseif ($sector === 'Desktops') {
             $specs = [
                 'cpu_gen' => $_POST['cpu_gen'] ?? '',
-                'condition' => $_POST['condition'] ?? '',
+                'condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade',
                 'notes' => $_POST['notes'] ?? ''
             ];
         } else {
-            $specs = ['condition' => $_POST['condition'] ?? '', 'notes' => $_POST['notes'] ?? ''];
+            $specs = ['condition' => !empty($_POST['condition']) ? $_POST['condition'] : 'B Grade', 'notes' => $_POST['notes'] ?? ''];
         }
 
         $specs_json = json_encode($specs);

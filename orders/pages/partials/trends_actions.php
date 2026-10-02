@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         header('Content-Type: application/json');
 
         $role = $_SESSION['role'] ?? '';
-        if (!in_array($role, ['Admin', 'Front Desk'])) {
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        if ($role !== 'Admin') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Elevated administrator privileges required to modify pricing rules.']);
             exit();
         }
 
@@ -115,9 +115,15 @@ require_once 'core/TestedMarketManager.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     $action = $_GET['action'];
     if (in_array($action, ['update_tested_market_cell', 'add_tested_market_category', 'delete_tested_market_category', 'add_tested_market_rule', 'delete_tested_market_rule'])) {
-        ob_clean();
         if (session_status() === PHP_SESSION_NONE) session_start();
         header('Content-Type: application/json');
+
+        $role = $_SESSION['role'] ?? '';
+        if ($role !== 'Admin') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Elevated administrator privileges required to modify tested market rules.']);
+            exit();
+        }
+
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
         try {

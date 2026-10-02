@@ -199,6 +199,15 @@
     display: inline-block;
 }
 
+/* Fluid Column Proportions for Demand Velocity */
+#table-velocity th:nth-child(1), #table-velocity td:nth-child(1) { width: 75px; white-space: nowrap; }
+#table-velocity th:nth-child(2), #table-velocity td:nth-child(2) { width: 110px; white-space: nowrap; }
+#table-velocity th:nth-child(3), #table-velocity td:nth-child(3) { width: 140px; white-space: nowrap; }
+#table-velocity th:nth-child(4), #table-velocity td:nth-child(4) { width: 115px; white-space: nowrap; }
+#table-velocity th:nth-child(5), #table-velocity td:nth-child(5) { min-width: 250px; }
+#table-velocity th:nth-child(6), #table-velocity td:nth-child(6) { width: 135px; white-space: nowrap; }
+#table-velocity th:nth-child(7), #table-velocity td:nth-child(7) { width: 115px; white-space: nowrap; text-align: center; }
+
 /* Sorting indicators */
 .trends-table th.sort-asc::after {
     content: " ▲";
@@ -494,4 +503,235 @@
 .customer-profile-link:hover {
     color: #3b82f6;
     text-decoration-color: #3b82f6;
+}
+
+/* Order Item Condition Badges (Tested, Untested, For Parts, Grades) */
+.item-cond-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    line-height: 1.2;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.item-cond-untested {
+    background-color: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+}
+.item-cond-tested {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+.item-cond-parts {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+.item-cond-grade-a {
+    background-color: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+.item-cond-grade-b {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+.item-cond-grade-c {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border-color: #fdba74;
+}
+.item-cond-other {
+    background-color: var(--bg-surface-2, #f1f5f9);
+    color: var(--text-secondary, #64748b);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .item-cond-untested {
+    background-color: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+[data-theme="dark"] .item-cond-tested {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .item-cond-parts {
+    background-color: rgba(239, 68, 68, 0.18);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-a {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-b {
+    background-color: rgba(14, 165, 233, 0.18);
+    color: #38bdf8;
+    border-color: rgba(14, 165, 233, 0.35);
+}
+[data-theme="dark"] .item-cond-grade-c {
+    background-color: rgba(249, 115, 22, 0.18);
+    color: #fb923c;
+    border-color: rgba(249, 115, 22, 0.35);
+}
+
+/* ==========================================================================
+   B2B Untested Pricing Matrix - Elevated UX & Read-Only Display
+   ========================================================================== */
+
+/* Mode Switcher segmented control */
+.matrix-mode-toggle-group {
+    display: inline-flex;
+    background: var(--bg-surface-2, #f1f5f9);
+    padding: 3px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.matrix-mode-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    border-radius: 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary, #64748b);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.matrix-mode-btn:hover {
+    color: var(--text-main, #0f172a);
+}
+
+.matrix-mode-btn.active {
+    background: var(--accent-color, #3b82f6);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* Price Pill styling (View / Reference mode) */
+.matrix-price-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    transition: all 0.15s ease-in-out;
+    user-select: none;
+}
+
+.matrix-price-pill .matrix-currency {
+    font-size: 0.78rem;
+    margin-right: 1px;
+    opacity: 0.85;
+}
+
+.matrix-price-pill.has-price {
+    background: rgba(59, 130, 246, 0.08);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+[data-theme="dark"] .matrix-price-pill.has-price {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.matrix-price-pill.zero-price {
+    background: var(--bg-surface-2, #f8fafc);
+    color: var(--text-secondary, #94a3b8);
+    border: 1px dashed var(--border-color, #cbd5e1);
+    font-weight: 500;
+}
+
+/* Admin Interactive Click-to-Edit Pills */
+.matrix-price-pill.admin-clickable {
+    cursor: pointer;
+    position: relative;
+}
+
+.matrix-price-pill.admin-clickable:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.14);
+}
+
+.matrix-price-pill.admin-clickable:hover .matrix-edit-hint {
+    opacity: 1 !important;
+}
+
+/* Mode-dependent visibility */
+.matrix-container[data-matrix-mode="view"] .matrix-price-pill {
+    display: inline-flex;
+}
+
+.matrix-container[data-matrix-mode="view"] .matrix-input-container {
+    display: none !important;
+}
+
+/* When a single cell is actively being inline edited */
+.matrix-container[data-matrix-mode="view"] .cell-editing-active .matrix-price-pill {
+    display: none !important;
+}
+
+.matrix-container[data-matrix-mode="view"] .cell-editing-active .matrix-input-container {
+    display: flex !important;
+}
+
+.matrix-container[data-matrix-mode="edit"] .matrix-price-pill {
+    display: none !important;
+}
+
+.matrix-container[data-matrix-mode="edit"] .matrix-input-container {
+    display: flex !important;
+}
+
+/* Hide spin buttons in matrix number inputs for clean spreadsheet appearance */
+.matrix-cell-input[type="number"]::-webkit-outer-spin-button,
+.matrix-cell-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.matrix-cell-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Input container wrapper */
+.matrix-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.matrix-input-container .input-price {
+    text-align: left;
+    padding-left: 20px !important;
+}
+
+.matrix-input-container:focus-within {
+    filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.2));
 }

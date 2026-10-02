@@ -11,7 +11,7 @@
             🚪 Sign Out
         </a>
         <h1>Appearance</h1>
-        <p class="subtitle">Customize the look and feel of the application.</p>
+        <p class="subtitle">Signed in as <strong style="color: var(--accent-color); font-family: monospace; font-size: 0.95rem;"><?= htmlspecialchars($username) ?></strong> &bull; Customize application theme.</p>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 16px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
         <div>

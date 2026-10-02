@@ -74,14 +74,14 @@ try {
             'series' => trim($data['series'] ?? ''),
             'gen' => trim($data['gen'] ?? ''),
             'bios' => trim($data['bios'] ?? ''),
-            'condition' => trim($data['condition'] ?? 'Used'),
+            'condition' => !empty($data['condition']) ? trim($data['condition']) : 'B Grade',
             'notes' => trim($data['notes'] ?? '')
         ];
     } elseif ($sector === 'Gaming') {
         $specs = [
             'category' => trim($data['gaming_category'] ?? 'PC'),
             'series' => trim($data['series'] ?? ''),
-            'condition' => trim($data['condition'] ?? 'Used'),
+            'condition' => !empty($data['condition']) ? trim($data['condition']) : 'B Grade',
             'notes' => trim($data['notes'] ?? ''),
             'ram' => trim($data['ram'] ?? ''),
             'storage' => trim($data['storage'] ?? ''),
@@ -91,14 +91,14 @@ try {
     } elseif ($sector === 'Desktops') {
         $specs = [
             'cpu_gen' => trim($data['cpu_gen'] ?? ''),
-            'condition' => trim($data['condition'] ?? 'Used'),
+            'condition' => !empty($data['condition']) ? trim($data['condition']) : 'B Grade',
             'notes' => trim($data['notes'] ?? '')
         ];
     } else {
         $specs = [
             'type' => trim($data['type'] ?? ''),
             'voltage' => trim($data['voltage'] ?? ''),
-            'condition' => trim($data['condition'] ?? 'Used'),
+            'condition' => !empty($data['condition']) ? trim($data['condition']) : 'B Grade',
             'notes' => trim($data['notes'] ?? '')
         ];
     }

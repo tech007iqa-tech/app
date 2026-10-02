@@ -14,10 +14,17 @@
     <!-- Perfect Paper Passwords (PPP) Card (SHOWN FIRST) -->
     <div class="settings-card" id="ppp-card" style="max-width: 600px; width: 100%;">
         <div class="settings-header multi-link-container" style="position: relative;">
-            <h1>🔑 Perfect Paper Passwords (PPP)</h1>
-            <p class="subtitle">Your offline, ultra-secure one-time passcode system from
-                <span class="linked-text-info" style="color: #4f46e5; text-decoration: underline; font-weight: bold; cursor: pointer;">GRC</span>.
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h1>🔑 Perfect Paper Passwords (PPP)</h1>
+                    <p class="subtitle">Your offline, ultra-secure one-time passcode system from
+                        <span class="linked-text-info" style="color: #4f46e5; text-decoration: underline; font-weight: bold; cursor: pointer;">GRC</span>.
+                    </p>
+                </div>
+                <div style="background: #e0e7ff; color: #4338ca; padding: 5px 14px; border-radius: 14px; font-size: 0.8rem; font-weight: 800; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>👤</span> <?= htmlspecialchars($username) ?>
+                </div>
+            </div>
             <!-- PPP Information Dialog -->
             <div class="info-dialog" style="max-width: 500px; width: 90%;">
                 <button type="button" class="btn-close-dialog" aria-label="Close dialog">&times;</button>
@@ -172,11 +179,23 @@
 
     <!-- Account Security Card (SHOWN SECOND) -->
     <div class="settings-card">
-        <div class="settings-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div class="settings-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap: wrap; gap: 10px;">
             <div>
                 <h1>Account Security</h1>
-                <p class="subtitle">Update your password to keep your account secure.</p>
+                <p class="subtitle">Update credentials and security for account <strong style="color: var(--accent-color); font-family: monospace;"><?= htmlspecialchars($username) ?></strong>.</p>
             </div>
+            <div style="background: var(--bg-surface-2, #f1f5f9); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1rem;">👤</span>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;">Username</div>
+                    <div style="font-size: 0.88rem; font-weight: 900; color: var(--text-main); font-family: monospace;"><?= htmlspecialchars($username) ?></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="account_username" style="display: block; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Account Username</label>
+            <input type="text" id="account_username" value="<?= htmlspecialchars($username) ?>" readonly style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 800; background: #f8fafc; color: var(--text-main); cursor: default; box-sizing: border-box;" title="Logged in username">
         </div>
 
         <?php if (!$is_forced): ?>
@@ -264,4 +283,81 @@
 </form>
 
 <!-- PRINTABLE PASSCARD SOURCE -->
-<div id="ppp-printable-card-source" style="display: none;"></div>
+<div id="ppp-printable-card-source" style="display: none;">
+    <?php if (!empty($seq_key) && !empty($actual_codes)): ?>
+        <div style="border: 2px dashed #333; border-radius: 12px; padding: 20px; max-width: 100%; width: 100%; box-sizing: border-box; background: white; color: black; font-family: 'Courier New', Courier, monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin: 15px auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">
+                <strong style="font-size: 16px; letter-spacing: 1px;">PERFECT PAPER PASSCARD</strong>
+                <span style="font-size: 14px; font-weight: bold;">User: <?= htmlspecialchars($username) ?></span>
+            </div>
+            <div style="font-size: 10px; margin-bottom: 15px; word-break: break-all; border: 1px solid #ddd; padding: 8px; background: #f9f9f9; border-radius: 6px;">
+                <strong>SEQUENCE KEY:</strong><br><span id="ppp_card_source_key"><?= htmlspecialchars($seq_key) ?></span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; table-layout: auto;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #000; background: #eee;">
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; width: 50px;">Row</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">A</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">B</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">C</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">D</th>
+                        <th style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold;">E</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php for ($r = 0; $r < 25; $r++): 
+                        $rNum = sprintf('%02d', $r + 1);
+                        $bgCol = ($r % 2 === 0) ? '#fafafa' : '#ffffff';
+                    ?>
+                        <tr style="background: <?= $bgCol ?>;">
+                            <td style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; white-space: nowrap;"><?= $rNum ?></td>
+                            <?php for ($c = 0; $c < 5; $c++): ?>
+                                <td style="padding: 5px 3px; border: 1px solid #ccc; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap;"><?= htmlspecialchars($actual_codes[$r * 5 + $c] ?? '') ?></td>
+                            <?php endfor; ?>
+                        </tr>
+                    <?php endfor; ?>
+                </tbody>
+            </table>
+            <div style="margin-top: 15px; text-align: center; font-size: 9px; color: #666; border-top: 1px solid #eee; padding-top: 8px;">
+                GRC Perfect Paper Passwords &bull; Password Length: <?= $saved_pass_len ?> &bull; Keep this card secure and offline.
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+
+<!-- Interactive Passcard Viewer Modal -->
+<div id="pppPasscardViewModal" class="modal-overlay no-print" onclick="if(event.target === this) closePPPCardModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding: 20px;">
+    <div class="modal-box" onclick="event.stopPropagation()" style="background:var(--bg-panel, white); border-radius:20px; width:100%; max-width:680px; padding:25px; box-shadow:var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.3)); border: 1px solid var(--border-color, #cbd5e1); display:flex; flex-direction:column; max-height:90vh;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size: 1.5rem;">📄</span>
+                <div>
+                    <h3 style="font-weight: 800; font-size: 1.15rem; margin:0; color: var(--text-main);">Perfect Paper Passcard</h3>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color, #4f46e5);">Assigned User: <?= htmlspecialchars($username) ?></span>
+                </div>
+            </div>
+            <button type="button" onclick="closePPPCardModal()" style="background:none; border:none; cursor:pointer; font-size:1.6rem; color:var(--text-secondary, #64748b); line-height: 1;">&times;</button>
+        </div>
+
+        <div id="ppp-view-modal-content" style="overflow-y:auto; flex:1; padding-right:5px; margin-bottom: 15px;">
+            <!-- Live card injected dynamically -->
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 15px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onclick="printPPPCard()" class="btn-main" style="padding: 9px 16px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    🖨️ Print
+                </button>
+                <button type="button" onclick="downloadPPPCardHtml()" class="btn-main" style="padding: 9px 16px; border-radius: 10px; background: #10b981; color: white; border: none; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    💾 Download HTML
+                </button>
+                <button type="button" onclick="openPasscardInNewTab()" class="btn-main" style="padding: 9px 16px; border-radius: 10px; background: #64748b; color: white; border: none; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    ↗️ New Tab
+                </button>
+            </div>
+            <button type="button" onclick="closePPPCardModal()" class="btn-main dark" style="padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; border: none; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+</div>

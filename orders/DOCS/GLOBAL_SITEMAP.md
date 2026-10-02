@@ -1,4 +1,4 @@
-# 🗺️ Global System Sitemap 9/16/2026 11:26 AM
+# 🗺️ Global System Sitemap 9/5/2026 10:52 PM
 
 This document outlines the file layout and component structure of the **IQA Warehouse Systems** workspace.
 
@@ -71,6 +71,7 @@ These files are buffered and rendered dynamically within `prod/index.php`.
 - `generate_backup.php`: Generates a zip export containing all SQLite databases.
 - `generate_warehouse_label.php`: Generates and exports a 2"x1" Flat XML ODT thermal label for a specific inventory ID.
 - `get_cpu_pricing_details.php`: API endpoint returning price metrics and recent transactions for CPU families.
+- `get_customer_orders.php`: API endpoint returning historical purchase batches and unit volumes for a specific customer.
 - `get_interaction_logs.php`: Fetches timeline items for a lead.
 - `get_order_details.php`: API endpoint returning item batch list and totals for a given order ID.
 - `get_vocabulary.php`: Returns autocomplete suggestions for model intake.

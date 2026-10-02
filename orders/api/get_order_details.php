@@ -84,6 +84,25 @@ try {
         exit();
     }
 
+    // Enrich items with condition (Tested, Untested, For Parts, Grades)
+    foreach ($items as &$item) {
+        $cond = trim($item['condition'] ?? '');
+        if (empty($cond)) {
+            $combined = ($item['description'] ?? '') . ' ' . ($item['notes'] ?? '');
+            if (preg_match('/\b(for parts|parts|part|not working|drilled)\b/i', $combined)) {
+                $cond = 'For Parts';
+            } elseif (preg_match('/\b(untested|un-tested)\b/i', $combined)) {
+                $cond = 'Untested';
+            } elseif (preg_match('/\b(tested|working)\b/i', $combined)) {
+                $cond = 'Tested';
+            } elseif (preg_match('/\b([A-D]\s*grade|grade\s*[A-D])\b/i', $combined, $gm)) {
+                $cond = ucwords(strtolower($gm[0]));
+            }
+        }
+        $item['condition'] = $cond;
+    }
+    unset($item);
+
     echo json_encode([
         'order' => $order,
         'items' => $items

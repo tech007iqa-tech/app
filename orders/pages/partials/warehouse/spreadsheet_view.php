@@ -326,8 +326,21 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                             </td>
                         <?php endif; ?>
 
-                        <td class="editable-cell" data-field="condition">
-                            <input type="text" class="cell-input" value="<?= htmlspecialchars($specs['condition'] ?? 'Used') ?>" list="condition-options-list" placeholder="...">
+                        <?php
+                        $row_cond = !empty($specs['condition']) ? $specs['condition'] : 'B Grade';
+                        $row_cond_class = 'cond-' . strtolower(str_replace(' ', '-', $row_cond));
+                        ?>
+                        <td class="editable-cell" data-field="condition" style="text-align: center;">
+                            <div class="condition-cell-wrapper" style="display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+                                <button type="button" 
+                                    class="condition-badge-btn condition-badge <?= $row_cond_class ?>" 
+                                    onclick="cycleWarehouseCondition(this, event)" 
+                                    oncontextmenu="openConditionPicker(this, event)"
+                                    title="Click to swap condition | Right-click for options">
+                                    <?= htmlspecialchars($row_cond) ?>
+                                </button>
+                                <input type="hidden" class="cell-input" value="<?= htmlspecialchars($row_cond) ?>">
+                            </div>
                         </td>
                         <td class="editable-cell numeric" data-field="quantity">
                             <input type="number" step="1" class="cell-input text-center font-bold" value="<?= (int)$item['quantity'] ?>">
@@ -429,8 +442,17 @@ if (empty($default_shelf) && !empty($active_zone_name)) {
                         </td>
                     <?php endif; ?>
 
-                    <td class="editable-cell" data-field="condition">
-                        <input type="text" class="cell-input" list="condition-options-list" placeholder="Condition...">
+                    <td class="editable-cell" data-field="condition" style="text-align: center;">
+                        <div class="condition-cell-wrapper" style="display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+                            <button type="button" 
+                                class="condition-badge-btn condition-badge cond-b-grade" 
+                                onclick="cycleWarehouseCondition(this, event)" 
+                                oncontextmenu="openConditionPicker(this, event)"
+                                title="Click to swap condition | Right-click for options">
+                                B Grade
+                            </button>
+                            <input type="hidden" class="cell-input" value="B Grade">
+                        </div>
                     </td>
                     <td class="editable-cell numeric" data-field="quantity">
                         <input type="number" step="1" class="cell-input text-center font-bold" placeholder="Qty...">

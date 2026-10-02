@@ -670,6 +670,15 @@
                     }
                 });
 
+                // Prune duplicate blank rows to ensure strictly one rapid intake row
+                const blankRows = container.querySelectorAll('.new-blank-row');
+                if (blankRows.length > 1) {
+                    for (let i = 1; i < blankRows.length; i++) {
+                        blankRows[i].remove();
+                        hasChanges = true;
+                    }
+                }
+
             } else {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = (newHTML || '').trim();

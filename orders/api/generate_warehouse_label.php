@@ -62,7 +62,7 @@ try {
     }
 
     $bios_state = $specs['bios'] ?? 'Unknown';
-    $description = $specs['condition'] ?? 'Untested';
+    $description = !empty($specs['condition']) ? $specs['condition'] : 'B Grade';
     $warehouse_location = $item['location_code'] ?? 'Unassigned';
 
     // Log audit event locally
