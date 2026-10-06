@@ -1,4 +1,7 @@
 <?php
+if (!ob_start('ob_gzhandler')) {
+    ob_start();
+}
 require_once 'core/database.php';
 require_once __DIR__ . '/core/UI.php';
 include 'core/auth.php';
@@ -472,6 +475,7 @@ $page_content = ob_get_clean();
     <?php elseif ($active_key === 'inbound'): ?>
         <script src="assets/js/inbound.js?v=<?= filemtime('assets/js/inbound.js') ?>" defer></script>
     <?php elseif ($active_key === 'trends'): ?>
+        <script src="assets/js/chart.min.js?v=<?= file_exists('assets/js/chart.min.js') ? filemtime('assets/js/chart.min.js') : '1' ?>" defer></script>
         <script src="assets/js/trends/trends_nav.js?v=<?= filemtime('assets/js/trends/trends_nav.js') ?>" defer></script>
         <script src="assets/js/trends/trends_charts.js?v=<?= filemtime('assets/js/trends/trends_charts.js') ?>" defer></script>
         <script src="assets/js/trends/trends_widgets.js?v=<?= filemtime('assets/js/trends/trends_widgets.js') ?>" defer></script>

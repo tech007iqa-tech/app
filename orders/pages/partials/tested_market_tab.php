@@ -145,7 +145,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                     <?php if ($is_admin): ?>
                                         <div style="position: relative; display: flex; align-items: center;">
                                             <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
-                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'price', this.value, this)" style="padding-left: 20px; font-weight: 700;">
+                                            <input type="number" step="any"  class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'price', this.value, this)" style="padding-left: 20px; font-weight: 700;">
                                         </div>
                                     <?php else: ?>
                                         <div class="matrix-price-pill <?= $price > 0 ? 'has-price' : 'zero-price' ?>">
@@ -157,7 +157,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                 <td>
                                     <?php if ($is_admin): ?>
                                         <div style="position: relative; display: flex; align-items: center;">
-                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-st" value="<?= number_format($st, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sale_through', this.value / 100, this)" style="padding-right: 20px; font-weight: 700;">
+                                            <input type="number" step="any"  class="matrix-cell-input input-st" value="<?= number_format($st, 2, '.', '') ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sale_through', this.value / 100, this)" style="padding-right: 20px; font-weight: 700;">
                                             <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
                                         </div>
                                     <?php else: ?>
@@ -255,7 +255,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                     <?php if ($is_admin): ?>
                                         <div style="position: relative; display: flex; align-items: center;">
                                             <span style="position: absolute; left: 8px; font-weight: 800; color: var(--text-secondary);">$</span>
-                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-left: 20px; font-weight: 700;">
+                                            <input type="number" step="any"  class="matrix-cell-input input-price" value="<?= number_format($price, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-left: 20px; font-weight: 700;">
                                         </div>
                                     <?php else: ?>
                                         <div class="matrix-price-pill <?= $price > 0 ? 'has-price' : 'zero-price' ?>">
@@ -267,7 +267,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                 <td>
                                     <?php if ($is_admin): ?>
                                         <div style="position: relative; display: flex; align-items: center;">
-                                            <input type="number" step="any" onwheel="this.blur()" class="matrix-cell-input input-st" value="<?= number_format($st_pct, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-right: 20px; font-weight: 700;">
+                                            <input type="number" step="any"  class="matrix-cell-input input-st" value="<?= number_format($st_pct, 2, '.', '') ?>" onchange="onTestedPriceOrStChange(<?= $r['id'] ?>, this)" style="padding-right: 20px; font-weight: 700;">
                                             <span style="position: absolute; right: 8px; font-weight: 800; color: var(--text-secondary);">%</span>
                                         </div>
                                     <?php else: ?>
@@ -276,7 +276,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                 </td>
                                 <td style="text-align: center;">
                                     <?php if ($is_admin): ?>
-                                        <input type="number" onwheel="this.blur()" class="matrix-cell-input inline-text" value="<?= (int)$r['sold_count'] ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sold_count', this.value, this)" style="text-align: center;">
+                                        <input type="number"  class="matrix-cell-input inline-text" value="<?= (int)$r['sold_count'] ?>" onchange="updateTestedCell(<?= $r['id'] ?>, 'sold_count', this.value, this)" style="text-align: center;">
                                     <?php else: ?>
                                         <strong><?= (int)$r['sold_count'] ?></strong>
                                     <?php endif; ?>

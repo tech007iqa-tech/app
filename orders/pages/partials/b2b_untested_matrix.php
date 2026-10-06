@@ -179,7 +179,7 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                                                                class="matrix-cell-input input-price admin-matrix-input"
                                                                value="<?= $price_val ?>"
                                                                data-original="<?= $price_val ?>"
-                                                               onwheel="this.blur()"
+                                                               
                                                                onkeydown="handleMatrixKeyNav(event, this)"
                                                                onblur="handleMatrixInputBlur(this)"
                                                                data-category="<?= htmlspecialchars($cat) ?>"
@@ -251,10 +251,15 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
 <?php endif; ?>
 
 <script>
-// Prevent accidental mouse wheel value altering on all number inputs in matrix
-document.querySelectorAll('.admin-matrix-input').forEach(inp => {
-    inp.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
-});
+// Prevent accidental mouse wheel value altering on focused number inputs while scrolling (passive & non-blocking)
+if (!window.__matrixWheelListenerAttached) {
+    window.__matrixWheelListenerAttached = true;
+    document.addEventListener('wheel', function() {
+        if (document.activeElement && (document.activeElement.classList.contains('matrix-cell-input') || document.activeElement.type === 'number')) {
+            document.activeElement.blur();
+        }
+    }, { passive: true });
+}
 
 /**
  * Toggle Matrix Display Mode (view vs edit) for Admin

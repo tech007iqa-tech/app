@@ -30,7 +30,7 @@
                         <tr>
                             <th onclick="sortTable('table-velocity', 0, 'num')">
                                 <span class="rank-header">Rank</span>
-                                <span class="buyer-header" style="display: none;">Customer</span>
+                                <span class="buyer-header">Customer</span>
                             </th>
                             <th onclick="sortTable('table-velocity', 1, 'str')">Brand</th>
                             <th onclick="sortTable('table-velocity', 2, 'str')">Model</th>
@@ -38,7 +38,7 @@
                             <th onclick="sortTable('table-velocity', 4, 'str')">Details</th>
                             <th onclick="sortTable('table-velocity', 5, 'date')">
                                 <span class="stock-header">Latest Sold</span>
-                                <span class="order-header" style="display: none;">Customer Order</span>
+                                <span class="order-header">Customer Order</span>
                             </th>
                             <th onclick="sortTable('table-velocity', 6, 'num')" class="sort-desc">Units Sold</th>
                         </tr>
@@ -46,6 +46,42 @@
                     <tbody>
                         <?php foreach ($velocity as $idx => $item): ?>
                             <?php
+                                $in_stock = (int)($item['in_stock'] ?? 0);
+                                $incoming = (int)($item['incoming_stock'] ?? 0);
+                                $unique_dates = [];
+                                $clean_order_ids = [];
+                                $order_links = [];
+                                $current_year = date('Y');
+
+                                if (!empty($item['order_ids'])) {
+                                    $ords = explode(',', $item['order_ids']);
+                                    foreach ($ords as $ord) {
+                                        $parts = explode('|', trim($ord));
+                                        $o_id = $parts[0] ?? '';
+                                        $o_date = $parts[1] ?? '';
+                                        if ($o_date && !in_array($o_date, $unique_dates)) {
+                                            $unique_dates[] = $o_date;
+                                        }
+                                        if ($o_id) {
+                                            $clean_order_ids[] = $o_id;
+                                            if (count($order_links) < 5) {
+                                                $display_date_badge = '';
+                                                if ($o_date) {
+                                                    $d_parts = explode('-', $o_date);
+                                                    $fmt_date = (count($d_parts) === 3 && $d_parts[0] === $current_year) ? ($d_parts[1] . '-' . $d_parts[2]) : $o_date;
+                                                    $display_date_badge = ' <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-main);">(' . htmlspecialchars($fmt_date) . ')</span>';
+                                                }
+                                                $order_links[] = '<span><a href="#" onclick="openOrderPreviewModal(event, \'' . htmlspecialchars($o_id) . '\')" class="order-preview-link"><code>' . htmlspecialchars($o_id) . '</code></a>' . $display_date_badge . '</span>';
+                                            }
+                                        }
+                                    }
+                                }
+                                rsort($unique_dates);
+                                $first_date = $unique_dates[0] ?? '';
+                                if (count($clean_order_ids) > 5) {
+                                    $order_links[] = '<span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600;">+' . (count($clean_order_ids) - 5) . ' more</span>';
+                                }
+
                                 $search_blob = strtolower(
                                     $item['brand'] . ' ' .
                                     $item['model'] . ' ' .
@@ -55,29 +91,30 @@
                                     ($item['notes'] ?? '') . ' ' .
                                     $item['avg_price'] . ' ' .
                                     ($item['buyer_names'] ?? '') . ' ' .
-                                    ($item['order_ids'] ?? '')
+                                    implode(' ', array_unique($clean_order_ids))
                                 );
-                                $in_stock = $item['in_stock'] ?? 0;
-                                $incoming = $item['incoming_stock'] ?? 0;
-                                $unique_dates = [];
-                                $first_date = '';
-                                if (!empty($item['order_ids'])) {
-                                    $ords = explode(',', $item['order_ids']);
-                                    foreach ($ords as $ord) {
-                                        $parts = explode('|', trim($ord));
-                                        $o_date = $parts[1] ?? '';
-                                        if ($o_date && !in_array($o_date, $unique_dates)) {
-                                            $unique_dates[] = $o_date;
-                                        }
+
+                                $display_date = $first_date;
+                                if ($first_date) {
+                                    $d_parts = explode('-', $first_date);
+                                    if (count($d_parts) === 3 && $d_parts[0] === $current_year) {
+                                        $display_date = $d_parts[1] . '-' . $d_parts[2];
                                     }
                                 }
-                                rsort($unique_dates);
-                                $first_date = $unique_dates[0] ?? '';
+
+                                $is_extra_row = ($idx >= 100);
                             ?>
-                            <tr data-search="<?= htmlspecialchars($search_blob) ?>" data-instock="<?= $in_stock ?>" data-brand="<?= htmlspecialchars($item['brand'] ?? '') ?>" data-model="<?= htmlspecialchars($item['model'] ?? '') ?>" data-series="<?= htmlspecialchars($item['series'] ?? '') ?>" data-cpu="<?= htmlspecialchars($item['cpu'] ?? '') ?>">
+                            <tr class="velocity-row <?= $is_extra_row ? 'velocity-row-extra' : '' ?>"
+                                data-search="<?= htmlspecialchars($search_blob) ?>"
+                                data-instock="<?= $in_stock ?>"
+                                data-brand="<?= htmlspecialchars($item['brand'] ?? '') ?>"
+                                data-model="<?= htmlspecialchars($item['model'] ?? '') ?>"
+                                data-series="<?= htmlspecialchars($item['series'] ?? '') ?>"
+                                data-cpu="<?= htmlspecialchars($item['cpu'] ?? '') ?>"
+                                <?= $is_extra_row ? 'style="display: none;"' : '' ?>>
                                 <td>
                                     <span class="rank-cell" style="font-weight: 900; color: var(--accent-color);">#<?= $idx + 1 ?></span>
-                                    <span class="buyer-cell" style="display: none; font-size: 0.8rem; font-weight: 700; color: var(--accent-color);">
+                                    <span class="buyer-cell" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color);">
                                         <?php
                                         if (!empty($item['buyer_names'])) {
                                             $buyers = array_map('trim', explode(',', $item['buyer_names']));
@@ -107,52 +144,10 @@
                                 </td>
                                 <td data-sort-val="<?= htmlspecialchars($first_date) ?>">
                                     <div class="stock-cell">
-                                        <?php
-                                        if (!empty($first_date)) {
-                                            $current_year = date('Y');
-                                            $date_parts = explode('-', $first_date);
-                                            $display_date = $first_date;
-                                            if (count($date_parts) === 3) {
-                                                if ($date_parts[0] === $current_year) {
-                                                    $display_date = $date_parts[1] . '-' . $date_parts[2];
-                                                }
-                                            }
-                                            echo htmlspecialchars($display_date);
-                                        } else {
-                                            echo '—';
-                                        }
-                                        ?>
+                                        <?= htmlspecialchars($display_date ?: '—') ?>
                                     </div>
-                                    <div class="order-cell" style="display: none; font-size: 0.8rem; font-family: monospace;">
-                                        <?php
-                                        if (!empty($item['order_ids'])) {
-                                            $ords = explode(',', $item['order_ids']);
-                                            $rendered = [];
-                                            $current_year = date('Y');
-                                            foreach ($ords as $ord) {
-                                                $parts = explode('|', trim($ord));
-                                                $o_id = $parts[0] ?? '';
-                                                $o_date = $parts[1] ?? '';
-                                                if ($o_id) {
-                                                    $display_date = '';
-                                                    if ($o_date) {
-                                                        $date_parts = explode('-', $o_date);
-                                                        $display_date = $o_date;
-                                                        if (count($date_parts) === 3) {
-                                                            if ($date_parts[0] === $current_year) {
-                                                                $display_date = $date_parts[1] . '-' . $date_parts[2];
-                                                            }
-                                                        }
-                                                        $display_date = ' <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-main);">(' . htmlspecialchars($display_date) . ')</span>';
-                                                    }
-                                                    $rendered[] = '<span><a href="#" onclick="openOrderPreviewModal(event, \'' . htmlspecialchars($o_id) . '\')" class="order-preview-link"><code>' . htmlspecialchars($o_id) . '</code></a>' . $display_date . '</span>';
-                                                }
-                                            }
-                                            echo implode(', ', $rendered);
-                                        } else {
-                                            echo '—';
-                                        }
-                                        ?>
+                                    <div class="order-cell" style="font-size: 0.8rem; font-family: monospace;">
+                                        <?= !empty($order_links) ? implode(', ', $order_links) : '—' ?>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?= $item['total_qty'] ?>"><span class="qty-chip" style="box-shadow: none; font-size: 0.75rem; padding: 4px 10px;"><?= $item['total_qty'] ?></span></td>
@@ -160,6 +155,14 @@
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php if (count($velocity) > 100): ?>
+                    <div id="velocity-load-more-container" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--bg-surface-2); border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap; gap: 10px;">
+                        <span id="velocity-count-label">Showing top <strong>100</strong> of <strong><?= number_format(count($velocity)) ?></strong> laptop models by sales volume</span>
+                        <button type="button" id="btn-show-all-velocity" onclick="showAllVelocityRows()" class="btn-main" style="padding: 6px 16px; font-size: 0.8rem; height: auto; border-radius: 12px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); font-weight: 700; cursor: pointer; box-shadow: var(--shadow-sm);">
+                            Show All <?= number_format(count($velocity)) ?> Models
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 

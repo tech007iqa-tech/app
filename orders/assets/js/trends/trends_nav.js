@@ -72,25 +72,7 @@ function filterActiveTable() {
         let visibleCount = 0;
 
         if (table.id === 'table-velocity') {
-            const rankHeaders = table.querySelectorAll('.rank-header');
-            const buyerHeaders = table.querySelectorAll('.buyer-header');
-            const rankCells = table.querySelectorAll('.rank-cell');
-            const buyerCells = table.querySelectorAll('.buyer-cell');
-
-            const stockHeaders = table.querySelectorAll('.stock-header');
-            const orderHeaders = table.querySelectorAll('.order-header');
-            const stockCells = table.querySelectorAll('.stock-cell');
-            const orderCells = table.querySelectorAll('.order-cell');
-
-            rankHeaders.forEach(el => el.style.display = isSearchActive ? 'none' : '');
-            buyerHeaders.forEach(el => el.style.display = isSearchActive ? '' : 'none');
-            rankCells.forEach(el => el.style.display = isSearchActive ? 'none' : '');
-            buyerCells.forEach(el => el.style.display = isSearchActive ? '' : 'none');
-
-            stockHeaders.forEach(el => el.style.display = isSearchActive ? 'none' : '');
-            orderHeaders.forEach(el => el.style.display = isSearchActive ? '' : 'none');
-            stockCells.forEach(el => el.style.display = isSearchActive ? 'none' : '');
-            orderCells.forEach(el => el.style.display = isSearchActive ? '' : 'none');
+            table.classList.toggle('table-search-active', isSearchActive);
         }
 
         rows.forEach(row => {
@@ -101,15 +83,34 @@ function filterActiveTable() {
             const matchesStock = !showInStockOnly || inStock > 0;
 
             if (matchesSearch && matchesStock) {
-                row.style.display = '';
-                visibleCount++;
-                totalVisibleCount++;
-                highlightRowText(row, queryWords);
+                if (!isSearchActive && !window.__velocityShowAll && row.classList.contains('velocity-row-extra')) {
+                    row.style.display = 'none';
+                } else {
+                    row.style.display = '';
+                    visibleCount++;
+                    totalVisibleCount++;
+                    if (isSearchActive) {
+                        highlightRowText(row, queryWords);
+                    } else {
+                        clearHighlight(row);
+                    }
+                }
             } else {
                 row.style.display = 'none';
                 clearHighlight(row);
             }
         });
+
+        if (table.id === 'table-velocity') {
+            const loadMoreBar = document.getElementById('velocity-load-more-container');
+            if (loadMoreBar) {
+                if (isSearchActive) {
+                    loadMoreBar.style.display = 'none';
+                } else if (!window.__velocityShowAll) {
+                    loadMoreBar.style.display = 'flex';
+                }
+            }
+        }
 
         const matrixBlock = table.closest('.matrix-category-block');
         const container = table.closest('.trends-table-container');
@@ -412,10 +413,13 @@ function exportDemandVelocityCSV() {
 
     let csv = "Rank,Brand,Model,Series,CPU,Avg Unit Price,Units Sold,Latest Sold Date,Customer Buyers,Order IDs\n";
 
+    const searchInput = document.getElementById('trends-search');
+    const isSearchActive = searchInput && searchInput.value.trim().length > 0;
+
     const rows = table.querySelectorAll('tbody tr');
     let exportIndex = 1;
     rows.forEach(tr => {
-        if (tr.style.display === 'none') return;
+        if (isSearchActive && tr.style.display === 'none') return;
         const brand = tr.getAttribute('data-brand') || '';
         const model = tr.getAttribute('data-model') || '';
         const series = tr.getAttribute('data-series') || '';
@@ -442,5 +446,18 @@ function exportDemandVelocityCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+/**
+ * Reveal remaining velocity table rows when user clicks 'Show All Models'
+ */
+function showAllVelocityRows() {
+    window.__velocityShowAll = true;
+    const extraRows = document.querySelectorAll('.velocity-row-extra');
+    extraRows.forEach(r => r.style.display = '');
+    const container = document.getElementById('velocity-load-more-container');
+    if (container) {
+        container.innerHTML = `<span style="color: var(--text-secondary); font-size: 0.85rem;">Showing all <strong>${extraRows.length + 100}</strong> models</span>`;
+    }
 }
 

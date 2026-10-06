@@ -57,8 +57,6 @@ include __DIR__ . '/partials/trends_data.php';
     </div>
 </div>
 <?php else: ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="trends-container">
     <div class="trends-header">
         <div>

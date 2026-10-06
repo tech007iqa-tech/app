@@ -208,6 +208,34 @@
 #table-velocity th:nth-child(6), #table-velocity td:nth-child(6) { width: 135px; white-space: nowrap; }
 #table-velocity th:nth-child(7), #table-velocity td:nth-child(7) { width: 115px; white-space: nowrap; text-align: center; }
 
+/* High-Performance Instant Search State for Demand Velocity Table */
+#table-velocity .buyer-header,
+#table-velocity .buyer-cell,
+#table-velocity .order-header,
+#table-velocity .order-cell {
+    display: none;
+}
+#table-velocity.table-search-active .rank-header,
+#table-velocity.table-search-active .rank-cell,
+#table-velocity.table-search-active .stock-header,
+#table-velocity.table-search-active .stock-cell {
+    display: none !important;
+}
+#table-velocity.table-search-active .buyer-header,
+#table-velocity.table-search-active .buyer-cell,
+#table-velocity.table-search-active .order-header,
+#table-velocity.table-search-active .order-cell {
+    display: block !important;
+}
+#table-velocity.table-search-active th:nth-child(1),
+#table-velocity.table-search-active td:nth-child(1) {
+    width: 140px;
+}
+#table-velocity.table-search-active th:nth-child(6),
+#table-velocity.table-search-active td:nth-child(6) {
+    min-width: 180px;
+}
+
 /* Sorting indicators */
 .trends-table th.sort-asc::after {
     content: " ▲";
@@ -717,6 +745,7 @@
 
 .matrix-cell-input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* Input container wrapper */
