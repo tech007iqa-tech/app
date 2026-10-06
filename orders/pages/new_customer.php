@@ -5,33 +5,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 try {
     $conn = Database::customers();
+} catch (Exception $e) {
+    die("Database Error: " . $e->getMessage());
+}
 
-    // Full schema for customers
-    $conn->exec("CREATE TABLE IF NOT EXISTS customers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_id TEXT NOT NULL UNIQUE,
-        company_name TEXT NOT NULL,
-        website TEXT,
-        contact_person TEXT,
-        address TEXT,
-        email TEXT,
-        phone TEXT,
-        shipping_address TEXT,
-        internal_notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
-
-    // CRM Migration
-    $cols = $conn->query("PRAGMA table_info(customers)")->fetchAll(PDO::FETCH_ASSOC);
-    $has_cb = false; $has_msg = false;
-    foreach($cols as $c) {
-        if ($c['name'] === 'callback_date') $has_cb = true;
-        if ($c['name'] === 'message_date') $has_msg = true;
-    }
-    if (!$has_cb) $conn->exec("ALTER TABLE customers ADD COLUMN callback_date TEXT DEFAULT ''");
-    if (!$has_msg) $conn->exec("ALTER TABLE customers ADD COLUMN message_date TEXT DEFAULT ''");
-
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'register') {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'register') {
         // 1. Simple Security Check
         if (!Security::validate($_POST['csrf_token'] ?? '')) {
             $_SESSION['message'] = "<div class='alert error'>Security Error: Invalid form submission. Please try again.</div>";
@@ -79,9 +57,6 @@ try {
         header("Location: index.php?view=register");
         exit();
     }
-} catch (PDOException $e) {
-    die("Database Connection failed: " . $e->getMessage());
-}
 
 $message = $_SESSION['message'] ?? "";
 unset($_SESSION['message']);

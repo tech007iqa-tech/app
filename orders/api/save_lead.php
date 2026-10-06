@@ -1,21 +1,15 @@
 <?php
-require_once '../core/database.php';
-include '../core/auth.php';
-
-header('Content-Type: application/json');
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../core/ApiResponse.php';
+require_once __DIR__ . '/../../core/Security.php';
+include_once __DIR__ . '/../core/auth.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method Not Allowed']);
-    exit();
+    ApiResponse::methodNotAllowed();
 }
 
 try {
-    if (!Security::validate($_POST['csrf_token'] ?? '')) {
-        http_response_code(403);
-        echo json_encode(['error' => 'Security Error: CSRF Token Invalid']);
-        exit();
-    }
+    ApiResponse::requireCsrf();
     $conn = Database::customers();
 
     $customer_id = $_POST['customer_id'] ?? null;
@@ -32,7 +26,7 @@ try {
 
         $stmt->execute([
             $customer_id,
-            $_POST['company_name'],
+            $_POST['company_name'] ?? 'New Customer',
             $_POST['contact_person'] ?? '',
             $_POST['email'] ?? '',
             $_POST['phone'] ?? '',
@@ -44,7 +38,9 @@ try {
             date('Y-m-d') // Message date is today
         ]);
     } else {
-        if (!$customer_id) throw new Exception("Missing Customer ID for update");
+        if (!$customer_id) {
+            ApiResponse::error("Missing Customer ID for update", 400);
+        }
 
         // Update main customer fields
         $stmt = $conn->prepare("UPDATE customers SET
@@ -53,8 +49,13 @@ try {
             WHERE customer_id = ?");
 
         $stmt->execute([
-            $_POST['account_status'], $_POST['lead_source'], $_POST['interest'],
-            $_POST['contact_method'], $_POST['callback_date'], $_POST['message_date'], $_POST['internal_notes'],
+            $_POST['account_status'] ?? 'Lead',
+            $_POST['lead_source'] ?? '',
+            $_POST['interest'] ?? '',
+            $_POST['contact_method'] ?? '',
+            $_POST['callback_date'] ?? '',
+            $_POST['message_date'] ?? '',
+            $_POST['internal_notes'] ?? '',
             $customer_id
         ]);
     }
@@ -70,9 +71,11 @@ try {
         ]);
     }
 
-    echo json_encode(['status' => 'success', 'message' => 'CRM details updated']);
+    ApiResponse::success([
+        'customer_id' => $customer_id,
+        'status' => 'success'
+    ], 'CRM details updated');
 
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    ApiResponse::error($e->getMessage(), 500);
 }

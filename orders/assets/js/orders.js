@@ -109,7 +109,7 @@ async function updateOrderStatus(select, orderId) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.status === 'success' || data.success) {
             // Update UI
             select.setAttribute('data-original-value', newStatus);
             if (badge) {
@@ -118,8 +118,11 @@ async function updateOrderStatus(select, orderId) {
                 badge.innerText = newStatus;
                 badge.style.opacity = '1';
             }
+            if (window.Notifications && typeof window.Notifications.success === 'function') {
+                window.Notifications.success(`Batch ${orderId} updated to ${newStatus}`);
+            }
         } else {
-            throw new Error(data.error || 'Update failed');
+            throw new Error(data.error || data.message || 'Update failed');
         }
     } catch (err) {
         console.error("Status update failed", err);
@@ -145,8 +148,8 @@ async function transferOrder(event) {
         submitBtn.innerText = 'Transferring...';
 
         const formData = new FormData(form);
-        const csrfEl = document.querySelector('input[name="csrf_token"]');
-        if (csrfEl && !formData.has('csrf_token')) formData.append('csrf_token', csrfEl.value);
+        const csrfEl = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
+        if (csrfEl && !formData.has('csrf_token')) formData.append('csrf_token', csrfEl.value || csrfEl.content);
 
         const response = await fetch('api/transfer_order.php', {
             method: 'POST',
@@ -155,11 +158,18 @@ async function transferOrder(event) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
-            alert('Order transferred successfully!');
-            location.reload(); // Reload to reflect changes in the list
+        if (data.status === 'success' || data.success) {
+            closeTransferModal();
+            if (window.Notifications && typeof window.Notifications.success === 'function') {
+                window.Notifications.success('Order transferred successfully!');
+            }
+            if (window.AppSync) {
+                await AppSync.sync('orders-list', true);
+            } else {
+                location.reload();
+            }
         } else {
-            throw new Error(data.error || 'Transfer failed');
+            throw new Error(data.error || data.message || 'Transfer failed');
         }
     } catch (err) {
         console.error("Transfer failed", err);
@@ -172,6 +182,21 @@ async function transferOrder(event) {
 
 // Handle automatic filtering from URL parameters (e.g., index.php?view=orders&q=CUST-123)
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Connect real-time AppSync live diffing
+    if (document.getElementById('orders-list') && window.AppSync) {
+        AppSync.register({
+            elementId: 'orders-list',
+            url: window.location.pathname + window.location.search + (window.location.search ? '&ajax=1' : '?ajax=1'),
+            rowSelector: 'tr.order-row',
+            rowIdAttribute: 'data-id',
+            onUpdate: () => {
+                if (typeof filterOrders === 'function') {
+                    filterOrders();
+                }
+            }
+        });
+    }
+
     const params = new URLSearchParams(window.location.search);
     const query = params.get('q');
 

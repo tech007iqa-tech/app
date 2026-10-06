@@ -36,31 +36,6 @@ $events = [];
 try {
     $pdo_cal = Database::calendar();
 
-    // Ensure table exists
-    $pdo_cal->exec("CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        event_date DATE NOT NULL,
-        start_time TIME NOT NULL,
-        end_time TIME NOT NULL,
-        color TEXT DEFAULT '#38bdf8',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
-
-    // SCHEMA MIGRATION: Check if customer_id column exists, add if missing
-    $cols = $pdo_cal->query("PRAGMA table_info(events)")->fetchAll(PDO::FETCH_ASSOC);
-    $has_customer_id = false;
-    foreach ($cols as $col) {
-        if ($col['name'] === 'customer_id') {
-            $has_customer_id = true;
-            break;
-        }
-    }
-    if (!$has_customer_id) {
-        $pdo_cal->exec("ALTER TABLE events ADD COLUMN customer_id TEXT");
-    }
-
     // Load all customers for the modal
     $pdo_cust_list = Database::customers();
     $all_customers = $pdo_cust_list->query("SELECT customer_id, company_name FROM customers ORDER BY company_name ASC")->fetchAll();

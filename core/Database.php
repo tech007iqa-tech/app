@@ -66,6 +66,11 @@ class Database
             $dir = self::getDbDir();
             $db_path = $dir . '/' . $db_name . '.db';
 
+            // Seamless fallback for existing legacy .sqlite databases
+            if (!file_exists($db_path) && file_exists($dir . '/' . $db_name . '.sqlite')) {
+                $db_path = $dir . '/' . $db_name . '.sqlite';
+            }
+
             // Ensure directory exists
             if (!is_dir($dir)) {
                 @mkdir($dir, 0755, true);
@@ -89,28 +94,12 @@ class Database
                 $conn->exec("PRAGMA cache_size = -64000;");
                 $conn->exec("PRAGMA temp_store = MEMORY;");
 
-                // Self-Healing Schema Integration for Orders/Warehouse/Customers/Users/Calendar
-                $schema_file = __DIR__ . '/../orders/core/Schema.php';
+                // Unified Self-Healing Schema Integration for all modules
+                $schema_file = __DIR__ . '/Schema.php';
                 if (file_exists($schema_file)) {
                     require_once $schema_file;
                     if (class_exists('Schema')) {
                         Schema::ensure($conn, $db_name);
-                    }
-                }
-
-                // Initialize Schema for Tech module if connecting to tech.db
-                if ($db_name === 'tech') {
-                    self::initTechSchema($conn);
-                }
-
-                // Initialize Schema for Marketing module if connecting to marketing.db
-                if ($db_name === 'marketing') {
-                    $mkt_schema = __DIR__ . '/../marketing/includes/schema_guard.php';
-                    if (file_exists($mkt_schema)) {
-                        require_once $mkt_schema;
-                        if (function_exists('marketing_schema_guard')) {
-                            marketing_schema_guard($conn);
-                        }
                     }
                 }
 
@@ -151,6 +140,18 @@ class Database
     {
         return self::getConnection('marketing');
     }
+    public static function labels()
+    {
+        return self::getConnection('labels');
+    }
+    public static function intake()
+    {
+        return self::getConnection('intake');
+    }
+    public static function audit()
+    {
+        return self::getConnection('audit');
+    }
 
     /**
      * Attaches another database to the current connection for cross-database joins.
@@ -170,7 +171,11 @@ class Database
                     }
                 }
             }
-            $db_path = self::getDbDir() . '/' . $db_to_attach . '.db';
+            $dir = self::getDbDir();
+            $db_path = $dir . '/' . $db_to_attach . '.db';
+            if (!file_exists($db_path) && file_exists($dir . '/' . $db_to_attach . '.sqlite')) {
+                $db_path = $dir . '/' . $db_to_attach . '.sqlite';
+            }
             $conn->exec("ATTACH DATABASE '{$db_path}' AS {$alias}");
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), 'already in use') === false) {
@@ -233,92 +238,13 @@ class Database
      */
     public static function initTechSchema(PDO $conn)
     {
-        if (self::isSchemaVerified('tech', 'all'))
-            return;
-
-        // Logs Table (Good and Bad logs distinguished by status)
-        $conn->exec("CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tech_id TEXT NOT NULL,
-            status TEXT NOT NULL, -- 'Good' or 'Bad'
-            qty INTEGER DEFAULT 1,
-            make TEXT,
-            model TEXT,
-            series TEXT,
-            cpu TEXT,
-            gpu TEXT,
-            ram TEXT,
-            storage TEXT,
-            battery TEXT,
-            bios_state TEXT,
-            os TEXT,
-            notes TEXT,
-            ready_for_warehouse INTEGER DEFAULT 0,
-            edited INTEGER DEFAULT 0,
-            delete_requested INTEGER DEFAULT 0,
-            status_change_requested TEXT DEFAULT '',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-
-        // Migration: add columns if older DB
-        try {
-            $cols = $conn->query("PRAGMA table_info(logs)")->fetchAll(PDO::FETCH_ASSOC);
-            $col_names = array_column($cols, 'name');
-
-            if (!in_array('edited', $col_names)) {
-                $conn->exec("ALTER TABLE logs ADD COLUMN edited INTEGER DEFAULT 0");
+        $schema_file = __DIR__ . '/Schema.php';
+        if (file_exists($schema_file)) {
+            require_once $schema_file;
+            if (class_exists('Schema')) {
+                Schema::ensure($conn, 'tech');
             }
-            if (!in_array('delete_requested', $col_names)) {
-                $conn->exec("ALTER TABLE logs ADD COLUMN delete_requested INTEGER DEFAULT 0");
-            }
-            if (!in_array('status_change_requested', $col_names)) {
-                $conn->exec("ALTER TABLE logs ADD COLUMN status_change_requested TEXT DEFAULT ''");
-            }
-            if (!in_array('os', $col_names)) {
-                $conn->exec("ALTER TABLE logs ADD COLUMN os TEXT");
-            }
-        } catch (Exception $e) {
         }
-
-        // daily_status_changes table to track Good-to-Bad limit of 5 per day per tech
-        $conn->exec("CREATE TABLE IF NOT EXISTS daily_status_changes (
-            tech_id TEXT NOT NULL,
-            change_date DATE DEFAULT (date('now', 'localtime')),
-            change_count INTEGER DEFAULT 0,
-            PRIMARY KEY (tech_id, change_date)
-        )");
-
-        // Parts Inventory Table
-        $conn->exec("CREATE TABLE IF NOT EXISTS parts_inventory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            part_name TEXT NOT NULL,
-            category TEXT,
-            quantity INTEGER DEFAULT 0,
-            low_stock_threshold INTEGER DEFAULT 5,
-            notes TEXT,
-            last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-
-        // Seed default parts if table is empty
-        try {
-            $stmt = $conn->query("SELECT COUNT(*) FROM parts_inventory");
-            if ($stmt && $stmt->fetchColumn() == 0) {
-                $default_parts = [
-                    ['8GB DDR4 RAM', 'Memory', 20, 5],
-                    ['16GB DDR4 RAM', 'Memory', 20, 5],
-                    ['256GB SSD', 'Storage', 15, 5],
-                    ['512GB SSD', 'Storage', 10, 3],
-                    ['Thermal Paste', 'Consumable', 5, 2]
-                ];
-                $stmt_ins = $conn->prepare("INSERT INTO parts_inventory (part_name, category, quantity, low_stock_threshold) VALUES (?, ?, ?, ?)");
-                foreach ($default_parts as $part) {
-                    $stmt_ins->execute($part);
-                }
-            }
-        } catch (Exception $e) {
-        }
-
-        self::markSchemaVerified('tech', 'all');
     }
 }
 ?>

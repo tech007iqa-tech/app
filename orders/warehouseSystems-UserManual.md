@@ -1,6 +1,7 @@
 # 📦 IQA Metal Warehouse Systems 9/5/2026 10:52 PM
 *Last Updated: 9/5/2026 10:52 PM*
 
+
 Welcome to the **IQA Metal Warehouse Systems** user manual. This guide provides comprehensive instructions on how to navigate and utilize the ecosystem for warehouse management, sales logistics, and customer relations.
 
 ---
@@ -57,6 +58,7 @@ The Warehouse module (`/prod/pages/warehouse.php`) is where you manage physical 
 - **Dynamic Addition**: Administrators can create new top-level Working Zones. When inside a Working Zone, new locations/shelves can be added with automatic code prefixing (e.g. `A-` for Zone A).
 - **Zone Renaming**: Use the inline rename pencil icon on a shelf/location or parent zone to instantly rename it in the system.
 - **Relocation**: Use the **Bulk Action Bar** to select multiple items and move them to a different zone in one click.
+- **Inventory Consolidation**: Automatic deduplication and quantity merging for identical items within the same location.
 - **Location & Shelf Photos**: Upload photos of physical storage shelves/locations. Photos can be tagged with a category/layer (Layer 1 Bottom to Layer 5 Top, or Row/Overall View) and sector.
 - **Zone Photo Gallery**: Click **View Zone Photos** when inside a parent zone to view an aggregated grid of all photographs uploaded for shelves in that zone. You can also upload new photos directly from this gallery modal.
 - **Hover Zoom Preview**: Hovering over any photo thumbnail instantly displays a larger high-resolution optimized preview window.
@@ -71,6 +73,8 @@ The Warehouse module (`/prod/pages/warehouse.php`) is where you manage physical 
 Manage your sales pipeline and customer interactions in the **Leads** module (`/prod/pages/leads.php`).
 
 ### Managing Leads
+- **Pipeline KPI Tracker**: View real-time revenue velocity with toggles for **D** (Daily), **W** (Weekly - current business week starting Monday), **M** (Monthly - strict calendar month resetting on the 1st), and **Y** (Yearly). Click the period badge to open the detailed transaction modal showing individual completed orders and average order value.
+- **Real-Time Zero-Reload Logging**: Interaction notes, callback rescheduling, and new lead creation save via AJAX and instantly patch the roster in place using `AppSync` without refreshing the page or losing table scroll position.
 - **Executive Bar**: View real-time KPIs, including active lead counts, closed deals, and total pipeline value.
 - **9-Column Bidirectional Sorting**: Click any table header (*Customer / Lead*, *Status*, *Source*, *Interest*, *Last Order*, *Balance*, *Last Contact*, *Next Call*, *Notes*) to sort ascending or descending. Sorting uses raw numeric/date metadata for perfect accuracy.
 - **Priority Urgency Badges**: Next Call dates automatically display color-coded urgency chips:
@@ -90,11 +94,9 @@ When a lead is ready to purchase, use the **One-Tap Conversion** button. This pr
 The ordering workflow is split into two phases: building the batch and finalizing the manifest.
 
 ### Phase 1: Batch Builder (`/prod/pages/new_order.php`)
-- **AJAX Intake**: Add items to an order batch in real-time. The sidebar tracks total units and order ID as you work. The main spreadsheet supports inline editing, including a dedicated **Notes** column for specifications.
+- **AJAX Intake**: Add items to an order batch in real-time. The sidebar tracks total units and order ID as you work.
 - **Interactive Chips**: Use pre-defined keyword chips (e.g., "Tested", "Working") to quickly fill in item descriptions.
 - **Repeat Last**: Quickly add the same item configuration again with a single click.
-- **Work Order AI Import**: Click "Import" and utilize the full-screen AI Batch Import Center. Upload a handwritten or printed manifest, and the AI will extract all details (including specs like RAM and Storage into the Notes column) and automatically estimate CPU values!
-- **Clipboard Bulk Import**: Easily map bulk text or spreadsheet pastes. If your spreadsheet contains a column named "note" or "notes", the importer will automatically route that data into the batch item notes.
 
 ### Phase 2: Checkout Manifest (`/prod/checkout.php`)
 - **Verification**: Review all items in the batch. You can edit unit prices, quantities, and descriptions inline.
@@ -116,8 +118,9 @@ The ordering workflow is split into two phases: building the batch and finalizin
   - 📉 **Pricing Curves & Accounting**: Executive-grade financial analytics with Average Selling Price (ASP) Timeline and Monthly Gross Valuation Trend graphs, complete with MoM growth chips, executive KPI cards, reconciliation ledger, and 1-click accounting export (`📊 Export Ledger CSV`).
   - 📊 **Dual-Axis Performance Model Switcher**: Seamlessly toggle between **🔀 Split View** (side-by-side ASP and Gross Valuation cards) and **📊 Dual-Axis Combo** (correlating gross revenue on the left axis against weighted ASP on the right axis with synchronized multi-metric hover tooltips). Mode preference automatically persists.
   - ⚡ **CPU Family Dominance**: Market share breakdowns across Intel Core and AMD Ryzen CPU generations with transaction drill modals.
-  - 👥 **Customer Analytics**: Top buying accounts by volume and total lifetime spend.
+  - 👥 **Customer Analytics & Profile Intelligence**: Top buying accounts by volume and total lifetime spend. Click any client company name across Trends tabs or transaction records to open the **Customer Profile & Order History Intelligence Dialog**—instantly reviewing lifetime spend, completed order counts, liquidated units, CRM contact details, recent manifests with 1-click preview links, and direct jump buttons (`View in CRM` and `New Order Batch`).
   - 📋 **Untested B2B & Tested Market**: Real-time wholesale and retail pricing matrices with live micro-feedback confirmation toasts (`✓ Saved`) and cell glow animations upon editing.
+- **Global Empty States**: Clean, formatted zero-result feedback across all Trends search filters with 1-click filter reset buttons.
 - **Persistent Tab Selection**: Active tabs remain selected across date filter adjustments and page refreshes via URL parameters and session storage.
 - **CPU Pricing Insights & Manifest Preview**: Click any CPU row or transaction order ID to preview full item checklists, serials, and unit valuations.
 
@@ -132,6 +135,14 @@ The **Settings** module (`/prod/pages/settings.php`) is reserved for system main
 - **Photo Backup & Restore**: Create and download `.tar` backups of location/zone photography files and metadata, or restore them using the import utility.
 - **Archive Directory Picker**: Configure the target spinning disk path for raw photo archives with an interactive folder explorer.
 - **Audit Logs**: Review the system audit log to track user actions and maintain security compliance.
+- **System Setup Wizard (`/setup/index.php`)**: Modular 4-step wizard for diagnosing PHP extensions, selecting preset configs (Small Shop, Medium Warehouse, Enterprise), and provisioning self-healing databases.
+
+### Automated System Verification (CLI Test Suite)
+Technicians and administrators can verify all databases, security tokens, and schemas at any time via the command line:
+```powershell
+php tests/run.php
+```
+This runs 42 automated tests in under 60 milliseconds with zero third-party dependencies, validating database WAL integrity, schema self-healing, CSRF tokens, and domain invariants.
 
 ---
 *For technical support or feature requests, please contact your system administrator.*

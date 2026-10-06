@@ -1,104 +1,128 @@
-# 🗺️ Global System Sitemap 9/5/2026 10:52 PM
+# 🗺️ Global System Sitemap - IQA Warehouse Systems 9/16/2026 11:26 AM
 
-This document outlines the file layout and component structure of the **IQA Warehouse Systems** workspace.
-
----
-
-## 📍 Database Storage (`/db/`)
-Stored in the workspace root, one level above the public web root (`/prod/`).
-- `calendar.db`: Stores events, meeting logs, colors, and date allocations.
-- `customers.db`: Master CRM file containing leads, customer profiles, and callback schedules.
-- `orders.db`: Stores batch orders and order details.
-- `users.db`: Centralized accounts list and audit logs.
-- `warehouse.db`: Stores sectors, stock counts, location parameters, and status listings.
-- `.htaccess`: Secures the databases by denying HTTP direct file downloads.
+This sitemap outlines the comprehensive multi-module ecosystem of the IQA Warehouse Systems.
 
 ---
 
-## 🏬 Public Web Root (`/prod/`)
+## 📍 Root `/app/`
+- `index.php`: Master Portal & Navigation Landing Page.
+- `GEMINI.md`: AI Agent Workspace Guidelines and Domain Invariants.
+- `roadmap.md`: System-wide multi-phase engineering evolution roadmap.
+- `core/`: Shared platform utilities and services:
+  - `ApiResponse.php`: Terminating JSON responder (output buffer cleaning, HTTP status codes, standard envelope, CSRF/auth guards).
+  - `Database.php`: Centralized singleton PDO connection pool for all 10 SQLite databases (mandatory WAL mode, busy timeout 5000, foreign keys ON).
+  - `Schema.php`: Central self-healing database table migrations and repair registry across 30 tables.
+  - `Security.php`: Central CSRF token generation/validation, 256-bit PPP sequence keys, and numeric sanitizers.
+  - `Auth.php`: Universal role-based authentication guard (`AuthGuard::check()`) with CLI non-interactive detection.
+  - `UI.php`: Server-side UI component engine (`stat_card`, `badge`, `csrf_field`, `modal`, notifications).
+  - `Company.php`: Dynamic company branding and currency fallback configuration.
+- `assets/`:
+  - `js/app_sync.js`: Universal real-time sync client and Livewire-style smart DOM diffing engine.
+- `setup/`: Modular system setup, environment diagnostics, and database provisioner:
+  - `index.php`: 22-line clean front controller.
+  - `src/SetupController.php`: Wizard business logic and migration runner.
+  - `views/`: Step templates (`step1_env.php`, `step2_presets.php`, `step3_dbs.php`, `step4_users.php`, `challenge.php`, `success.php`).
+  - `assets/`: Standalone `setup.css` and `setup.js`.
+- `tests/`: Automated Health & Regression Test Suite:
+  - `run.php`: Master CLI test runner (`php tests/run.php`).
+  - `TestRunner.php` & `Assert.php`: Zero-dependency test harness and colorful ANSI reporter.
+  - `Unit/`: `SecurityTest.php`, `ApiResponseTest.php`.
+  - `Integration/`: `DatabaseHealthTest.php`, `SchemaRegressionTest.php`, `InvariantsTest.php`.
+- `DOCS/`: System-wide architectural specifications:
+  - `MARKETING_ENGINEERING_MANDATE.md`: Canonical rules for marketing and template synchronization.
+  - `AI_AGENT_INSTRUCTIONS.md`: Core developer rules and system constraints.
+  - `AI_TECHNICAL_DEEP_DIVE.md`: Architectural shortcuts, DB sync patterns, and token-saving tips.
+  - `GLOBAL_SITEMAP.md`: This comprehensive ecosystem directory.
+  - `CODE_REVIEW_CHECKLIST.md`: Zero-trust code review quality checklist.
+- `sampleWHdata/`: Standalone offline intake and hardware auditing utility.
 
-### Core Entry Files
-- `index.php`: Consolidated router and page layout shell. Dispatches views and manages autolinking of stylesheets/javascript files.
-- `checkout.php`: Customer B2B batch order checkout manifest verification, order backdating, and ownership transfer utility.
-- `generate_odt.php`: Single-label Flat ODT generation helper. Bypasses ZipArchive using flat string overrides.
-- `download_archive.php`: Endpoint for fetching raw archived photographs.
-- `.htaccess`: Handles standard URL directory settings.
+---
 
-### Core Libraries (`/prod/core/`)
-- `auth.php`: Authentication guard validating session states.
-- `database.php`: Singleton PDO connection factory enforcing SQLite WAL modes and foreign key configurations.
-- `Schema.php`: Central blueprint holding all SQL table layouts, automatic data seeding, and column migrations.
-- `Security.php`: Houses CSRF token generators, password policy checks, and dirty input sanitizers.
-- `UI.php`: Dynamic template rendering for CSS styling loaders, custom dialog triggers, and toast notifications. Adds `UI::is_ajax()` to detect background synchronizations.
-- `warehouse_db.php`: Database connection mapping helper.
-- `MediaManager.php`: Automated GD WebP conversion (1920px web view, 160x160 thumb), EXIF auto-rotation, `YYYY/MM/` date partitioning, and cascading file deletion.
-- `LocationPhotoProcessor.php`: Resizes, optimizes, generates thumbnails, and saves original raw photos to the archive.
-- `Storage.php`: Storage Abstraction layer for Location Photos (SSD and Archive) with nested subfolder path resolution.
-- `BackupManager.php`: Handles `.tar` package creation, monthly partition exports, and restoration for photo assets and database metadata.
-- `login.php` / `logout.php`: Standard account access endpoints.
+## 🏷️ Module: Labels (`/labels/`)
+*Focus: Individual unit intake, hardware spec editing, and high-fidelity thermal label printing.*
 
-### View Fragments (`/prod/pages/`)
-These files are buffered and rendered dynamically within `prod/index.php`.
-- `calendar.php`: Interactive monthly/weekly event schedulers.
-- `customer_registry.php`: Main administration panel for viewing registered billing clients.
-- `import_warehouse.php`: Form handling bulk paste copy/paste operations from external Excel spreadsheets.
-- `leads.php`: CRM prospects management, outreach pipelines, 9-column bidirectional sorting, urgency tags, search keyword highlighting, and 1-click CSV exports.
-- `new_customer.php`: Form to register a new B2B client company.
-- `new_order.php`: Interactive order B2B batch builder panel.
-- `orders.php`: Overview log of current and finalized orders.
-- `settings.php`: Administrative control panel (includes db schema diagnostics, log viewer, and backup manager).
-- `trends.php`: BI trends analyzer with modular multi-tab architecture, accounting graphs, CPU metrics, and demand velocity.
-- `partials/`: Modular page components loaded by main views:
-  - `camera_modal.php`: Live HTML5 camera viewfinder modal with front/rear lens switcher, shutter snap, freeze-frame preview, and drag & drop file uploader.
-  - `inventory_modal.php`: Shelf stock inspector, deduplication, and sync panel.
-  - `trends_tab_velocity.php`: Model Demand Velocity table (displays Avg Price before Details) with interactive buyer profile links and CSV export.
-  - `trends_tab_pricing.php`: Accounting-grade ASP timeline & Monthly Valuation trend graphs (Split and Dual-Axis Combo views) with reconciliation ledger and CSV export.
-  - `trends_tab_cpu.php`: CPU Family dominance metrics and transaction drills.
-  - `trends_tab_customers.php`: Customer purchasing frequency, volume analytics, and 1-click Customer Intelligence modal links.
-  - `b2b_untested_matrix.php`: Wholesale pricing matrix grid with live save feedback toasts.
-  - `tested_market_tab.php`: Retail/tested market price comparisons with live save feedback toasts.
-  - `trends_actions.php` / `trends_data.php` / `trends_widgets.php` / `trends_modals.php`: Core Trends BI calculation, card layout, customer profile intelligence dialog (`#customerProfileModal`), and manifest preview modals.
-- `warehouse.php`: Main storage registration portal and zone map.
+- `index.php`: Dashboard (Stats & Quick Inventory Search).
+- `labels.php`: Main Inventory Tracker.
+- `new_label.php`: Rapid Unit Intake Form.
+- `hardware_view.php`: Technical Spec Editor & Hardware Details.
+- `api/`:
+  - `add_label.php`: Database insertion and validation.
+  - `reprint_label.php`: Flat XML (`.fodt`) generation (portable, zero ZipArchive dependency).
+  - `open_windows_file.php`: Native Windows file launcher helper.
+- `db/`: SQLite databases (`labels.sqlite`, `audit.sqlite`, `orders.sqlite`, `rolodex.sqlite`).
+- `templates/`: Flat XML LibreOffice master templates.
+- `exports/`: Destination directory for generated thermal print jobs.
 
-### AJAX Endpoints (`/prod/api/`)
-- `calendar/`
-  - `save.php`: Saves or updates appointment logs.
-  - `delete.php`: Deletes scheduling events.
-- `add_order_item.php`: Appends a single line item to an active batch order.
-- `bulk_update_inventory.php`: Batch relocates or reprices inventory lines.
-- `bulk_update_orders.php`: Bulk marks orders as completed or active.
-- `consolidate_inventory.php`: Automates deduplication and quantity merging for identical warehouse items.
-- `generate_backup.php`: Generates a zip export containing all SQLite databases.
-- `generate_warehouse_label.php`: Generates and exports a 2"x1" Flat XML ODT thermal label for a specific inventory ID.
-- `get_cpu_pricing_details.php`: API endpoint returning price metrics and recent transactions for CPU families.
-- `get_customer_orders.php`: API endpoint returning historical purchase batches and unit volumes for a specific customer.
-- `get_interaction_logs.php`: Fetches timeline items for a lead.
-- `get_order_details.php`: API endpoint returning item batch list and totals for a given order ID.
-- `get_vocabulary.php`: Returns autocomplete suggestions for model intake.
-- `get_warehouse_stock.php`: Returns active quantities for location slots.
-- `media_upload.php`: REST endpoint for multipart image and Base64 live camera snapshot uploads.
-- `media_delete.php`: REST endpoint for cascading photo deletion (disk assets and DB metadata).
-- `save_lead.php`: Logs CRM client interactions.
-- `search_customers.php`: Retrieves auto-complete lists of billing customers.
-- `sync_stream.php`: Server-Sent Events (SSE) database file modification stream.
-- `transfer_order.php`: Re-allocates order batches between client profiles.
-- `update_order_status.php`: Changes a single order status.
+---
 
-### Static Assets (`/prod/assets/`)
-- `exports/`
-  - `labels/`: Stores generated Flat ODT labels ready for local retrieval.
-- `icon/`: System icons and branding.
+## 📊 Module: Orders & CRM (`/orders/`)
+*Focus: B2B relationship management, warehouse locations, modular media/camera pipeline, and batch order fulfillment.*
+
+- `index.php`: Front router (routes views via `?view=` query parameter).
+- `pages/`:
+  - `warehouse.php`: Stock and multi-tier physical storage location management.
+  - `inbound.php`: Embedded AI intake terminal.
+  - `customer_registry.php`: Canonical B2B account roster.
+  - `leads.php`: CRM interaction hub with real-time SSE sync, 9-column sorting, urgency badges, live keyword search highlighting, and 1-click CSV exports.
+  - `new_order.php`: Batch order and invoice builder.
+  - `checkout.php`: B2B manifest builder and standardized CSV export.
+  - `trends.php`: Historical BI analytics with modular multi-tab architecture, CPU pricing modals, accounting-grade charts, and demand velocity.
+  - `partials/`: Modular page views including `camera_modal.php` (Live HTML5 viewfinder, lens toggle, snap/preview, file drop zone), `inventory_modal.php` (Shelf audit, compact purge actions, deduplication), `trends_tab_velocity.php` (Avg Price before Details, buyer links, CSV export), `trends_tab_pricing.php` (ASP & Valuation Split and Dual-Axis Combo charts, ledger, CSV export), `trends_tab_cpu.php`, `trends_tab_customers.php` (1-click customer intelligence links), `b2b_untested_matrix.php` (live save toasts), `tested_market_tab.php`, `trends_actions.php`, `trends_data.php`, `trends_widgets.php`, `trends_modals.php` (`#customerProfileModal`, `#orderPreviewModal`, `#cpuPricingModal`).
+  - `calendar.php`: Outreach scheduler with lead conversion tracking.
+  - `settings.php`: Administrative control panel (schema repair, backups, audit logs).
+  - `import_warehouse.php`: Batch inventory CSV intake importer.
+- `api/`:
+  - `media_upload.php`: Universal REST upload endpoint for multipart files and Base64 live canvas snapshots.
+  - `media_delete.php`: REST endpoint for cascading photo deletion (disk assets and DB metadata).
+- `core/`:
+  - `database.php`: Cross-DB PDO singleton with self-healing schema migrations.
+  - `auth.php`: Role-based security (`Admin`, `Operator`, `Front Desk`).
+  - `Schema.php`: Database table blueprints and migration rules.
+  - `MediaManager.php`: High-performance GD WebP image optimization, EXIF rotation, `YYYY/MM/` date partitioning, and cascading deletion engine.
+  - `LocationPhotoProcessor.php`: Legacy location and shelf photo optimization pipeline.
+  - `Storage.php`: Storage abstraction layer for SSD and spinning disk archives with subfolder resolution.
+  - `BackupManager.php`: Automated `.tar` archive creation, monthly partition exports, and recovery.
+- `assets/js/`:
   - `camera_uploader.js`: Universal live camera viewfinder, lens switcher, snapshot capture, and drag & drop photo upload engine.
-  - `checkout.js`: Manifest builder and checkout verification.
-  - `warehouse.js`: Storage location management and photo gallery triggers.
-  - `customer_registry.js`: Customer account roster and registry editing.
-  - `leads.js`: CRM pipeline interactions, 9-column sorting, urgency badges, live keyword search highlighting, and `exportLeadsCSV()`.
-  - `sync.js`: AppSync Engine for SSE real-time multi-workstation sync.
-  - `trends/`: Modular Trends Engine scripts:
-    - `trends_nav.js`: Tab switching with canvas lifecycle timeout, URL/session state persistence, global empty states, `exportFinancialLedgerCSV()`, and `exportDemandVelocityCSV()`.
-    - `trends_charts.js`: Accounting-grade ASP timeline, Gross Valuation, & Dual-Axis Combo Chart.js lifecycle management with chronological sorting and dual currency formatting.
-    - `trends_matrix.js`: Untested B2B matrix editing and live updates.
-    - `trends_details.js`: CPU pricing detail drills and order manifest previews.
-    - `trends_modals.js`: Customer Profile intelligence dialog (`openCustomerProfileModal`), CPU pricing dialog, Order Preview manifest popup, and live matrix save toasts (`showMatrixSaveToast`).
-- `styles/`: View-specific styling sheets (`style.css`, `components.css`, `dialogs.css`, `warehouse.css`, `leads.css`, `trends.css`).
-- `ts/`: TypeScript source definitions.
+  - `warehouse/warehouse_modals.js`: Warehouse modal controllers, shelf audits, and AJAX photo deletion.
+  - `trends/`: Modular client-side logic for the Trends module (`trends_nav.js`, `trends_charts.js`, `trends_matrix.js`, `trends_details.js`, `trends_modals.js`).
+- `DOCS/`:
+  - `MODULAR_CAMERA_SYSTEM.md`: 5-Phase modular camera, media engine, and date-partitioned storage documentation.
+
+---
+
+## 📢 Module: Marketing Hub (`/marketing/`)
+*Focus: Inventory-driven ad generation, outbound campaigns, canonical hardware specs, and photo vaults.*
+
+- `index.php`: Modular front controller and strict `$allowed_modules` dispatcher.
+- `config.php`: Multi-database path configuration and RBAC authentication.
+- `includes/`:
+  - `db.php`: Database connection handles, self-healing migrations, and `log_marketing_audit()`.
+  - `header.php` / `footer.php`: Shared navigation, portal topbar, and notifications.
+  - `photo_processor.php`: Automated GD-based WebP image optimization and thumbnailing.
+- `modules/`:
+  - `dashboard/`: Executive KPI command center and smart inventory opportunities.
+  - `leads/`: Sales pipeline with bi-directional Master CRM (`customers.db`) sync.
+  - `model_templates/`: Canonical hardware catalog with photo coverage badge tracking.
+  - `ad_generator/`: Real-time multi-tone copy generator matched against `labels.sqlite` stock.
+  - `photo_bucket/`: Hardware photo repository with drag-and-drop uploads and WebP conversion.
+  - `campaigns/`: Multi-channel marketing initiatives and goal tracker.
+  - `manifest/`: Reusable `ManifestGenerator` service class.
+  - `reports/`: Funnel analytics, conversion velocity, and inventory marketing coverage.
+  - `docs/`: Built-in interactive documentation viewer and knowledge base.
+- `docs/`: Architectural blueprints, feature specifications, SOPs, and roadmap.
+
+---
+
+## 🛠️ Module: Technician Control Center (`/tech/`)
+*Focus: Hardware testing, test yields, device audit logs, and component inventory.*
+
+- `index.php`: Technician dashboard (daily test yields, Good vs. Bad unit metrics).
+- `pages/`:
+  - `logs.php`: Hardware testing logs and historical test lookup.
+  - `parts.php`: Parts inventory (RAM, Storage, Batteries) with automated low-stock alerts.
+  - `audit.php`: Administrator-only technician throughput audit ledger.
+- `api/`:
+  - `search_logs.php`: Fast serial, make, and model test history lookup.
+  - `log_test.php`: Hardware test submission endpoint.
+- `core/`: Shared database handles and auth guards.

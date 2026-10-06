@@ -46,10 +46,8 @@ if (file_exists($core_security_file)) {
         }
 
         public static function validate($token) {
-            if (empty($token) || empty($_SESSION['csrf_token'])) {
-                return true;
-            }
-            return hash_equals($_SESSION['csrf_token'], $token);
+            self::init();
+            return !empty($token) && !empty($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
         }
     }
 }

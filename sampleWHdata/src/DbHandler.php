@@ -10,15 +10,27 @@ class DbHandler
 
     public function __construct()
     {
-        $dbDir = dirname(__DIR__) . '/sample_data';
-        if (!is_dir($dbDir)) {
-            mkdir($dbDir, 0777, true);
+        $core_db = dirname(dirname(__DIR__)) . '/core/Database.php';
+        if (file_exists($core_db)) {
+            require_once $core_db;
         }
-        $dbPath = $dbDir . '/intake.sqlite';
-        $this->pdo = new PDO('sqlite:' . $dbPath);
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        $this->initializeSchema();
+
+        if (class_exists('\\Database')) {
+            $this->pdo = \Database::intake();
+        } else {
+            $dbDir = dirname(__DIR__) . '/sample_data';
+            if (!is_dir($dbDir)) {
+                mkdir($dbDir, 0777, true);
+            }
+            $dbPath = $dbDir . '/intake.sqlite';
+            $this->pdo = new PDO('sqlite:' . $dbPath);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $this->pdo->exec("PRAGMA journal_mode = WAL;");
+            $this->pdo->exec("PRAGMA busy_timeout = 5000;");
+            $this->pdo->exec("PRAGMA synchronous = NORMAL;");
+            $this->initializeSchema();
+        }
     }
 
     private function initializeSchema(): void

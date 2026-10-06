@@ -57,6 +57,10 @@ $company_name = Company::getName();
     <script src="assets/js/hardware_mapping.js"></script>
     <script src="assets/js/actions.js?v=<?= filemtime(__DIR__ . '/../assets/js/actions.js') ?>"></script>
     <script src="assets/js/print_engine.js?v=<?= filemtime(__DIR__ . '/../assets/js/print_engine.js') ?>"></script>
+
+    <!-- Security CSRF Meta & Universal AJAX Client (AppSync) -->
+    <meta name="csrf-token" content="<?= htmlspecialchars(Security::getToken()) ?>">
+    <script src="../assets/js/app_sync.js?v=<?= file_exists(__DIR__ . '/../../assets/js/app_sync.js') ? filemtime(__DIR__ . '/../../assets/js/app_sync.js') : time() ?>"></script>
 </head>
 <body class="safe-area-bottom">
 

@@ -1,83 +1,64 @@
 <?php
 // api/bulk_update.php
-header('Content-Type: application/json');
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/hardware_mapping.php';
+require_once __DIR__ . '/../../core/ApiResponse.php';
+require_once __DIR__ . '/../../core/Security.php';
 
-$input = json_decode(file_get_contents('php://input'), true);
+$input = ApiResponse::getJsonInput();
 
 try {
     // 1. Security Check
-    if (!Security::validate($input['csrf_token'] ?? '')) {
-        throw new Exception("Security Error: Invalid token.");
-    }
+    ApiResponse::requireCsrf($input['csrf_token'] ?? null);
 
     $ids = $input['ids'] ?? [];
     $status = $input['status'] ?? null;
     $location = $input['location'] ?? null;
 
     if (empty($ids)) {
-        throw new Exception("No items selected.");
+        ApiResponse::error("No items selected.", 400);
     }
 
     if (!$status && !$location) {
-        throw new Exception("No changes specified.");
+        ApiResponse::error("No changes specified.", 400);
     }
 
     $F = HW_FIELDS;
-    $updates = [];
-    $params = [];
+    $finalParams = [];
+    $posUpdates = [];
 
     if ($status) {
-        // Map UI description to database status if needed,
-        // but here we allow setting both Status and Description from the same UI
-        $updates[] = "{$F['DESCRIPTION']} = :status, {$F['STATUS']} = 'In Warehouse'";
-        $params[':status'] = $status;
+        $posUpdates[] = "{$F['DESCRIPTION']} = ?, {$F['STATUS']} = 'In Warehouse'";
+        $finalParams[] = $status;
     }
 
     if ($location) {
-        $updates[] = "{$F['LOCATION']} = :location";
-        $params[':location'] = $location;
+        $posUpdates[] = "{$F['LOCATION']} = ?";
+        $finalParams[] = $location;
     }
 
-    $updateStr = implode(', ', $updates);
+    foreach ($ids as $id) {
+        $finalParams[] = $id;
+    }
+
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
-    $sql = "UPDATE items SET {$updateStr} WHERE id IN ($placeholders)";
-
-    // Merge params (Named for set, Positional for IN)
-    // PDO doesn't like mixing named and positional well in some versions,
-    // so let's use positional for everything or named for everything.
-
-    // Safer approach: Use named for everything or just rebuild positional.
-    $finalParams = [];
-    if ($status) $finalParams[] = $status;
-    if ($location) $finalParams[] = $location;
-    foreach($ids as $id) $finalParams[] = $id;
-
-    $posSql = "UPDATE items SET ";
-    $posUpdates = [];
-    if ($status) $posUpdates[] = "{$F['DESCRIPTION']} = ?, {$F['STATUS']} = 'In Warehouse'";
-    if ($location) $posUpdates[] = "{$F['LOCATION']} = ?";
-    $posSql .= implode(', ', $posUpdates) . " WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")";
+    $posSql = "UPDATE items SET " . implode(', ', $posUpdates) . " WHERE id IN ($placeholders)";
 
     $stmt = $pdo_labels->prepare($posSql);
     $stmt->execute($finalParams);
 
     // LOG THE AUDIT EVENT
     $summary = "Bulk Update: Modified " . count($ids) . " items" . ($status ? " to $status" : "") . ($location ? " at $location" : "");
-    log_audit_event($pdo_audit, 'Inventory', 0, 'BULK_UPDATE', $summary, null, $input);
+    if (function_exists('log_audit_event')) {
+        log_audit_event($pdo_audit, 'Inventory', 0, 'BULK_UPDATE', $summary, null, $input);
+    }
 
-    echo json_encode([
-        'success' => true,
+    ApiResponse::success([
         'count' => count($ids)
-    ]);
+    ], "Successfully updated " . count($ids) . " items");
 
 } catch (Exception $e) {
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    ApiResponse::error($e->getMessage(), 500);
 }

@@ -1,41 +1,37 @@
 <?php
-require_once '../core/database.php';
-include '../core/auth.php';
-
-header('Content-Type: application/json');
-
-if (!Security::validate($_POST['csrf_token'] ?? '')) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Security Error: CSRF Token Invalid']);
-    exit();
-}
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../core/ApiResponse.php';
+require_once __DIR__ . '/../../core/Security.php';
+include_once __DIR__ . '/../core/auth.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method Not Allowed']);
-    exit();
-}
-
-$ord_id = $_POST['order_id'] ?? null;
-$new_status = $_POST['new_status'] ?? null;
-
-if (!$ord_id || !$new_status) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing required fields']);
-    exit();
+    ApiResponse::methodNotAllowed();
 }
 
 try {
+    ApiResponse::requireCsrf();
+
+    $ord_id = $_POST['order_id'] ?? null;
+    $new_status = $_POST['new_status'] ?? null;
+
+    if (!$ord_id || !$new_status) {
+        ApiResponse::error('Missing required fields', 400);
+    }
+
     $conn = Database::orders();
 
     $stmt_u = $conn->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
     $stmt_u->execute([$new_status, $ord_id]);
 
-    Audit::log('STATUS_CHANGE', $ord_id, "Status updated to: " . $new_status, 'orders');
+    if (class_exists('Audit') && method_exists('Audit', 'log')) {
+        Audit::log('STATUS_CHANGE', $ord_id, "Status updated to: " . $new_status, 'orders');
+    }
 
-    echo json_encode(['status' => 'success', 'message' => 'Order status updated']);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    ApiResponse::success([
+        'order_id' => $ord_id,
+        'new_status' => $new_status,
+        'status' => 'success'
+    ], 'Order status updated');
+} catch (Exception $e) {
+    ApiResponse::error('Database error: ' . $e->getMessage(), 500);
 }
-?>

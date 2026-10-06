@@ -1,33 +1,24 @@
 <?php
-require_once '../core/database.php';
-include '../core/auth.php';
-
-header('Content-Type: application/json');
-
-if (!Security::validate($_POST['csrf_token'] ?? '')) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Security Error: CSRF Token Invalid']);
-    exit();
-}
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../core/ApiResponse.php';
+require_once __DIR__ . '/../../core/Security.php';
+include_once __DIR__ . '/../core/auth.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method Not Allowed']);
-    exit();
-}
-
-$ord_id = $_POST['order_id'] ?? null;
-$new_cust_id = $_POST['new_customer_id'] ?? null;
-
-if (!$ord_id || !$new_cust_id) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing required fields']);
-    exit();
+    ApiResponse::methodNotAllowed();
 }
 
 try {
-    $conn = Database::orders();
+    ApiResponse::requireCsrf();
 
+    $ord_id = $_POST['order_id'] ?? null;
+    $new_cust_id = $_POST['new_customer_id'] ?? null;
+
+    if (!$ord_id || !$new_cust_id) {
+        ApiResponse::error('Missing required fields', 400);
+    }
+
+    $conn = Database::orders();
     $conn->beginTransaction();
 
     // Update orders table
@@ -40,12 +31,18 @@ try {
 
     $conn->commit();
 
-    Audit::log('TRANSFER_ORDER', $ord_id, "Order transferred to Customer: " . $new_cust_id, 'orders');
+    if (class_exists('Audit') && method_exists('Audit', 'log')) {
+        Audit::log('TRANSFER_ORDER', $ord_id, "Order transferred to Customer: " . $new_cust_id, 'orders');
+    }
 
-    echo json_encode(['status' => 'success', 'message' => 'Order transferred successfully']);
-} catch (PDOException $e) {
-    if ($conn) $conn->rollBack();
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    ApiResponse::success([
+        'order_id' => $ord_id,
+        'customer_id' => $new_cust_id,
+        'status' => 'success'
+    ], 'Order transferred successfully');
+} catch (Exception $e) {
+    if (isset($conn) && $conn->inTransaction()) {
+        $conn->rollBack();
+    }
+    ApiResponse::error('Database error: ' . $e->getMessage(), 500);
 }
-?>

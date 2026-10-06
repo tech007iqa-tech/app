@@ -73,6 +73,8 @@ The Warehouse module (`/prod/pages/warehouse.php`) is where you manage physical 
 Manage your sales pipeline and customer interactions in the **Leads** module (`/prod/pages/leads.php`).
 
 ### Managing Leads
+- **Pipeline KPI Tracker**: View real-time revenue velocity with toggles for **D** (Daily), **W** (Weekly - current business week starting Monday), **M** (Monthly - strict calendar month resetting on the 1st), and **Y** (Yearly). Click the period badge to open the detailed transaction modal showing individual completed orders and average order value.
+- **Real-Time Zero-Reload Logging**: Interaction notes, callback rescheduling, and new lead creation save via AJAX and instantly patch the roster in place using `AppSync` without refreshing the page or losing table scroll position.
 - **Executive Bar**: View real-time KPIs, including active lead counts, closed deals, and total pipeline value.
 - **9-Column Bidirectional Sorting**: Click any table header (*Customer / Lead*, *Status*, *Source*, *Interest*, *Last Order*, *Balance*, *Last Contact*, *Next Call*, *Notes*) to sort ascending or descending. Sorting uses raw numeric/date metadata for perfect accuracy.
 - **Priority Urgency Badges**: Next Call dates automatically display color-coded urgency chips:
@@ -133,6 +135,14 @@ The **Settings** module (`/prod/pages/settings.php`) is reserved for system main
 - **Photo Backup & Restore**: Create and download `.tar` backups of location/zone photography files and metadata, or restore them using the import utility.
 - **Archive Directory Picker**: Configure the target spinning disk path for raw photo archives with an interactive folder explorer.
 - **Audit Logs**: Review the system audit log to track user actions and maintain security compliance.
+- **System Setup Wizard (`/setup/index.php`)**: Modular 4-step wizard for diagnosing PHP extensions, selecting preset configs (Small Shop, Medium Warehouse, Enterprise), and provisioning self-healing databases.
+
+### Automated System Verification (CLI Test Suite)
+Technicians and administrators can verify all databases, security tokens, and schemas at any time via the command line:
+```powershell
+php tests/run.php
+```
+This runs 42 automated tests in under 60 milliseconds with zero third-party dependencies, validating database WAL integrity, schema self-healing, CSRF tokens, and domain invariants.
 
 ---
 *For technical support or feature requests, please contact your system administrator.*

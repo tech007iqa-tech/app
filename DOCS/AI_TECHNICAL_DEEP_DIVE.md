@@ -47,6 +47,25 @@ Every module has a `schema_guard.php` or `Schema::runMigrations()` setup.
 *   **Touch Targets**: Buttons are strictly `48px` minimum height.
 *   **Colors**: High-contrast light themes for operational modules; vibrant Teal/Lime for Marketing.
 
+## ⚠️ Recent Critical Fixes & Features (October 2026)
+*   **Security & API Endpoint Hardening (Phase 1)**:
+    *   **Production Web Server Shield (`.htaccess`)**: Blocks direct HTTP downloads to `core/`, `DOCS/`, `db/`, `tests/`, `config.json`, and all `.db`, `.sqlite`, `.log`, `.env`, `.bak` files. Enforces `nosniff`, `SAMEORIGIN`, and XSS protection headers.
+    *   **Central CSRF & PPP Generator (`core/Security.php`)**: Standardized CSRF token generation, secure session comparison via `hash_equals()`, numeric sanitizers (`sanitize_float`, `sanitize_int`), and 256-bit PPP sequence passcodes.
+    *   **Universal Auth Guard (`core/Auth.php`)**: `AuthGuard::check()` dynamically resolves login URLs across all modules and safely detects non-interactive CLI environments for automated testing.
+*   **Database & Schema Consolidation (Phase 2)**:
+    *   **Centralized Database Pool (`core/Database.php`)**: Singleton connection manager for all 10 databases (`orders`, `customers`, `warehouse`, `users`, `calendar`, `tech`, `marketing`, `labels`, `intake`, `audit`) enforcing mandatory WAL pragmas, 5000ms busy timeouts, and `.db` / `.sqlite` file interop.
+    *   **Self-Healing Schema Registry (`core/Schema.php`)**: Centralized table migrations across 30 tables with zero ad-hoc `ALTER TABLE` in controllers.
+*   **Modularity & Code Hygiene (Phase 3)**:
+    *   **Setup Wizard Decomposition (`/setup/`)**: Deconstructed monolithic 2,402-line `setup/index.php` down to a 22-line front controller with dedicated `SetupController.php`, modular step views in `setup/views/`, and standalone assets.
+    *   **Photo Archive Streaming (`orders/download_archive.php`)**: Implemented authenticated binary stream reader with directory traversal protection.
+*   **Automated Health & Regression Test Suite (Phase 4)**:
+    *   **Zero-Dependency CLI Test Harness (`tests/run.php`)**: 42 automated tests executing in under 60ms covering Security, ApiResponse, Database Health, Schema Integrity, and Domain Invariants.
+*   **Site-Wide Real-Time AJAX & Invariant Hardening (Phase 5)**:
+    *   **Universal `AppSync` Client (`assets/js/app_sync.js`)**: Smart DOM diffing, input focus preservation, and <3ms WAL checking.
+    *   **Elimination of `location.reload()`**: Replaced jarring full-page reloads in `leads.js` (`saveLead`), `leads.php` (`quickRegisterLead`), and `orders.js` (`transferOrder`, `updateOrderStatus`) with in-place row patches.
+    *   **Standardized API Responders (`core/ApiResponse.php`)**: Terminating JSON responder with clean output buffer flushing (`ob_end_clean()`), HTTP status codes, and CSRF guards.
+    *   **Pipeline KPI Date Calculation Fix**: Corrected SQLite left-to-right modifier evaluation bug in `orders/pages/customer_registry.php` (`date('now', 'localtime', 'start of month')`), ensuring calendar months reset cleanly on the 1st without leaking prior month orders.
+
 ## ⚠️ Recent Critical Fixes & Features (September 2026)
 *   **Modular Media & Live Camera System (September 16, 2026)**:
     *   **Live Viewfinder & Camera Switching (`camera_uploader.js` & `camera_modal.php`)**: Implemented HTML5 `getUserMedia` streaming with dynamic front/environment camera switching, shutter snap flash effect, freeze-frame preview/retake workflow, and tabbed drag-and-drop file upload zone.

@@ -7,7 +7,7 @@ Options -Indexes -MultiViews
 
 # 2. Prevent Direct HTTP Download of Sensitive File Types
 # (SQLite databases, SQL dumps, configs, logs, backup files, source specs)
-<FilesMatch "\.(db|sqlite|sqlite3|sql|bak|log|ini|env|sh|conf|csv)$">
+<FilesMatch "(config\.json|\.(db|sqlite|sqlite3|sql|bak|log|ini|env|sh|conf|csv))$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -32,8 +32,9 @@ Options -Indexes -MultiViews
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct HTTP access to core backend classes and raw markdown documentation
+    # Block direct HTTP access to root core backend classes, documentation, database storage, and test suites
     RewriteRule ^(core|DOCS)/.*$ - [F,L]
+    RewriteRule (^|/)(db|tests)/.*$ - [F,L]
     RewriteRule \.(md)$ - [F,L]
 
     # Automatic HTTP to HTTPS redirection (Uncomment once free AutoSSL is active in cPanel)

@@ -142,16 +142,12 @@ try {
     $warehouse_audit_count = 0;
 
     try {
-        // Per-period date boundaries
-        // Monday of the current business week (ISO: N=1 Mon … 7 Sun)
-        $days_since_monday = (int) date('N') - 1;   // 0 on Mon, 4 on Fri, 6 on Sun
-        $this_monday = date('Y-m-d', strtotime("-{$days_since_monday} days"));
-
+        // Per-period date boundaries (SQLite modifiers evaluate left-to-right; 'localtime' must precede truncations)
         $periods = [
-            'Daily'  => "date('now', 'localtime')",
-            'Weekly' => "'{$this_monday}'",           // Mon of current work-week
-            'Monthly'=> "date('now', 'start of month', 'localtime')",
-            'Yearly' => "date('now', 'start of year', 'localtime')",
+            'Daily'   => "date('now', 'localtime')",
+            'Weekly'  => "date('now', 'localtime', 'weekday 0', '-6 days')", // Monday of current business week
+            'Monthly' => "date('now', 'localtime', 'start of month')",
+            'Yearly'  => "date('now', 'localtime', 'start of year')",
         ];
 
         // Completed order statuses — matches the rest of the app (orders.php, customer_registry.php)

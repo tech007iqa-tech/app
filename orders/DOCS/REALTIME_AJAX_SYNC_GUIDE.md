@@ -166,13 +166,28 @@ CameraUploader.open({
 
 ---
 
+## 📋 Active System Registrations & Handlers
+
+The platform's core interactive tables are fully registered with `AppSync`:
+
+| Module / Page | Container ID | Row Selector | Mutation Endpoints | Sync Pattern |
+| :--- | :--- | :--- | :--- | :--- |
+| **Warehouse** (`warehouse.php`) | `#inventory-list` | `tr.summary-row` | `media_upload.php`, `media_delete.php`, `add_inventory_item.php` | Zero reload; smart in-place row diffing & photo gallery update. |
+| **CRM Leads** (`leads.php`) | `#leads-list` | `tr.lead-row` | `api/save_lead.php` | In-place modal save & quick-register without page reload. |
+| **Order Batches** (`orders.php`) | `#orders-list` | `tr.order-row` | `api/transfer_order.php`, `api/update_order_status.php` | In-place status toggles & order ownership transfers. |
+| **Hardware Labels** (`labels.php`) | `#inventoryTableBody` | `tr` | `api/bulk_update.php` | In-place condition & shelf reassignment with toast feedback. |
+
+---
+
 ## ⚠️ Checklist & Common Pitfalls
 
 | ❌ Common Trap | ✅ Correct Pattern |
 | :--- | :--- |
 | Using `window.location.reload()` | Call `AppSync.sync('target-id', true)` |
+| Unstructured `echo json_encode(['error' => ...])` | Terminate with `ApiResponse::error($msg, $code)` |
+| Direct `element.addEventListener('mouseenter')` on cards | Use `document.addEventListener('mouseover', e => e.target.closest(...))` |
 | Relative paths like `../../core/UI.php` in deep partials | Use `dirname(__DIR__, 3) . '/core/UI.php'` |
 | Checking `!empty($_GET['since'])` in PHP | Use `isset($_GET['since']) && $_GET['since'] !== ''` (PHP treats `'0'` as empty) |
 | Hardcoding `filemtime()` as the only sync check | Combine with SQLite `PRAGMA data_version` and `COUNT(*)` |
-| Direct `element.addEventListener('mouseenter')` on cards | Use `document.addEventListener('mouseover', e => e.target.closest(...))` |
 | Outputting echo/HTML before `ApiResponse::json()` | `ApiResponse::json()` clears output buffers, but avoid stray echos in helper functions |
+

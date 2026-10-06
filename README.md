@@ -1,7 +1,8 @@
 # 📦 IQA Metal Warehouse Systems
 
-[![Version](https://img.shields.io/badge/version-2.2.0-green.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/version-2.5.0-green.svg)](https://github.com/)
 [![Tech](https://img.shields.io/badge/Stack-Vanilla_PHP_|_SQLite_|_JS-blue.svg)](https://github.com/)
+[![Tests](https://img.shields.io/badge/Tests-42_Passed_|_Zero_Dependencies-brightgreen.svg)](tests/run.php)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/)
 
 A premium, high-performance warehouse management ecosystem designed for speed, reliability, and precision. Built for physical warehouse environments where quick hardware intake, accurate label logistics, and customer relation lifecycles are mission-critical.
@@ -24,11 +25,13 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 - **Thermal Printing**: Generates high-fidelity `.odt` labels via a dependency-free Flat XML engine.
 - **Hardware Specs**: Detailed tracking of CPUs, RAM, Storage, Battery Health, and BIOS status.
 - **Self-Healing**: Native `Schema Guard` ensures database integrity and automatic recovery.
+- **Real-Time AppSync**: Live DOM updates with CSRF auto-injection and zero page reloads.
 
 ### 📊 Order Manager (`/orders`)
 *B2B Relationship & Batch Fulfillment*
-- **CRM Hub**: Advanced lead tracking with interaction timelines and status priority. Real-time, timer-free Server-Sent Events (SSE) synchronization across all workstations. Features 9-column bidirectional table sorting (`data-sort-val`), dynamic urgency badges (`🔴 Overdue`, `🟡 Due Today`, `🟢 Upcoming`), live keyword search highlighting, and 1-click UTF-8 BOM CSV exports.
+- **CRM Hub**: Advanced lead tracking with interaction timelines and status priority. Real-time, timer-free Server-Sent Events (SSE) and Livewire-style smart DOM diffing (`AppSync`) across all workstations. Features 9-column bidirectional table sorting (`data-sort-val`), dynamic urgency badges (`🔴 Overdue`, `🟡 Due Today`, `🟢 Upcoming`), live keyword search highlighting, and 1-click UTF-8 BOM CSV exports.
 - **Historical Trends & BI Analytics**: Modular tabbed workspace featuring Model Demand Velocity (Avg Price displayed before Details, buyer links, 1-click CSV export), accounting-grade ASP timeline & Monthly Valuation trend graphs (with MoM growth chips, executive KPI summary cards, reconciliation ledger footer, and 1-click CSV export), Dual-Axis Performance Model switcher (Split View vs. Dual-Axis Combo with Left/Right Y-axes), Customer Profile & Order History Intelligence Dialog with lifetime spend, units liquidated, completed orders, tenure, and recent manifest preview modals, live matrix save confirmation toasts & cell glow animations, and CPU pricing insight modals.
+- **Pipeline KPI Tracker**: Accurate monthly, weekly, and yearly pipeline tracking with strict calendar boundaries and local time anchoring.
 - **Batch Logistics**: Manage complex hardware orders with real-time stock allocation.
 - **Warehouse Working Zones & Gates**: Nested zone mapping (e.g. Zone A, Zone B, General) with drill-down to specific locations/shelves.
 - **Inventory Consolidation**: Automated deduplication and quantity merging for identical warehouse items within the same location.
@@ -46,8 +49,14 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 - **Manual Grid Overlay**: Transparent grid overlay mode for manually keying in data directly over the image.
 - **Configurable AI Prompt**: Dictionary Settings panel for managing Gemini API Key, AI persona, brand abbreviation mappings, and handwriting normalization rules.
 - **Committed History View**: Hierarchical location breadcrumbs (group by shelf letter → drill down to bin), full-text search, sortable columns, and CSV export.
-- **Database Management**: Admin module in settings to permanently clear committed intake records.
-- **Dual Access**: Accessible standalone at `sampleWHdata/audit.html` (offline) or embedded within the main system at `orders/index.php?view=inbound` with seamless parent-window navigation escaping.
+- **Dual Access**: Standalone at `sampleWHdata/audit.html` or embedded within `orders/index.php?view=inbound`.
+
+### ⚙️ System Setup Wizard (`/setup`)
+*Modular Environment Inspector & Database Provisioner*
+- **4-Step Setup Controller**: Decomposed modular architecture (`SetupController.php`, view partials, and isolated CSS/JS).
+- **Environment Diagnostics**: Verifies PHP 8.1+, PDO SQLite, GD WebP, write permissions, and memory limits.
+- **Preset Configurations**: 1-click configuration for Small Shop, Medium Warehouse, or Enterprise Logistics.
+- **Self-Healing DB Provisioner**: Initializes and repairs all 10 databases with atomic WAL activation.
 
 ---
 
@@ -55,33 +64,49 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 
 | Layer | Tech | Description |
 | :--- | :--- | :--- |
-| **Backend** | PHP 8.1+ | Lean, procedural-focused logic with modular routing. |
-| **Database** | SQLite 3 | Zero-config, portable database files with optimistic locking. |
-| **Frontend** | Vanilla JS / CSS3 | Modern "App-like" experience using Glassmorphism & HSL variables. |
-| **AI / OCR** | Gemini Vision API | Handwritten intake sheet image extraction and field normalization. |
-| **Documents** | Flat XML (FODT) | Dependency-free OpenDocument generation for LibreOffice compatibility. |
-| **Automation** | PowerShell | Native Windows integration for direct file launching. |
+| **Backend** | Vanilla PHP 8.1+ | Strictly zero-dependency procedural & service architecture. |
+| **Database** | SQLite 3 (WAL mode) | 10 dedicated SQLite databases with centralized connection pooling. |
+| **Real-Time Sync** | `AppSync` + `ApiResponse` | Smart DOM diffing, input focus preservation, and <3ms WAL checking. |
+| **Security** | `.htaccess` + `Security.php` | Web server shield, CSRF auto-injection, and PPP passcodes. |
+| **Testing** | Zero-Dependency CLI Harness | 42 automated tests executing in under 60ms (`tests/run.php`). |
+| **Frontend** | Vanilla JS / CSS3 | Modern touch-first interface (min 48px targets) with HSL tokens. |
+| **Documents** | Flat XML (FODT) | OpenDocument labels generated without `ZipArchive` dependency. |
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-├── labels/                # Module: Inventory & Rapid Label Printing
-├── orders/                # Module: CRM, Batching & Fulfillment
-│   └── pages/
-│       └── inbound.php    # Embeds sampleWHdata/audit.html via seamless iframe
-├── sampleWHdata/          # Module: Offline-capable AI Intake Terminal
-│   ├── audit.html         # Main intake terminal UI
-│   ├── history.html       # Committed intake log with location breadcrumbs
-│   ├── settings.html      # Gemini API config, prompt settings & DB management
-│   ├── process.php        # Backend API router (OCR, save, config, clear)
-│   └── src/               # PHP classes (OcrEngine, Normalizer, DbHandler, Config)
-├── DOCS/                  # System-wide Documentation
-│   ├── AI_AGENT_INSTRUCTIONS.md   # Guidelines for AI coding assistants
-│   ├── CODE_REVIEW_CHECKLIST.md   # Quality control standards
-│   └── GLOBAL_SITEMAP.md          # Full project directory map
-├── index.php              # Premium Portal / Landing Page
+├── core/                  # Unified Platform Services
+│   ├── ApiResponse.php    # Clean terminating JSON responder with CSRF/auth guards
+│   ├── Database.php       # Centralized connection pool for all 10 SQLite databases
+│   ├── Schema.php         # Self-healing migration blueprints across 30 tables
+│   ├── Security.php       # CSRF token lifecycle, PPP passcodes, and sanitizers
+│   ├── Auth.php           # Role-based guards and CLI non-interactive detection
+│   ├── UI.php             # Server-rendered UI components (stat cards, badges, dialogs)
+│   └── Company.php        # Dynamic company branding and currency fallback
+├── assets/                # Global Public Assets
+│   └── js/
+│       └── app_sync.js    # Universal real-time sync client & Livewire-style DOM diffing
+├── setup/                 # Modular Setup & Environment Wizard
+│   ├── index.php          # 22-line clean front controller
+│   ├── src/SetupController.php # Backend orchestrator
+│   ├── views/             # Modular step templates (1 to 4, challenge, success)
+│   └── assets/            # Isolated setup styling and AJAX client
+├── tests/                 # Automated Health & Regression Test Suite
+│   ├── run.php            # Master CLI test runner (`php tests/run.php`)
+│   ├── TestRunner.php     # Zero-dependency test harness and colorful reporter
+│   ├── Assert.php         # Assertion engine (same, true, false, matches, contains)
+│   ├── Unit/              # Security, CSRF, and ApiResponse unit tests
+│   └── Integration/       # Database health, schema integrity, and domain invariants
+├── labels/                # Module: Inventory & Rapid Thermal Label Printing
+├── orders/                # Module: CRM, Batching, Warehousing & Fulfillment
+├── marketing/             # Module: Marketing Campaigns, Templates & Ad Copy
+├── tech/                  # Module: Technician Testing Bench & Parts Inventory
+├── sampleWHdata/          # Module: AI-Powered Handwritten Intake Terminal
+├── DOCS/                  # System-wide Architectural Specifications
+├── GEMINI.md              # AI Agent Workspace Guidelines & Domain Rules
+├── index.php              # Master Portal Landing Page
 └── README.md              # This document
 ```
 
@@ -90,21 +115,26 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 ## ⚙️ Getting Started
 
 ### 1. Requirements
-- **PHP 8.1+** (XAMPP / WAMP recommended for Windows environments).
-- **SQLite3 Extension** enabled in `php.ini`.
-- **LibreOffice** (optional, for viewing/printing generated `.odt` labels).
-- **Gemini API Key** (optional, required for AI OCR in the Inbound Terminal).
+- **PHP 8.1+** (local XAMPP or production Linux/Apache).
+- **SQLite3 & PDO Extensions** enabled in `php.ini`.
+- **GD Extension** (for WebP photo processing).
 
-### 2. Installation
-1. Clone the repository into your web root (e.g., `htdocs/WarehouseSystems-main`).
-2. Ensure the `/db` directory has **Write Permissions**.
-3. Access the system via `http://localhost/WarehouseSystems-main/orders/index.php`.
-4. For the standalone intake terminal: `http://localhost/WarehouseSystems-main/sampleWHdata/audit.html`.
+### 2. Run Automated Verification Tests
+Verify all databases, schemas, CSRF systems, and domain invariants with one command:
+```powershell
+php tests/run.php
+# Or via XAMPP path:
+& 'c:\xampp\php\php.exe' tests/run.php
+```
 
-### 3. Usage
-- Start in the **Portal** to navigate between label generation or order management.
-- Databases are automatically initialized on the first run via the **Schema Guard** system.
-- For AI-powered intake, navigate to **Inbound** from the sidebar, or open `audit.html` directly for offline use.
+### 3. Accessing the System
+- **Main Portal**: `http://localhost/app/index.php`
+- **Setup & Diagnostics**: `http://localhost/app/setup/index.php`
+- **Inbound AI Terminal**: `http://localhost/app/sampleWHdata/audit.html`
+- **Orders & CRM**: `http://localhost/app/orders/index.php`
+- **Hardware Labels**: `http://localhost/app/labels/index.php`
+- **Marketing Hub**: `http://localhost/app/marketing/index.php`
+- **Technician Desk**: `http://localhost/app/tech/index.php`
 
 ---
 

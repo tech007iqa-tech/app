@@ -18,6 +18,10 @@ class AuthGuard {
      * @return bool True if authenticated or running via CLI.
      */
     public static function check() {
+        if (php_sapi_name() === 'cli') {
+            return true;
+        }
+
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
             return true;
         }
@@ -35,31 +39,15 @@ class AuthGuard {
         }
 
         // Determine login path dynamically based on current web path
-        if (preg_match('#^(.*(?:/serverWarehouse|/wh\.latinospc))/#', $script_name, $m)) {
-            $login_path = $m[1] . '/orders/core/login.php';
+        if (preg_match('#^(.*?)/(?:orders|labels|marketing|tech|sampleWHdata|setup|store|core|assets|db|DOCS)/#i', $script_name, $m)) {
+            $base_path = $m[1];
         } else {
-            $pos_orders = strpos($script_name, '/orders/');
-            if ($pos_orders !== false) {
-                $login_path = substr($script_name, 0, $pos_orders) . '/orders/core/login.php';
-            } else {
-                $pos_labels = strpos($script_name, '/labels/');
-                if ($pos_labels !== false) {
-                    $login_path = substr($script_name, 0, $pos_labels) . '/orders/core/login.php';
-                } else {
-                    $pos_mkt = strpos($script_name, '/marketing/');
-                    if ($pos_mkt !== false) {
-                        $login_path = substr($script_name, 0, $pos_mkt) . '/orders/core/login.php';
-                    } else {
-                        $pos_tech = strpos($script_name, '/tech/');
-                        if ($pos_tech !== false) {
-                            $login_path = substr($script_name, 0, $pos_tech) . '/orders/core/login.php';
-                        } else {
-                            $login_path = '/orders/core/login.php';
-                        }
-                    }
-                }
+            $base_path = rtrim(str_replace('\\', '/', dirname($script_name)), '/\\');
+            if ($base_path === '.' || $base_path === '/' || $base_path === '\\') {
+                $base_path = '';
             }
         }
+        $login_path = ($base_path !== '' ? $base_path : '') . '/orders/core/login.php';
 
         $current_uri = $_SERVER['REQUEST_URI'] ?? '';
         $redirect_target = $login_path;

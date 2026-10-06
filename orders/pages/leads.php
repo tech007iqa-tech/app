@@ -5,41 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 try {
     $conn = Database::customers();
-
-    // 1. Robust Schema Migration for Leads
-    $existing_cols = $conn->query("PRAGMA table_info(customers)")->fetchAll(PDO::FETCH_ASSOC);
-    $col_names = array_column($existing_cols, 'name');
-
-    $required_cols = [
-        'account_status' => "TEXT DEFAULT 'Lead'",
-        'lead_source'    => "TEXT DEFAULT ''",
-        'interest'       => "TEXT DEFAULT ''",
-        'contact_method'  => "TEXT DEFAULT ''",
-        'callback_date'   => "TEXT DEFAULT ''",
-        'message_date'    => "TEXT DEFAULT ''"
-    ];
-
-    foreach ($required_cols as $col => $definition) {
-        if (!in_array($col, $col_names)) {
-            $conn->exec("ALTER TABLE customers ADD COLUMN $col $definition");
-        }
-    }
-
-    // 2. Interaction Logs table (Centralized check)
-    $conn->exec("CREATE TABLE IF NOT EXISTS interaction_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_id TEXT NOT NULL,
-        contact_date TEXT,
-        method TEXT,
-        note TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
-
-    // Performance Indexing (Phase 1)
-    $conn->exec("CREATE INDEX IF NOT EXISTS idx_interactions_cid ON interaction_logs(customer_id)");
-
 } catch(Exception $e) {
-    // Basic error reporting for schema
+    die("Database Error: " . $e->getMessage());
 }
 
 // 3. Robust Data Fetching with Fallback
@@ -549,12 +516,27 @@ if (UI::is_ajax()) {
 
             const data = await response.json();
 
-            if (data.status === 'success') {
+            if (data.status === 'success' || data.success) {
                 btn.style.background = '#22c55e';
                 btn.innerText = '✓ Lead Created!';
-                setTimeout(() => location.reload(), 800);
+
+                if (window.AppSync) {
+                    await AppSync.sync('leads-list', true);
+                    if (window.Notifications && typeof window.Notifications.success === 'function') {
+                        window.Notifications.success('Lead account registered successfully');
+                    }
+                    setTimeout(() => {
+                        closeQuickAddModal();
+                        form.reset();
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                        btn.style.background = '';
+                    }, 400);
+                } else {
+                    setTimeout(() => location.reload(), 500);
+                }
             } else {
-                throw new Error(data.error || 'Registration failed');
+                throw new Error(data.error || data.message || 'Registration failed');
             }
         } catch (err) {
             console.error("Registration failed", err);

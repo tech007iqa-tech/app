@@ -4,12 +4,32 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
 
 ---
 
-## 📍 Root `/WarehouseSystems-main/`
+## 📍 Root `/app/`
 - `index.php`: Master Portal & Navigation Landing Page.
-- `core/`: Shared platform utilities:
+- `GEMINI.md`: AI Agent Workspace Guidelines and Domain Invariants.
+- `roadmap.md`: System-wide multi-phase engineering evolution roadmap.
+- `core/`: Shared platform utilities and services:
+  - `ApiResponse.php`: Terminating JSON responder (output buffer cleaning, HTTP status codes, standard envelope, CSRF/auth guards).
+  - `Database.php`: Centralized singleton PDO connection pool for all 10 SQLite databases (mandatory WAL mode, busy timeout 5000, foreign keys ON).
+  - `Schema.php`: Central self-healing database table migrations and repair registry across 30 tables.
+  - `Security.php`: Central CSRF token generation/validation, 256-bit PPP sequence keys, and numeric sanitizers.
+  - `Auth.php`: Universal role-based authentication guard (`AuthGuard::check()`) with CLI non-interactive detection.
   - `UI.php`: Server-side UI component engine (`stat_card`, `badge`, `csrf_field`, `modal`, notifications).
-  - `Security.php`: Central CSRF token generation, validation, and session security.
-- `DOCS/`: System-wide architectural and AI reviewer documentation:
+  - `Company.php`: Dynamic company branding and currency fallback configuration.
+- `assets/`:
+  - `js/app_sync.js`: Universal real-time sync client and Livewire-style smart DOM diffing engine.
+- `setup/`: Modular system setup, environment diagnostics, and database provisioner:
+  - `index.php`: 22-line clean front controller.
+  - `src/SetupController.php`: Wizard business logic and migration runner.
+  - `views/`: Step templates (`step1_env.php`, `step2_presets.php`, `step3_dbs.php`, `step4_users.php`, `challenge.php`, `success.php`).
+  - `assets/`: Standalone `setup.css` and `setup.js`.
+- `tests/`: Automated Health & Regression Test Suite:
+  - `run.php`: Master CLI test runner (`php tests/run.php`).
+  - `TestRunner.php` & `Assert.php`: Zero-dependency test harness and colorful ANSI reporter.
+  - `Unit/`: `SecurityTest.php`, `ApiResponseTest.php`.
+  - `Integration/`: `DatabaseHealthTest.php`, `SchemaRegressionTest.php`, `InvariantsTest.php`.
+- `DOCS/`: System-wide architectural specifications:
+  - `MARKETING_ENGINEERING_MANDATE.md`: Canonical rules for marketing and template synchronization.
   - `AI_AGENT_INSTRUCTIONS.md`: Core developer rules and system constraints.
   - `AI_TECHNICAL_DEEP_DIVE.md`: Architectural shortcuts, DB sync patterns, and token-saving tips.
   - `GLOBAL_SITEMAP.md`: This comprehensive ecosystem directory.

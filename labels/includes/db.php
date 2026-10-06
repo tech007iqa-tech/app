@@ -46,29 +46,36 @@ function apply_sqlite_optimizations($pdo) {
 }
 
 try {
-    // 1. Labels Database
-    $pdo_labels = new PDO("sqlite:" . $labels_db_path);
-    $pdo_labels->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo_labels->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    apply_sqlite_optimizations($pdo_labels);
+    if (class_exists('Database')) {
+        $pdo_labels  = Database::labels();
+        $pdo_orders  = Database::orders();
+        $pdo_rolodex = Database::customers();
+        $pdo_audit   = Database::audit();
+    } else {
+        // 1. Labels Database (Standalone Fallback)
+        $pdo_labels = new PDO("sqlite:" . $labels_db_path);
+        $pdo_labels->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo_labels->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        apply_sqlite_optimizations($pdo_labels);
 
-    // 2. Orders Database
-    $pdo_orders = new PDO("sqlite:" . $orders_db_path);
-    $pdo_orders->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo_orders->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    apply_sqlite_optimizations($pdo_orders);
+        // 2. Orders Database (Standalone Fallback)
+        $pdo_orders = new PDO("sqlite:" . $orders_db_path);
+        $pdo_orders->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo_orders->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        apply_sqlite_optimizations($pdo_orders);
 
-    // 3. Rolodex Database
-    $pdo_rolodex = new PDO("sqlite:" . $rolodex_db_path);
-    $pdo_rolodex->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo_rolodex->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    apply_sqlite_optimizations($pdo_rolodex);
+        // 3. Rolodex Database (Standalone Fallback)
+        $pdo_rolodex = new PDO("sqlite:" . $rolodex_db_path);
+        $pdo_rolodex->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo_rolodex->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        apply_sqlite_optimizations($pdo_rolodex);
 
-    // 4. Audit Database
-    $pdo_audit = new PDO("sqlite:" . $audit_db_path);
-    $pdo_audit->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo_audit->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    apply_sqlite_optimizations($pdo_audit);
+        // 4. Audit Database (Standalone Fallback)
+        $pdo_audit = new PDO("sqlite:" . $audit_db_path);
+        $pdo_audit->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo_audit->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        apply_sqlite_optimizations($pdo_audit);
+    }
 
     // 5. Schema Guard (Self-Healing)
     if (session_status() === PHP_SESSION_NONE) {

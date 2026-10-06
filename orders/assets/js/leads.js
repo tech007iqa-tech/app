@@ -186,16 +186,28 @@ async function saveLead(event) {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
-            // Success animation or feedback
+        if (data.status === 'success' || data.success) {
             btn.style.background = '#22c55e';
             btn.innerText = '✓ Saved Successfully';
 
-            setTimeout(() => {
-                location.reload(); // Reload to refresh table data
-            }, 800);
+            if (window.AppSync) {
+                await AppSync.sync('leads-list', true);
+                if (window.Notifications && typeof window.Notifications.success === 'function') {
+                    window.Notifications.success(data.message || 'Lead updated successfully');
+                }
+                setTimeout(() => {
+                    closeLeadModal();
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    btn.style.background = '';
+                }, 350);
+            } else {
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            }
         } else {
-            throw new Error(data.error || 'Update failed');
+            throw new Error(data.error || data.message || 'Update failed');
         }
 
     } catch (err) {
@@ -487,6 +499,22 @@ function exportLeadsCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+function initLeadsSync() {
+    if (document.getElementById('leads-list') && window.AppSync) {
+        AppSync.register({
+            elementId: 'leads-list',
+            url: window.location.pathname + window.location.search + (window.location.search ? '&ajax=1' : '?ajax=1'),
+            rowSelector: 'tr.lead-row',
+            rowIdAttribute: 'data-id',
+            onUpdate: () => {
+                if (typeof filterLeads === 'function') {
+                    filterLeads();
+                }
+            }
+        });
+    }
 }
 
 if (document.readyState === 'loading') {
