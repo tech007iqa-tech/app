@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     $action = $_GET['action'];
     $matrix_actions = ['update_pricing_matrix', 'add_matrix_row', 'delete_matrix_row', 'add_matrix_category', 'delete_matrix_category'];
     if (in_array($action, $matrix_actions)) {
-        ob_clean();
+        if (ob_get_level() > 0) ob_clean();
         if (session_status() === PHP_SESSION_NONE) session_start();
         header('Content-Type: application/json');
 
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 }
 
 // 2. Handle Tested Market AJAX Endpoints
-require_once 'core/TestedMarketManager.php';
+require_once __DIR__ . '/../../core/TestedMarketManager.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     $action = $_GET['action'];
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
 // 3. Handle Customer Profile Intelligence AJAX Endpoint (Phase 4)
 if (isset($_GET['action']) && $_GET['action'] === 'get_customer_profile') {
-    ob_clean();
+    if (ob_get_level() > 0) ob_clean();
     if (session_status() === PHP_SESSION_NONE) session_start();
     header('Content-Type: application/json');
 
@@ -218,6 +218,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_customer_profile') {
                 'email' => '—',
                 'status' => 'Customer'
             ];
+        } else {
+            $customer['status'] = $customer['account_status'] ?? ($customer['status'] ?? 'Active');
         }
 
         $target_id = $customer['customer_id'];
@@ -255,10 +257,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_customer_profile') {
         // Fetch CRM Interaction Logs
         $interactions = [];
         try {
-            $int_stmt = $db_cust->prepare("SELECT * FROM interactions WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
+            $int_stmt = $db_cust->prepare("SELECT * FROM interaction_logs WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
             $int_stmt->execute([$target_id]);
             $interactions = $int_stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        } catch(Exception $ex) {}
+        } catch(Throwable $ex) {}
 
         echo json_encode([
             'success' => true,
@@ -268,7 +270,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_customer_profile') {
             'interactions' => $interactions
         ]);
         exit();
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         exit();
     }

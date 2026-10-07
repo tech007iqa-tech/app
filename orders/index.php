@@ -8,7 +8,7 @@ include 'core/auth.php';
 
 // --- ROUTING & LOGIC PHASE (Pre-Output) ---
 $view = $_GET['view'] ?? 'default';
-$is_new_order = isset($_GET['customer_id']);
+$is_new_order = (!isset($_GET['view']) || $_GET['view'] === 'new_order') && !empty($_GET['customer_id']);
 
 $routes = [
     'register'          => ['page' =>'pages/new_customer.php',     'css' => 'customer_registry.css'],

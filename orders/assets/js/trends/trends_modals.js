@@ -436,7 +436,9 @@ function openCustomerProfileModal(event, customerId, companyName) {
             .replace(/'/g, '&#039;');
     };
 
-    const targetUrl = `index.php?view=trends&action=get_customer_profile&customer_id=${encodeURIComponent(customerId || '')}&company_name=${encodeURIComponent(companyName || '')}`;
+    let targetUrl = 'index.php?view=trends&action=get_customer_profile';
+    if (customerId) targetUrl += `&customer_id=${encodeURIComponent(customerId)}`;
+    if (companyName) targetUrl += `&company_name=${encodeURIComponent(companyName)}`;
 
     fetch(targetUrl)
         .then(r => r.json())
@@ -538,7 +540,10 @@ function openCustomerProfileModal(event, customerId, companyName) {
         .catch(err => {
             console.error(err);
             if (loading) loading.style.display = 'none';
-            if (error) error.style.display = 'block';
+            if (error) {
+                error.textContent = '⚠️ ' + (err.message || 'Failed to load customer profile.');
+                error.style.display = 'block';
+            }
         });
 
     activeCustomerProfileEscHandler = (e) => {
