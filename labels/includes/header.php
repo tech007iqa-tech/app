@@ -96,6 +96,10 @@ $company_name = Company::getName();
                 <span class="nav-icon">📦</span>
                 <span class="nav-label">Inventory</span>
             </a>
+            <a href="batteries.php" class="nav-chip <?= $current_page === 'batteries.php' ? 'active' : '' ?>">
+                <span class="nav-icon">🔋</span>
+                <span class="nav-label">Batteries</span>
+            </a>
         </nav>
 
         <div class="header-right">
@@ -155,6 +159,11 @@ $company_name = Company::getName();
                 <a href="labels.php" class="drawer-item <?= $current_page === 'labels.php' ? 'active' : '' ?>">
                     <span class="drawer-icon">📦</span>
                     <span class="drawer-text">Warehouse Inventory</span>
+                </a>
+                <a href="batteries.php" class="drawer-item <?= $current_page === 'batteries.php' ? 'active' : '' ?>">
+                    <span class="drawer-icon">🔋</span>
+                    <span class="drawer-text">Battery Cross-Match</span>
+                    <span class="badge badge-accent" style="background: rgba(59,130,246,0.15); color: #3b82f6;">Match</span>
                 </a>
 
                 <?php if (file_exists(__DIR__ . '/../../index.php')): ?>

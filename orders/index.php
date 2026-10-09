@@ -210,6 +210,14 @@ $page_content = ob_get_clean();
                         <a href="#" class="crumb active">
                             <span class="step-num">✅</span> Finalized History
                         </a>
+                    <?php elseif (isset($_GET['type']) && $_GET['type'] === 'weekly'): ?>
+                        <a href="index.php?view=orders" class="crumb">
+                            <span class="step-num">📦</span> All Orders
+                        </a>
+                        <span class="separator">/</span>
+                        <a href="#" class="crumb active">
+                            <span class="step-num">📊</span> Weekly Summary
+                        </a>
                     <?php elseif (isset($_GET['type']) && $_GET['type'] === 'active'): ?>
                         <a href="index.php?view=orders" class="crumb">
                             <span class="step-num">📦</span> All Orders
@@ -471,7 +479,9 @@ $page_content = ob_get_clean();
     <?php elseif ($active_key === 'leads' && file_exists('assets/js/leads.js')): ?>
         <script src="assets/js/leads.js?v=<?= filemtime('assets/js/leads.js') ?>" defer></script>
     <?php elseif ($active_key === 'orders'): ?>
+        <script src="assets/js/chart.min.js?v=<?= file_exists('assets/js/chart.min.js') ? filemtime('assets/js/chart.min.js') : '1' ?>" defer></script>
         <script src="assets/js/orders.js?v=<?= filemtime('assets/js/orders.js') ?>" defer></script>
+        <script src="assets/js/weekly_orders.js?v=<?= file_exists('assets/js/weekly_orders.js') ? filemtime('assets/js/weekly_orders.js') : '1' ?>" defer></script>
     <?php elseif ($active_key === 'inbound'): ?>
         <script src="assets/js/inbound.js?v=<?= filemtime('assets/js/inbound.js') ?>" defer></script>
     <?php elseif ($active_key === 'trends'): ?>

@@ -123,6 +123,20 @@ try {
             <span>📦 Open Inventory Table</span>
         </a>
     </div>
+
+    <!-- Tile 3: Battery Cross-Match & Catalog -->
+    <div class="action-tile-card tile-battery" style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-card);">
+        <div>
+            <div class="tile-icon-box" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">🔋</div>
+            <h2 class="tile-title">Battery Cross-Match</h2>
+            <p class="tile-desc">
+                Match laptop models with replacement batteries and vice-versa. Search by model or part number, track bin locations, and print 2" × 1" thermal labels.
+            </p>
+        </div>
+        <a href="batteries.php" class="btn btn-brand btn-large" style="width: 100%;">
+            <span>🔋 Battery Cross-Match</span>
+        </a>
+    </div>
 </section>
 
 <!-- QUICK LOCATE / SCANNER SEARCH -->

@@ -258,3 +258,588 @@
     color: var(--text-main);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
+/* ─── WEEKLY ORDERS & SALES REPORT MODULE ────────────────────────────────── */
+
+.weekly-orders-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* KPI Metric Cards Grid */
+.weekly-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.metric-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+}
+
+.metric-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-main, #0f172a);
+    line-height: 1.15;
+}
+
+.metric-unit {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.metric-sub {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Weekly Navigation & Actions Toolbar */
+.weekly-toolbar-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 18px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+.weekly-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-week-nav {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.2s;
+}
+
+.btn-week-nav:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+.btn-week-nav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.week-dropdown-select {
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    padding: 0 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    background: #f8fafc;
+    cursor: pointer;
+    outline: none;
+    max-width: 320px;
+}
+
+.week-dropdown-select:focus {
+    border-color: var(--accent-color);
+}
+
+.btn-today-pill {
+    background: rgba(140, 198, 63, 0.15);
+    color: var(--accent-dark, #4d7c0f);
+    border: 1px solid rgba(140, 198, 63, 0.3);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    box-sizing: border-box;
+}
+
+.weekly-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-action-primary {
+    background: linear-gradient(135deg, var(--accent-color, #8cc63f) 0%, var(--accent-dark, #65a30d) 100%);
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    box-shadow: 0 4px 12px rgba(140, 198, 63, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-action-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(140, 198, 63, 0.4);
+}
+
+.btn-action-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    transition: all 0.2s;
+}
+
+.btn-action-secondary:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* ─── SPREADSHEET CARD (EXCEL-STYLE REPORT) ───────────────────────────────── */
+.weekly-spreadsheet-container {
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.06);
+}
+
+.spreadsheet-header-banner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.spreadsheet-badge {
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--accent-color, #8cc63f);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.spreadsheet-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin: 0;
+    color: #ffffff;
+    display: inline-block;
+    letter-spacing: -0.01em;
+}
+
+.spreadsheet-year {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-left: 8px;
+}
+
+.spreadsheet-banner-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.spreadsheet-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.btn-quick-copy {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-quick-copy:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.spreadsheet-table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.weekly-sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    min-width: 680px;
+}
+
+.sheet-head-row {
+    background: #f8fafc;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.sheet-th-metric {
+    width: 160px;
+    padding: 14px 18px;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    text-align: left;
+    border-right: 2px solid #e2e8f0;
+    background: #f1f5f9;
+}
+
+.sheet-th-day {
+    padding: 12px 14px;
+    border-right: 1px solid #e2e8f0;
+    background: #e2e8f0;
+    transition: background 0.2s;
+}
+
+.sheet-day-num {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1.1;
+}
+
+.sheet-day-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    margin-top: 2px;
+}
+
+.sheet-th-total {
+    width: 140px;
+    padding: 14px 18px;
+    font-size: 0.85rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1e293b;
+    background: #cbd5e1;
+}
+
+.sheet-row {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.2s;
+}
+
+.sheet-row:hover {
+    background: rgba(241, 245, 249, 0.7);
+}
+
+.sheet-row-dayname {
+    background: #f8fafc;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.sheet-td-label {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #334155;
+    border-right: 2px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.sheet-td-val {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    border-right: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sheet-td-val.has-data:hover {
+    background: rgba(140, 198, 63, 0.15) !important;
+}
+
+.sheet-td-val.is-zero {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.sheet-total-cell {
+    background: #f1f5f9;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #0f172a;
+}
+
+.sheet-total-cell.highlight-price {
+    color: var(--accent-dark, #15803d);
+}
+
+.spreadsheet-footer-note {
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* ─── CHARTS SECTION ──────────────────────────────────────────────────────── */
+.weekly-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+}
+
+.weekly-chart-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chart-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+    margin: 0;
+}
+
+.chart-subtitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 3px 0 0 0;
+}
+
+.chart-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.chart-legend-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+.badge-units {
+    background: rgba(140, 198, 63, 0.15);
+    color: var(--accent-dark, #4d7c0f);
+}
+
+.badge-amount {
+    background: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+}
+
+.badge-history {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+/* ─── DRILLDOWN & HISTORICAL SECTIONS ─────────────────────────────────────── */
+.weekly-drilldown-card,
+.weekly-history-container {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+
+.drilldown-header,
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.active-week-badge {
+    display: inline-block;
+    background: rgba(140, 198, 63, 0.2);
+    color: var(--accent-dark, #4d7c0f);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.btn-sm-copy,
+.btn-sm-view {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #334155;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-sm-copy:hover,
+.btn-sm-view:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* Dark Theme Adaptations */
+[data-theme="dark"] .metric-card,
+[data-theme="dark"] .weekly-toolbar-card,
+[data-theme="dark"] .weekly-spreadsheet-container,
+[data-theme="dark"] .weekly-chart-card,
+[data-theme="dark"] .weekly-drilldown-card,
+[data-theme="dark"] .weekly-history-container {
+    background: var(--bg-surface-2, #1e293b);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sheet-head-row,
+[data-theme="dark"] .sheet-th-metric,
+[data-theme="dark"] .sheet-td-label,
+[data-theme="dark"] .sheet-row-dayname {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .sheet-th-day {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .sheet-day-num {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .sheet-day-name {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .sheet-th-total,
+[data-theme="dark"] .sheet-total-cell {
+    background: #0f172a !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .sheet-td-val {
+    color: #e2e8f0;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .sheet-row {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .spreadsheet-footer-note {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .week-dropdown-select,
+[data-theme="dark"] .btn-week-nav,
+[data-theme="dark"] .btn-action-secondary {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.15);
+}

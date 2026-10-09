@@ -56,6 +56,7 @@ TestRunner::suite('Schema Integrity & Migration Regression', function() {
     TestRunner::test('Labels, Marketing, and Intake databases contain expected tables', function() {
         $pdoLabels = Database::labels();
         Assert::tableExists($pdoLabels, 'items');
+        Assert::tableExists($pdoLabels, 'batteries');
 
         $pdoMkt = Database::marketing();
         Assert::tableExists($pdoMkt, 'leads');

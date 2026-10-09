@@ -299,6 +299,27 @@ class Schema {
                 sale_price NUMERIC,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )",
+            'batteries' => "CREATE TABLE IF NOT EXISTS batteries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                brand TEXT NOT NULL,
+                part_number TEXT NOT NULL,
+                model_name TEXT,
+                aliases TEXT,
+                voltage TEXT,
+                capacity_wh TEXT,
+                capacity_mah TEXT,
+                cell_count TEXT,
+                chemistry TEXT DEFAULT 'Li-ion',
+                compatible_models TEXT NOT NULL,
+                warehouse_location TEXT DEFAULT 'Unassigned',
+                qty_in_stock INTEGER DEFAULT 0,
+                condition TEXT DEFAULT 'Tested OEM 80%+',
+                connector_type TEXT,
+                notes TEXT,
+                status TEXT DEFAULT 'Available',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )"
         ],
         'marketing' => [
@@ -765,6 +786,12 @@ class Schema {
                 }
             }
         }
+        if ($db_name === 'labels' && $table === 'batteries') {
+            $count = $conn->query("SELECT COUNT(*) FROM batteries")->fetchColumn();
+            if ($count == 0) {
+                self::seedEnterpriseBatteries($conn);
+            }
+        }
     }
 
     /**
@@ -966,6 +993,12 @@ class Schema {
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_labels_location ON items(warehouse_location)");
         }
 
+        if ($db_name === 'labels' && $table === 'batteries') {
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_batteries_part_number ON batteries(part_number)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_batteries_brand ON batteries(brand)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_batteries_location ON batteries(warehouse_location)");
+        }
+
         // --- Marketing Module Evolution & Indexes ---
         if ($db_name === 'marketing' && $table === 'photos') {
             $cols = array_column($conn->query("PRAGMA table_info(photos)")->fetchAll(PDO::FETCH_ASSOC), 'name');
@@ -986,6 +1019,259 @@ class Schema {
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_intake_date ON committed_intakes(date)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_intake_loc ON committed_intakes(location)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_intake_item ON committed_intakes(item)");
+        }
+    }
+
+    /**
+     * Seeds initial enterprise laptop battery catalog.
+     */
+    public static function seedEnterpriseBatteries($conn) {
+        $batteries = [
+            [
+                'Dell', 'WDX0R', 'Dell Type WDX0R 42Wh 3-Cell Battery',
+                '3CRH3, T2JX4, FC92N, CYMGM, FW8KR, 0WDX0R, Y3F7Y, P69G001',
+                '11.4V', '42Wh', '3500mAh', '3-Cell', 'Li-ion',
+                'Dell Inspiron 13 5368, Dell Inspiron 13 5378, Dell Inspiron 13 7368, Dell Inspiron 13 7378, Dell Inspiron 14 5468, Dell Inspiron 15 5567, Dell Inspiron 15 5568, Dell Inspiron 15 5570, Dell Inspiron 15 5578, Dell Inspiron 15 7560, Dell Inspiron 15 7569, Dell Inspiron 15 7570, Dell Inspiron 15 7579, Dell Inspiron 17 5767, Dell Inspiron 17 5770, Dell Latitude 13 3379, Dell Latitude 3180, Dell Latitude 3189, Dell Vostro 14 5468, Dell Vostro 15 5568',
+                'Bin BAT-D01', 8, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Fits Dell Inspiron 5000/7000 & Latitude 3000 series.', 'Available'
+            ],
+            [
+                'Dell', '3HWPP', 'Dell Type 3HWPP 68Wh 4-Cell Battery',
+                '4GVGH, 1WND8, 01WND8, JY8D6, 0JY8D6, 03HWPP',
+                '15.2V', '68Wh', '4250mAh', '4-Cell', 'Li-Polymer',
+                'Dell Latitude 5400, Dell Latitude 5410, Dell Latitude 5500, Dell Latitude 5510, Dell Inspiron 7590 2-in-1, Dell Inspiron 7791 2-in-1',
+                'Bin BAT-D02', 12, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Extended capacity pack. Occupies 2.5" drive bay area in Latitude 5400/5500.', 'Available'
+            ],
+            [
+                'Dell', '1VX1I', 'Dell Type 1VX1I 42Wh 3-Cell Battery',
+                'DJ1J0, F3YGT, 01VX1I, 0DJ1J0, PGFX4, ONFOH',
+                '11.4V', '42Wh', '3500mAh', '3-Cell', 'Li-ion',
+                'Dell Latitude 5280, Dell Latitude 5290, Dell Latitude 5480, Dell Latitude 5490, Dell Latitude 5580, Dell Latitude 5590',
+                'Bin BAT-D03', 15, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Standard 3-cell pack allowing 2.5" SATA HDD/SSD installation.', 'Available'
+            ],
+            [
+                'Dell', '93FTF', 'Dell Type 93FTF 51Wh 3-Cell Battery',
+                'GD1JP, D4CMT, 093FTF, 0GD1JP, 83XPC',
+                '11.4V', '51Wh', '4250mAh', '3-Cell', 'Li-Polymer',
+                'Dell Latitude 5280, Dell Latitude 5290, Dell Latitude 5480, Dell Latitude 5490, Dell Latitude 5580, Dell Latitude 5590, Dell Precision 3520, Dell Precision 3530',
+                'Bin BAT-D04', 9, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Fits Latitude 5480/5490 and Precision 3520/3530.', 'Available'
+            ],
+            [
+                'Dell', '6GTPY', 'Dell Type 6GTPY 97Wh 6-Cell Extended Battery',
+                '5XJ28, 5046J, 06GTPY, 05XJ28, H5H20',
+                '11.4V', '97Wh', '8333mAh', '6-Cell', 'Li-Polymer',
+                'Dell XPS 15 9560, Dell XPS 15 9570, Dell XPS 15 7590, Dell Precision 5510, Dell Precision 5520, Dell Precision 5530, Dell Precision 5540, Dell Vostro 7590',
+                'Bin BAT-D05', 6, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Extended capacity. Replaces 2.5" drive caddy in XPS 15 and Precision 5520/5530/5540.', 'Available'
+            ],
+            [
+                'Dell', 'J60J5', 'Dell Type J60J5 55Wh 4-Cell Battery',
+                '0J60J5, R1V85, 0R1V85, 242WD, GG4FM, MC34Y',
+                '7.6V', '55Wh', '7000mAh', '4-Cell', 'Li-ion',
+                'Dell Latitude E7270, Dell Latitude E7470',
+                'Bin BAT-D06', 14, 'Tested OEM 80%+', 'Internal Flat Cable',
+                'Specifically designed for 6th Gen Dell Latitude E7270 and E7470 ultrabooks.', 'Available'
+            ],
+            [
+                'Dell', 'F3YGT', 'Dell Type F3YGT 60Wh 4-Cell Battery',
+                '2X39G, 02X39G, DM3WV, 0DM3WV, 451-BBYE',
+                '7.6V', '60Wh', '7500mAh', '4-Cell', 'Li-Polymer',
+                'Dell Latitude 7280, Dell Latitude 7290, Dell Latitude 7380, Dell Latitude 7390, Dell Latitude 7480, Dell Latitude 7490',
+                'Bin BAT-D07', 18, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Primary battery for 7th & 8th Gen Dell Latitude 7000 series ultrabooks.', 'Available'
+            ],
+            [
+                'Dell', '6MT4T', 'Dell Type 6MT4T 62Wh 4-Cell Battery',
+                '7V69Y, TXF9M, 79VRK, 06MT4T, 07V69Y',
+                '7.6V', '62Wh', '8160mAh', '4-Cell', 'Li-ion',
+                'Dell Latitude E5250, Dell Latitude E5270, Dell Latitude E5450, Dell Latitude E5470, Dell Latitude E5550, Dell Latitude E5570, Dell Precision 3510',
+                'Bin BAT-D08', 11, 'Tested OEM 80%+', 'Internal Flat Ribbon Cable',
+                'Fits Latitude E5450, E5470, E5550, E5570.', 'Available'
+            ],
+            [
+                'Dell', 'MXV9V', 'Dell Type MXV9V 52Wh 4-Cell Battery',
+                '0MXV9V, 5VC2M, 05VC2M, 829MX',
+                '7.6V', '52Wh', '6500mAh', '4-Cell', 'Li-Polymer',
+                'Dell Latitude 5300, Dell Latitude 5300 2-in-1, Dell Latitude 5310, Dell Latitude 5310 2-in-1, Dell Latitude 7300, Dell Latitude 7400, Dell Inspiron 7391 2-in-1',
+                'Bin BAT-D09', 7, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Compact pack for Latitude 5300/7300/7400.', 'Available'
+            ],
+            [
+                'HP', 'CS03XL', 'HP CS03XL Long Life Notebook Battery',
+                'HSTNN-DB6U, HSTNN-UB6S, HSTNN-I33C-4, 800231-141, 800513-001, T7B32AA',
+                '11.4V', '46.5Wh', '3910mAh', '3-Cell', 'Li-ion',
+                'HP EliteBook 745 G3, HP EliteBook 745 G4, HP EliteBook 755 G3, HP EliteBook 755 G4, HP EliteBook 840 G3, HP EliteBook 840 G4, HP EliteBook 850 G3, HP EliteBook 850 G4, HP ZBook 15u G3, HP ZBook 15u G4, HP mt42 Mobile Thin Client, HP mt43 Mobile Thin Client',
+                'Bin BAT-H01', 22, 'Tested OEM 80%+', 'Internal Drop-in Connector',
+                'High-volume warehouse battery. Fits HP EliteBook 840 G3 and G4.', 'Available'
+            ],
+            [
+                'HP', 'SS03XL', 'HP SS03XL Long Life Rechargeable Battery',
+                'HSTNN-IB8C, HSTNN-LB8G, HSTNN-DB8J, 932823-1C1, 933321-855, 933321-852',
+                '11.55V', '50Wh', '4110mAh', '3-Cell', 'Li-ion',
+                'HP EliteBook 735 G5, HP EliteBook 735 G6, HP EliteBook 745 G5, HP EliteBook 745 G6, HP EliteBook 830 G5, HP EliteBook 830 G6, HP EliteBook 840 G5, HP EliteBook 840 G6, HP EliteBook 846 G5, HP EliteBook 846 G6, HP ZBook 14u G5, HP ZBook 14u G6, HP mt44 Mobile Thin Client, HP mt45 Mobile Thin Client',
+                'Bin BAT-H02', 26, 'Brand New OEM', 'Internal Drop-in Connector',
+                'Primary battery for 8th Gen HP EliteBook 840 G5 and G6.', 'Available'
+            ],
+            [
+                'HP', 'CC03XL', 'HP CC03XL 53Wh Notebook Battery',
+                'HSTNN-IB9F, HSTNN-DB9Q, L77608-1C1, L77608-2C1, L78553-005',
+                '11.55V', '53Wh', '4330mAh', '3-Cell', 'Li-Polymer',
+                'HP EliteBook 830 G7, HP EliteBook 830 G8, HP EliteBook 835 G7, HP EliteBook 835 G8, HP EliteBook 840 G7, HP EliteBook 840 G8, HP EliteBook 845 G7, HP EliteBook 845 G8, HP ZBook Firefly 14 G7, HP ZBook Firefly 14 G8',
+                'Bin BAT-H03', 14, 'Tested OEM 80%+', 'Internal Connector Cable',
+                'Standard battery for 10th & 11th Gen HP EliteBook 840 G7 and G8.', 'Available'
+            ],
+            [
+                'HP', 'TT03XL', 'HP TT03XL 56Wh Notebook Battery',
+                'HSTNN-DB8K, HSTNN-LB8H, HSTNN-UB7A, 932824-1C1, 933322-855',
+                '11.55V', '56Wh', '4550mAh', '3-Cell', 'Li-Polymer',
+                'HP EliteBook 850 G5, HP EliteBook 850 G6, HP EliteBook 755 G5, HP ZBook 15u G5, HP ZBook 15u G6',
+                'Bin BAT-H04', 8, 'Tested OEM 80%+', 'Internal Drop-in Connector',
+                'Fits 15.6" EliteBook 850 G5/G6 and ZBook 15u G5/G6.', 'Available'
+            ],
+            [
+                'HP', 'RI04', 'HP RI04 Notebook Battery',
+                'HSTNN-DB7B, HSTNN-PB6Q, 805047-851, 805294-001',
+                '14.8V', '44Wh', '2850mAh', '4-Cell', 'Li-ion',
+                'HP ProBook 450 G3, HP ProBook 455 G3, HP ProBook 470 G3',
+                'Bin BAT-H05', 10, 'Tested OEM 80%+', 'External Snap-in Slot',
+                'External clip-in battery for ProBook 450 G3.', 'Available'
+            ],
+            [
+                'HP', 'RR03XL', 'HP RR03XL 48Wh Battery',
+                'HSTNN-PB6W, HSTNN-LB7I, HSTNN-UB7C, 851477-421, 851610-850',
+                '11.4V', '48Wh', '3890mAh', '3-Cell', 'Li-ion',
+                'HP ProBook 430 G4, HP ProBook 440 G4, HP ProBook 450 G4, HP ProBook 455 G4, HP ProBook 470 G4',
+                'Bin BAT-H06', 9, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Internal battery for HP ProBook 400 G4 generation.', 'Available'
+            ],
+            [
+                'HP', 'JC04', 'HP JC04 4-Cell External Battery',
+                'JC03, HSTNN-DB8E, HSTNN-PB6Y, HSTNN-LB7V, 919700-850, 919701-850',
+                '14.6V', '41.6Wh', '2850mAh', '4-Cell', 'Li-ion',
+                'HP 240 G6, HP 245 G6, HP 250 G6, HP 255 G6, HP 15-bs000, HP 15-bw000, HP 17-bs000',
+                'Bin BAT-H07', 16, 'Tested OEM 80%+', 'External Snap-in Slot',
+                'Common external battery for entry-level HP 250 G6 laptops.', 'Available'
+            ],
+            [
+                'HP', 'HT03XL', 'HP HT03XL Long Life Battery',
+                'HSTNN-UB7J, HSTNN-DB8R, HSTNN-LB8M, L11119-855, L11421-2C2',
+                '11.55V', '41.04Wh', '3470mAh', '3-Cell', 'Li-ion',
+                'HP 240 G7, HP 245 G7, HP 250 G7, HP 255 G7, HP Pavilion 14-ce, HP Pavilion 14-cf, HP Pavilion 15-cs, HP Pavilion 15-cw, HP Pavilion 15-da, HP Pavilion 15-db',
+                'Bin BAT-H08', 19, 'Brand New OEM', 'Internal Drop-in Connector',
+                'High-frequency replacement pack for HP 250 G7 and Pavilion 15.', 'Available'
+            ],
+            [
+                'Lenovo', '01AV421', 'Lenovo ThinkPad Internal Battery 01AV421',
+                '01AV419, 01AV420, 01AV489, SB10K97576, SB10K97577, SB10K97578',
+                '11.4V', '24Wh', '2090mAh', '3-Cell', 'Li-Polymer',
+                'Lenovo ThinkPad T470, Lenovo ThinkPad T480, Lenovo ThinkPad A475, Lenovo ThinkPad A485',
+                'Bin BAT-L01', 24, 'Tested OEM 80%+', 'Internal Flat Ribbon Cable',
+                'Internal front battery in PowerBridge dual-battery system.', 'Available'
+            ],
+            [
+                'Lenovo', '01AV423', 'Lenovo ThinkPad Battery 61+ (Rear External)',
+                '61, 61+, 61++, 01AV422, 01AV424, 01AV425, 01AV426, 01AV427, SB10K97580',
+                '10.8V', '48Wh', '4400mAh', '6-Cell', 'Li-ion',
+                'Lenovo ThinkPad T470, Lenovo ThinkPad T480, Lenovo ThinkPad T570, Lenovo ThinkPad T580, Lenovo ThinkPad P51s, Lenovo ThinkPad P52s, Lenovo ThinkPad A475, Lenovo ThinkPad A485',
+                'Bin BAT-L02', 17, 'Tested OEM 80%+', 'External Snap-in Slot',
+                'Rear clip-in cylindrical pack for ThinkPad T470 / T480. High warehouse demand.', 'Available'
+            ],
+            [
+                'Lenovo', '45N1127', 'Lenovo ThinkPad Battery 68+ (Extended Rear)',
+                '68, 68+, 45N1124, 45N1125, 45N1126, 45N1128, 45N1738, 45N1775, 0C52862',
+                '10.8V', '72Wh', '6600mAh', '6-Cell', 'Li-ion',
+                'Lenovo ThinkPad T440, Lenovo ThinkPad T440s, Lenovo ThinkPad T450, Lenovo ThinkPad T450s, Lenovo ThinkPad T460, Lenovo ThinkPad T460p, Lenovo ThinkPad X240, Lenovo ThinkPad X250, Lenovo ThinkPad X260, Lenovo ThinkPad L450, Lenovo ThinkPad L460, Lenovo ThinkPad W550s',
+                'Bin BAT-L03', 28, 'Tested OEM 80%+', 'External Snap-in Slot',
+                'Classic ThinkPad 6-cell external extended battery. Fits T440/T450/T460 & X240/X250/X260.', 'Available'
+            ],
+            [
+                'Lenovo', 'L17M3P51', 'Lenovo ThinkPad L17M3P51 57Wh Battery',
+                '01AV463, 01AV464, 01AV465, 01AV466, SB10K97610, SB10K97611, L17C3P51',
+                '11.52V', '57Wh', '4950mAh', '3-Cell', 'Li-Polymer',
+                'Lenovo ThinkPad T490, Lenovo ThinkPad T590, Lenovo ThinkPad P43s, Lenovo ThinkPad P53s',
+                'Bin BAT-L04', 13, 'Tested OEM 80%+', 'Internal Ribbon Cable',
+                'Single internal battery in ThinkPad T490. Replaced dual-battery PowerBridge.', 'Available'
+            ],
+            [
+                'Lenovo', 'L18M3P73', 'Lenovo ThinkPad L18M3P73 50Wh Battery',
+                '02DL007, 02DL008, 02DL009, 02DL010, SB10K97652, SB10K97653, L18C3P73',
+                '11.52V', '50Wh', '4345mAh', '3-Cell', 'Li-Polymer',
+                'Lenovo ThinkPad T14 Gen 1, Lenovo ThinkPad T14 Gen 2, Lenovo ThinkPad P14s Gen 1, Lenovo ThinkPad P14s Gen 2',
+                'Bin BAT-L05', 15, 'Brand New OEM', 'Internal Ribbon Cable',
+                'High-demand modern fleet pack for ThinkPad T14 Gen 1 and Gen 2.', 'Available'
+            ],
+            [
+                'Lenovo', '00HW022', 'Lenovo ThinkPad 00HW022 Front Internal Battery',
+                '00HW023, 00HW024, 00HW025, SB10F46460, SB10F46461, SB10F46462',
+                '11.25V', '24Wh', '2100mAh', '3-Cell', 'Li-ion',
+                'Lenovo ThinkPad T460s, Lenovo ThinkPad T470s',
+                'Bin BAT-L06', 12, 'Tested OEM 80%+', 'Internal Flat Ribbon Cable',
+                'Dual internal battery architecture for T460s/T470s (Battery 1 Front).', 'Available'
+            ],
+            [
+                'Lenovo', '01AV477', 'Lenovo ThinkPad Battery 77+ (P50 / P51 / P52)',
+                '77, 77+, 01AV477, SB10H45007, SB10H45008, SB10K97634, 00NY493, 00NY492, 00NY491, 00NY490, SB10H45071, SB10H45073',
+                '11.25V', '90Wh', '8000mAh', '6-Cell', 'Li-ion',
+                'Lenovo ThinkPad P50, Lenovo ThinkPad P51, Lenovo ThinkPad P52',
+                'Bin BAT-L07', 7, 'Tested OEM 80%+', 'External Snap-in Slot',
+                'High-capacity 90Wh external pack for ThinkPad P50/P51/P52 workstations (ASM P/N: SB10H45007 / FRU: 01AV477).', 'Available'
+            ],
+            [
+                'Apple', 'A1819', 'Apple MacBook Pro 13" Touch Bar Battery A1819',
+                '020-01705, 080-333-4000, A1706',
+                '11.41V', '49.2Wh', '4314mAh', '3-Cell', 'Li-Polymer',
+                'Apple MacBook Pro 13" Touch Bar A1706 (Late 2016 MLH12LL/A), Apple MacBook Pro 13" Touch Bar A1706 (Mid 2017 MPXV2LL/A)',
+                'Bin BAT-A01', 6, 'Brand New OEM', 'Internal Ribbon Connector Board',
+                'Adhesive-backed 3-cell pouch pack for MacBook Pro 13 Touch Bar A1706.', 'Available'
+            ],
+            [
+                'Apple', 'A1713', 'Apple MacBook Pro 13" Non-Touch Bar Battery A1713',
+                '020-00814, 020-00816, A1708',
+                '11.4V', '54.5Wh', '4781mAh', '3-Cell', 'Li-Polymer',
+                'Apple MacBook Pro 13" Function Keys A1708 (Late 2016 MLL42LL/A), Apple MacBook Pro 13" Function Keys A1708 (Mid 2017 MPXQ2LL/A)',
+                'Bin BAT-A02', 8, 'Brand New OEM', 'Internal Ribbon Connector Board',
+                'For non-Touch Bar A1708 MacBook Pro. Different form factor from A1819.', 'Available'
+            ],
+            [
+                'Apple', 'A1496', 'Apple MacBook Air 13" Battery A1496',
+                'A1405, A1377, 020-8143-A, 020-8145-A',
+                '7.6V', '54.4Wh', '7150mAh', '4-Cell', 'Li-Polymer',
+                'Apple MacBook Air 13" A1466 (Mid 2013 to 2017 MD760LL/A, MQD32LL/A), Apple MacBook Air 13" A1369 (Late 2010, Mid 2011 MC503LL/A)',
+                'Bin BAT-A03', 14, 'Tested OEM 80%+', 'Internal Drop-in Connector',
+                'Classic wedge MacBook Air 13" screw-in battery pack.', 'Available'
+            ],
+            [
+                'Microsoft', 'G3HTA027H', 'Microsoft Surface Pro Battery G3HTA027H / DYNM02',
+                'DYNM02, G3HTA036H, G3HTA044H',
+                '7.57V', '45Wh', '5940mAh', '2-Cell', 'Li-ion',
+                'Microsoft Surface Pro 4 1724, Microsoft Surface Pro 5 (2017) 1796, Microsoft Surface Pro 6 1796',
+                'Bin BAT-M01', 5, 'Brand New OEM', 'Internal Multi-Pin Ribbon',
+                'For Surface Pro 4 / 5 / 6 tablet enclosures.', 'Available'
+            ],
+            [
+                'Microsoft', 'G3HTA038H', 'Microsoft Surface Laptop Battery G3HTA038H',
+                'DYNM03, 1769-BAT',
+                '7.57V', '45.2Wh', '5970mAh', '2-Cell', 'Li-Polymer',
+                'Microsoft Surface Laptop 1 1769, Microsoft Surface Laptop 2 1769, Microsoft Surface Laptop 3 13.5" 1867 1868',
+                'Bin BAT-M02', 4, 'Brand New OEM', 'Internal Flat Flex',
+                'Fits Surface Laptop 1 / 2 / 3 with Alcantara / Metal palmrest.', 'Available'
+            ]
+        ];
+
+        $stmt = $conn->prepare("
+            INSERT INTO batteries (
+                brand, part_number, model_name, aliases, voltage, capacity_wh,
+                capacity_mah, cell_count, chemistry, compatible_models,
+                warehouse_location, qty_in_stock, condition, connector_type,
+                notes, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        foreach ($batteries as $bat) {
+            $stmt->execute($bat);
         }
     }
 }

@@ -126,11 +126,16 @@ if (UI::is_ajax()) {
             <h1>Global Batch Registry</h1>
             <p class="subtitle orders-subtitle">Review batches and manage fulfillment states across all accounts.</p>
         </div>
-            <div class="orders-tabs">
-                <a href="index.php?view=orders&type=active" class="orders-tab-link <?= $show_type === 'active' ? 'active' : 'inactive' ?>">Active Batches</a>
-                <a href="index.php?view=orders&type=completed" class="orders-tab-link <?= $show_type === 'completed' ? 'active' : 'inactive' ?>">Finalized History</a>
-            </div>
+        <div class="orders-tabs">
+            <a href="index.php?view=orders&type=active" class="orders-tab-link <?= $show_type === 'active' ? 'active' : 'inactive' ?>">Active Batches</a>
+            <a href="index.php?view=orders&type=completed" class="orders-tab-link <?= $show_type === 'completed' ? 'active' : 'inactive' ?>">Finalized History</a>
+            <a href="index.php?view=orders&type=weekly" class="orders-tab-link <?= $show_type === 'weekly' ? 'active' : 'inactive' ?>">📊 Weekly Summary</a>
+        </div>
     </header>
+
+    <?php if ($show_type === 'weekly'): ?>
+        <?php include __DIR__ . '/partials/weekly_orders.php'; ?>
+    <?php else: ?>
 
     <!-- Bulk Action Bar -->
     <div id="bulkActionBar" class="bulk-action-bar" style="display:none; background: var(--accent-gradient); color: white; padding: 15px 25px; border-radius: 16px; margin-bottom: 25px; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
@@ -231,6 +236,7 @@ if (UI::is_ajax()) {
             </tbody>
         </table>
     </div>
+    <?php endif; ?>
 </div>
 
 <!-- Transfer Order Modal -->

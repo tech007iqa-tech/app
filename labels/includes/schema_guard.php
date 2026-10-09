@@ -51,6 +51,38 @@ function check_and_rebuild_schemas($pdo_labels, $pdo_orders, $pdo_rolodex, $pdo_
         if (!in_array('buyer_order_num', $col_names)) $pdo_labels->exec("ALTER TABLE items ADD COLUMN buyer_order_num TEXT");
         if (!in_array('sale_price',    $col_names)) $pdo_labels->exec("ALTER TABLE items ADD COLUMN sale_price NUMERIC");
 
+        // 1b. Check Batteries (Modular Secondary Subsystem)
+        $pdo_labels->exec("CREATE TABLE IF NOT EXISTS batteries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            brand TEXT NOT NULL,
+            part_number TEXT NOT NULL,
+            model_name TEXT,
+            aliases TEXT,
+            voltage TEXT,
+            capacity_wh TEXT,
+            capacity_mah TEXT,
+            cell_count TEXT,
+            chemistry TEXT DEFAULT 'Li-ion',
+            compatible_models TEXT NOT NULL,
+            warehouse_location TEXT DEFAULT 'Unassigned',
+            qty_in_stock INTEGER DEFAULT 0,
+            condition TEXT DEFAULT 'Tested OEM 80%+',
+            connector_type TEXT,
+            notes TEXT,
+            status TEXT DEFAULT 'Available',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        $pdo_labels->exec("CREATE INDEX IF NOT EXISTS idx_batteries_part_number ON batteries(part_number)");
+        $pdo_labels->exec("CREATE INDEX IF NOT EXISTS idx_batteries_brand ON batteries(brand)");
+        $pdo_labels->exec("CREATE INDEX IF NOT EXISTS idx_batteries_location ON batteries(warehouse_location)");
+
+        $bat_count = (int)$pdo_labels->query("SELECT COUNT(*) FROM batteries")->fetchColumn();
+        if ($bat_count === 0 && class_exists('Schema') && method_exists('Schema', 'seedEnterpriseBatteries')) {
+            Schema::seedEnterpriseBatteries($pdo_labels);
+        }
+
         // 2. Check Orders
         $pdo_orders->exec("CREATE TABLE IF NOT EXISTS purchase_orders (
             order_number INTEGER PRIMARY KEY AUTOINCREMENT,
