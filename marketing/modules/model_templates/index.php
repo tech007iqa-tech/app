@@ -289,6 +289,115 @@ if ($editTmpl || $error || (isset($_GET['view']) && $_GET['view'] === 'form') ||
     <div class="alert alert-danger"><?= h($error); ?></div>
 <?php endif; ?>
 
+<script>
+/**
+ * Single-Section Card Switcher (Stock Spreadsheet, Create/Edit Form, Saved Templates)
+ * Defined early at top of module to guarantee zero ReferenceError race conditions across network clients.
+ */
+(function() {
+    'use strict';
+    let pendingView = null;
+
+    function applyView(viewName, updateHash) {
+        if (updateHash === undefined) updateHash = true;
+        const validViews = ['stock', 'form', 'templates'];
+        if (!validViews.includes(viewName)) viewName = 'stock';
+
+        // 1. Update navigation switcher buttons
+        const navButtons = document.querySelectorAll('#model-templates-nav .section-switcher-btn');
+        navButtons.forEach(btn => {
+            if (btn.getAttribute('data-target-view') === viewName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // 2. Toggle view section cards
+        const sections = document.querySelectorAll('.template-view-section');
+        let matched = false;
+        sections.forEach(sec => {
+            if (sec.id === 'view-section-' + viewName) {
+                sec.classList.add('active');
+                matched = true;
+            } else {
+                sec.classList.remove('active');
+            }
+        });
+
+        // If target section card is not yet in DOM (page streaming), queue for DOM ready
+        if (!matched && document.readyState === 'loading') {
+            pendingView = viewName;
+        } else {
+            pendingView = null;
+        }
+
+        // 3. Update URL hash without page reload
+        if (updateHash) {
+            try {
+                if (window.history && window.history.replaceState) {
+                    const url = new URL(window.location.href);
+                    if (url.hash !== '#' + viewName) {
+                        url.hash = viewName;
+                        window.history.replaceState(null, '', url.toString());
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 4. Scroll smoothly to switcher nav if page was scrolled down
+        const nav = document.getElementById('model-templates-nav');
+        if (nav && window.scrollY > nav.offsetTop + 100) {
+            nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    window.switchSectionView = function(viewName) {
+        applyView(viewName, true);
+    };
+
+    function handleInitialHash() {
+        if (window.location.hash) {
+            const initialHash = window.location.hash.replace('#', '');
+            if (['stock', 'form', 'templates'].includes(initialHash)) {
+                applyView(initialHash, false);
+            }
+        }
+    }
+
+    // Process initial hash immediately and queue on DOM ready
+    handleInitialHash();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            if (pendingView) {
+                applyView(pendingView, true);
+            } else {
+                handleInitialHash();
+            }
+        });
+    }
+
+    // Support browser back/forward history navigation
+    window.addEventListener('hashchange', function() {
+        const hash = window.location.hash.replace('#', '');
+        if (['stock', 'form', 'templates'].includes(hash)) {
+            applyView(hash, false);
+        }
+    });
+
+    // Delegate click events on navigation switcher buttons
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('#model-templates-nav .section-switcher-btn');
+        if (btn) {
+            const target = btn.getAttribute('data-target-view');
+            if (target) {
+                applyView(target, true);
+            }
+        }
+    });
+})();
+</script>
+
 <!-- Single-Section Card Switcher (Displays one section at a time) -->
 <nav class="section-switcher-nav" id="model-templates-nav" aria-label="Template Workspace Sections">
     <button type="button" class="section-switcher-btn <?= $activeView === 'stock' ? 'active' : ''; ?>" data-target-view="stock" onclick="switchSectionView('stock')">
@@ -679,57 +788,6 @@ if ($editTmpl || $error || (isset($_GET['view']) && $_GET['view'] === 'form') ||
 
 <script>
 /**
- * Single-Section Card Switcher (Stock Spreadsheet, Create/Edit Form, Saved Templates)
- */
-window.switchSectionView = function(viewName) {
-    const validViews = ['stock', 'form', 'templates'];
-    if (!validViews.includes(viewName)) viewName = 'stock';
-
-    // 1. Update navigation switcher buttons
-    const navButtons = document.querySelectorAll('#model-templates-nav .section-switcher-btn');
-    navButtons.forEach(btn => {
-        if (btn.getAttribute('data-target-view') === viewName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // 2. Toggle view section cards
-    const sections = document.querySelectorAll('.template-view-section');
-    sections.forEach(sec => {
-        if (sec.id === `view-section-${viewName}`) {
-            sec.classList.add('active');
-        } else {
-            sec.classList.remove('active');
-        }
-    });
-
-    // 3. Update URL hash without reloading page
-    try {
-        if (window.history && window.history.replaceState) {
-            const url = new URL(window.location.href);
-            url.hash = viewName;
-            window.history.replaceState(null, '', url.toString());
-        }
-    } catch (e) {}
-
-    // 4. Scroll smoothly to switcher nav if page was scrolled down
-    const nav = document.getElementById('model-templates-nav');
-    if (nav && window.scrollY > nav.offsetTop + 100) {
-        nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
-
-// Check initial hash on load
-if (window.location.hash) {
-    const initialHash = window.location.hash.replace('#', '');
-    if (['stock', 'form', 'templates'].includes(initialHash)) {
-        window.switchSectionView(initialHash);
-    }
-}
-
-/**
  * Warehouse Stock Spreadsheet & Flexible Search Controller
  * High performance client-side virtualized rendering & multi-term space-separated filter.
  */
@@ -737,7 +795,7 @@ if (window.location.hash) {
     'use strict';
 
     // In-memory data store for all inventory items from db/warehouse.db
-    const ALL_INVENTORY = <?= json_encode($inventoryData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?> || [];
+    const ALL_INVENTORY = <?= json_encode($inventoryData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>;
 
     let filteredItems = ALL_INVENTORY.slice();
     let currentPage = 1;

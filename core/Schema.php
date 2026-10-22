@@ -235,13 +235,26 @@ class Schema {
                 make TEXT,
                 model TEXT,
                 series TEXT,
+                serial_number TEXT DEFAULT '',
+                delivery_status TEXT DEFAULT 'Pending',
+                delivery_destination TEXT DEFAULT '',
+                label_id INTEGER,
                 cpu TEXT,
+                cpu_gen TEXT DEFAULT '',
+                cpu_specs TEXT DEFAULT '',
+                cpu_cores TEXT DEFAULT '',
+                cpu_speed TEXT DEFAULT '',
                 gpu TEXT,
                 ram TEXT,
                 storage TEXT,
                 battery TEXT,
+                battery_specs TEXT DEFAULT '',
+                screen_res TEXT DEFAULT '',
+                cosmetic_grade TEXT DEFAULT '',
                 bios_state TEXT,
                 os TEXT,
+                location TEXT DEFAULT '',
+                batch_number TEXT DEFAULT '',
                 notes TEXT,
                 ready_for_warehouse INTEGER DEFAULT 0,
                 edited INTEGER DEFAULT 0,
@@ -394,6 +407,63 @@ class Schema {
                 location TEXT,
                 notes TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )"
+        ],
+        'labels' => [
+            'items' => "CREATE TABLE IF NOT EXISTS items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT DEFAULT 'Laptop',
+                brand TEXT NOT NULL,
+                model TEXT NOT NULL,
+                series TEXT,
+                cpu_gen TEXT,
+                cpu_specs TEXT,
+                cpu_cores TEXT,
+                cpu_speed TEXT,
+                cpu_details TEXT,
+                ram TEXT,
+                storage TEXT,
+                battery BOOLEAN,
+                battery_specs TEXT,
+                gpu TEXT,
+                screen_res TEXT,
+                webcam TEXT,
+                backlit_kb TEXT,
+                os_version TEXT,
+                cosmetic_grade TEXT,
+                work_notes TEXT,
+                bios_state TEXT,
+                description TEXT,
+                status TEXT DEFAULT 'In Warehouse',
+                warehouse_location TEXT,
+                serial_number TEXT,
+                order_id INTEGER,
+                buyer_name TEXT,
+                buyer_order_num TEXT,
+                sale_price NUMERIC,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )",
+            'batteries' => "CREATE TABLE IF NOT EXISTS batteries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                brand TEXT NOT NULL,
+                part_number TEXT NOT NULL,
+                model_name TEXT,
+                aliases TEXT,
+                voltage TEXT,
+                capacity_wh TEXT,
+                capacity_mah TEXT,
+                cell_count TEXT,
+                chemistry TEXT DEFAULT 'Li-ion',
+                compatible_models TEXT NOT NULL,
+                warehouse_location TEXT DEFAULT 'Unassigned',
+                qty_in_stock INTEGER DEFAULT 0,
+                condition TEXT DEFAULT 'Tested OEM 80%+',
+                connector_type TEXT,
+                notes TEXT,
+                status TEXT DEFAULT 'Available',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )"
         ]
     ];
@@ -975,9 +1045,26 @@ class Schema {
             if (!in_array('delete_requested', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN delete_requested INTEGER DEFAULT 0");
             if (!in_array('status_change_requested', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN status_change_requested TEXT DEFAULT ''");
             if (!in_array('os', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN os TEXT");
+            if (!in_array('serial_number', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN serial_number TEXT DEFAULT ''");
+            if (!in_array('delivery_status', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN delivery_status TEXT DEFAULT 'Pending'");
+            if (!in_array('delivery_destination', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN delivery_destination TEXT DEFAULT ''");
+            if (!in_array('label_id', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN label_id INTEGER DEFAULT NULL");
+            if (!in_array('cpu_gen', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN cpu_gen TEXT DEFAULT ''");
+            if (!in_array('cpu_specs', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN cpu_specs TEXT DEFAULT ''");
+            if (!in_array('cpu_cores', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN cpu_cores TEXT DEFAULT ''");
+            if (!in_array('cpu_speed', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN cpu_speed TEXT DEFAULT ''");
+            if (!in_array('screen_res', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN screen_res TEXT DEFAULT ''");
+            if (!in_array('battery_specs', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN battery_specs TEXT DEFAULT ''");
+            if (!in_array('cosmetic_grade', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN cosmetic_grade TEXT DEFAULT ''");
+            if (!in_array('location', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN location TEXT DEFAULT ''");
+            if (!in_array('batch_number', $cols)) $conn->exec("ALTER TABLE logs ADD COLUMN batch_number TEXT DEFAULT ''");
+
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_tech_id ON logs(tech_id)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_status ON logs(status)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_created ON logs(created_at DESC)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_serial ON logs(serial_number)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_delivery ON logs(delivery_status)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_batch ON logs(batch_number)");
         }
 
         // --- Labels Module Evolution & Indexes ---

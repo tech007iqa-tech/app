@@ -2,8 +2,12 @@
 require_once '../core/database.php';
 require_once '../core/auth.php';
 
-// Access Control: Only Admins can access the Audit page
-if ($_SESSION['role'] !== 'Admin') {
+$is_admin = (
+    strtolower($_SESSION['role'] ?? '') === 'admin' || 
+    strtolower($_SESSION['username'] ?? '') === 'admin' || 
+    strpos(strtolower($_SESSION['role'] ?? ''), 'admin') !== false
+);
+if (!$is_admin) {
     header("Location: ../index.php");
     exit();
 }
@@ -35,7 +39,7 @@ try {
 </head>
 <body class="modern-theme" style="background-color: #f8fafc;">
 
-    <div class="breadcrumb-container" role="banner" style="max-width: 1200px; margin: 20px auto; width: 95%; display: flex; justify-content: space-between; align-items: center;">
+    <div class="breadcrumb-container" role="banner">
         <nav class="breadcrumbs">
             <a href="../index.php" class="crumb">
                 <span class="step-num">🔧</span> Technician Dashboard
@@ -45,12 +49,13 @@ try {
                 <span class="step-num">👥</span> Admin Audit Logs
             </a>
         </nav>
-        <div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="logs.php" class="btn-settings" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700;">➕ Log / Add Items</a>
             <a href="settings.php" class="btn-settings">⚙️ Settings</a>
         </div>
     </div>
 
-    <main class="container" style="max-width: 1200px; margin: 0 auto; width: 95%;">
+    <main class="container">
 
         <div class="page-header">
             <h1><span>👥</span> Admin Audit Logs</h1>
@@ -87,7 +92,19 @@ try {
                                         <strong><?= htmlspecialchars($req['make']) ?> <?= htmlspecialchars($req['model']) ?></strong>
                                         <br><small style="color: #64748b;"><?= htmlspecialchars($req['cpu'] ?: '-') ?> / <?= htmlspecialchars($req['ram'] ?: '-') ?> / <?= htmlspecialchars($req['storage'] ?: '-') ?><?= $req['os'] ? ' / ' . htmlspecialchars($req['os']) : '' ?></small>
                                     </td>
-                                    <td><small><?= htmlspecialchars($req['created_at']) ?></small></td>
+                                    <td>
+                                        <?php
+                                        $req_date_str = $req['created_at'];
+                                        if (!empty($req['created_at'])) {
+                                            try {
+                                                $dt_req = new DateTime($req['created_at'], new DateTimeZone('UTC'));
+                                                $dt_req->setTimezone(new DateTimeZone('America/Los_Angeles'));
+                                                $req_date_str = $dt_req->format('m/d/Y g:i A');
+                                            } catch (Exception $e) {}
+                                        }
+                                        ?>
+                                        <small><?= htmlspecialchars($req_date_str) ?></small>
+                                    </td>
                                     <td style="text-align: right;">
                                         <?php if ((int)$req['delete_requested'] === 1): ?>
                                             <button onclick="handleRequest(<?= $req['id'] ?>, 'approve_delete')" class="btn-approve">Approve Delete</button>
@@ -105,11 +122,28 @@ try {
             </div>
         <?php endif; ?>
 
+        <!-- Today's Tech Productivity Ribbon in Admin View -->
+        <div id="adminProductivityBar" style="margin-bottom: 20px; display: none;"></div>
+
         <!-- Audit Filters -->
         <div class="filter-card">
-            <div class="filter-group">
+            <div class="filter-group" style="flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                <!-- Search Query -->
+                <div class="filter-control" style="flex: 1; min-width: 220px;">
+                    <label>🔍 Quick Search</label>
+                    <input type="text" id="admin_search_query" placeholder="Search S/N, Make, Model, Lot #..." oninput="debounceAuditSearch()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; width: 100%; box-sizing: border-box;">
+                </div>
+
+                <!-- Tech Filter -->
+                <div class="filter-control" style="min-width: 170px;">
+                    <label>👤 Technician</label>
+                    <select id="admin_tech_select" onchange="fetchAuditLogs()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 10px; font-weight: 600; width: 100%;">
+                        <option value="">All Technicians</option>
+                    </select>
+                </div>
+
                 <!-- Status Filter -->
-                <div class="status-pill-toggle">
+                <div class="status-pill-toggle" style="margin-bottom: 1px;">
                     <button class="status-pill active" onclick="setStatusFilter('')" id="pill-all">All Logs</button>
                     <button class="status-pill" onclick="setStatusFilter('Good')" id="pill-good">Good Only</button>
                     <button class="status-pill" onclick="setStatusFilter('Bad')" id="pill-bad">Bad Only</button>
@@ -118,14 +152,14 @@ try {
                 <!-- Custom Date Range -->
                 <div class="filter-control">
                     <label>Start Date</label>
-                    <input type="date" id="start_date" onchange="fetchAuditLogs()">
+                    <input type="date" id="start_date" onchange="fetchAuditLogs()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 10px;">
                 </div>
                 <div class="filter-control">
                     <label>End Date</label>
-                    <input type="date" id="end_date" onchange="fetchAuditLogs()">
+                    <input type="date" id="end_date" onchange="fetchAuditLogs()" style="height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 10px;">
                 </div>
 
-                <button onclick="resetFilters()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-weight: 700; cursor: pointer;">Reset Date</button>
+                <button onclick="resetFilters()" style="padding: 10px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-weight: 700; cursor: pointer; height: 42px;">Reset</button>
             </div>
         </div>
 
@@ -192,6 +226,10 @@ try {
                         <label>OS</label>
                         <input type="text" class="form-control" name="os" id="edit-os">
                     </div>
+                    <div class="form-group">
+                        <label>Batch / Lot #</label>
+                        <input type="text" class="form-control" name="batch_number" id="edit-batch_number" placeholder="Optional Lot/Pallet #">
+                    </div>
                     <div class="form-group span-2">
                         <label>Notes</label>
                         <input type="text" class="form-control" name="notes" id="edit-notes">
@@ -210,13 +248,47 @@ try {
 
     <script>
         let currentStatus = '';
+        let searchTimer = null;
+        let selectedTech = '';
+
+        // Check if tech_id was passed via URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('tech_id')) {
+            selectedTech = urlParams.get('tech_id');
+        }
+
+        function debounceAuditSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                fetchAuditLogs();
+            }, 250);
+        }
+
+        // ── PACIFIC TIMEZONE UTILITIES ────────────────────────────────────────
+        function formatPacificTime(utcStr, options = { hour: 'numeric', minute: '2-digit' }) {
+            if (!utcStr) return '';
+            let str = String(utcStr).trim();
+            if (!str.includes('Z') && !/[+-]\d{2}:?\d{2}$/.test(str)) {
+                str = str.replace(' ', 'T') + 'Z';
+            }
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return utcStr;
+            return d.toLocaleTimeString('en-US', { ...options, timeZone: 'America/Los_Angeles' });
+        }
+
+        function formatPacificDate(utcStr, options = { year: 'numeric', month: '2-digit', day: '2-digit' }) {
+            if (!utcStr) return '';
+            let str = String(utcStr).trim();
+            if (!str.includes('Z') && !/[+-]\d{2}:?\d{2}$/.test(str)) {
+                str = str.replace(' ', 'T') + 'Z';
+            }
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return utcStr;
+            return d.toLocaleDateString('en-US', { ...options, timeZone: 'America/Los_Angeles' });
+        }
 
         function getLocalDateString() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
         }
 
         // Initialize date inputs to today
@@ -246,17 +318,100 @@ try {
             const todayStr = getLocalDateString();
             document.getElementById('start_date').value = todayStr;
             document.getElementById('end_date').value = todayStr;
+            document.getElementById('admin_search_query').value = '';
+            document.getElementById('admin_tech_select').value = '';
+            selectedTech = '';
+            setStatusFilter('');
+        }
+
+        function selectTechFilter(techId) {
+            selectedTech = techId;
+            const selectEl = document.getElementById('admin_tech_select');
+            if (selectEl) selectEl.value = techId;
             fetchAuditLogs();
+        }
+
+        function renderAdminProductivityBar(stats) {
+            const bar = document.getElementById('adminProductivityBar');
+            if (!bar) return;
+            if (!stats || stats.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+
+            bar.style.display = 'block';
+            let html = `
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 0.85rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                            <span>⚡ Today's Technician Live Output:</span>
+                        </span>
+                        <small style="color: #64748b; font-size: 0.75rem;">Click technician to filter</small>
+                    </div>
+                    <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;">
+            `;
+
+            stats.forEach(s => {
+                const isSelected = (selectedTech === s.tech_id);
+                const lastTime = s.last_activity ? formatPacificTime(s.last_activity) : 'N/A';
+                html += `
+                    <div onclick="selectTechFilter('${s.tech_id}')" style="background: ${isSelected ? '#eff6ff' : '#f8fafc'}; border: 1.5px solid ${isSelected ? '#3b82f6' : '#e2e8f0'}; border-radius: 10px; padding: 8px 12px; cursor: pointer; flex-shrink: 0; min-width: 170px; transition: all 0.15s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong style="color: #0f172a; font-size: 0.85rem;">👤 ${s.tech_id}</strong>
+                            <span style="font-weight: 900; color: #2563eb; font-size: 0.9rem;">${s.total_units} <small style="font-size: 0.65rem;">units</small></span>
+                        </div>
+                        <div style="display: flex; gap: 6px; font-size: 0.7rem; font-weight: 700;">
+                            <span style="color: #166534;">✅ ${s.good_units}</span>
+                            <span style="color: #991b1b;">❌ ${s.bad_units}</span>
+                            <span style="color: #64748b; margin-left: auto;">🕒 ${lastTime}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            bar.innerHTML = html;
+        }
+
+        function updateTechDropdown(stats) {
+            const selectEl = document.getElementById('admin_tech_select');
+            if (!selectEl) return;
+            const currentVal = selectEl.value || selectedTech;
+
+            let html = '<option value="">All Technicians</option>';
+            if (stats && stats.length > 0) {
+                stats.forEach(s => {
+                    const sel = (s.tech_id === currentVal) ? 'selected' : '';
+                    html += `<option value="${s.tech_id}" ${sel}>👤 ${s.tech_id} (${s.total_units} today)</option>`;
+                });
+            }
+            selectEl.innerHTML = html;
         }
 
         async function fetchAuditLogs() {
             const container = document.getElementById('auditContainer');
             const start = document.getElementById('start_date').value;
             const end = document.getElementById('end_date').value;
+            const searchInput = document.getElementById('admin_search_query');
+            const query = searchInput ? searchInput.value.trim() : '';
+
+            const techSelect = document.getElementById('admin_tech_select');
+            if (techSelect && techSelect.value !== '') {
+                selectedTech = techSelect.value;
+            }
 
             let url = `../api/get_logs.php?status=${currentStatus}`;
             if (start && end) {
                 url += `&start_date=${start}&end_date=${end}`;
+            }
+            if (selectedTech) {
+                url += `&tech_id=${encodeURIComponent(selectedTech)}`;
+            }
+            if (query) {
+                url += `&q=${encodeURIComponent(query)}`;
             }
 
             try {
@@ -264,8 +419,13 @@ try {
                 const result = await response.json();
 
                 if (result.success) {
+                    if (result.tech_stats) {
+                        renderAdminProductivityBar(result.tech_stats);
+                        updateTechDropdown(result.tech_stats);
+                    }
+
                     if (result.data.length === 0) {
-                        container.innerHTML = '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; text-align: center; color: #64748b; font-weight: 600;">No logs found for the selected range.</div>';
+                        container.innerHTML = '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; text-align: center; color: #64748b; font-weight: 600;">No logs found for the selected filters.</div>';
                         return;
                     }
 
@@ -298,7 +458,7 @@ try {
                                         <thead>
                                             <tr>
                                                 <th style="width: 100px;">Status</th>
-                                                <th>Make / Model</th>
+                                                <th>Make / Model / Batch</th>
                                                 <th>Specifications</th>
                                                 <th>Date & Time Info</th>
                                                 <th>Notes</th>
@@ -311,9 +471,8 @@ try {
                         logs.forEach(log => {
                             const badgeClass = log.status === 'Good' ? 'good' : 'bad';
                             const rowStyle = log.status === 'Good' ? 'background: #f0fdf4;' : 'background: #fef2f2;';
-                            const dt = new Date(log.created_at);
-                            const dateStr = dt.toLocaleDateString();
-                            const timeStr = dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            const dateStr = formatPacificDate(log.created_at);
+                            const timeStr = formatPacificTime(log.created_at);
                             const editedBadge = parseInt(log.edited) === 1 ? `<span class="badge" style="background: #fef9c3; color: #854d0e; font-size: 0.7rem; padding: 2px 4px; margin-left: 5px;">Edited</span>` : '';
                             const rejectedBadge = parseInt(log.delete_requested) === 2 ? `<span class="badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-size: 0.7rem; padding: 2px 4px; margin-left: 5px;">Delete Rejected</span>` : '';
 
@@ -330,6 +489,8 @@ try {
                                     <td><span class="badge ${badgeClass}">${log.status}</span></td>
                                     <td>
                                         <strong>${log.make} ${log.model}</strong>${editedBadge}${rejectedBadge}
+                                        ${log.batch_number ? `<br><span class="badge" style="background:#e0e7ff; color:#3730a3; font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:800;">📦 Lot: ${log.batch_number}</span>` : ''}
+                                        ${log.serial_number ? `<br><small style="color:#0284c7; font-weight:700;">S/N: ${log.serial_number}</small>` : ''}
                                         ${log.series ? `<br><small style="color: #64748b;">Series: ${log.series}</small>` : ''}
                                         <br><small style="color: #64748b;">Qty: ${log.qty}</small>
                                     </td>
@@ -487,6 +648,7 @@ try {
             document.getElementById('edit-battery').value = log.battery || '';
             document.getElementById('edit-bios_state').value = log.bios_state || '';
             document.getElementById('edit-os').value = log.os || '';
+            document.getElementById('edit-batch_number').value = log.batch_number || '';
             document.getElementById('edit-notes').value = log.notes || '';
 
             document.getElementById('editFormMessage').textContent = '';

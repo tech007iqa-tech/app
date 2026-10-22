@@ -4,7 +4,15 @@ require_once '../core/auth.php';
 
 header('Content-Type: application/json');
 
-if ($_SESSION['role'] !== 'Admin') {
+$user_role = $_SESSION['role'] ?? '';
+$username = $_SESSION['username'] ?? '';
+$is_admin = (
+    strtolower($user_role) === 'admin' || 
+    strtolower($username) === 'admin' || 
+    strpos(strtolower($user_role), 'admin') !== false
+);
+
+if (!$is_admin) {
     echo json_encode(['success' => false, 'error' => 'Access Denied: Admin role required.']);
     exit();
 }
@@ -71,6 +79,8 @@ try {
         $storage = trim($_POST['storage'] ?? '');
         $battery = trim($_POST['battery'] ?? '');
         $bios_state = trim($_POST['bios_state'] ?? '');
+        $os = trim($_POST['os'] ?? '');
+        $batch_number = trim($_POST['batch_number'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
 
         if (empty($make) || empty($model)) {
@@ -80,10 +90,10 @@ try {
 
         $stmt = $conn->prepare("
             UPDATE logs
-            SET qty = ?, make = ?, model = ?, series = ?, cpu = ?, gpu = ?, ram = ?, storage = ?, battery = ?, bios_state = ?, notes = ?, edited = 1
+            SET qty = ?, make = ?, model = ?, series = ?, cpu = ?, gpu = ?, ram = ?, storage = ?, battery = ?, bios_state = ?, os = ?, batch_number = ?, notes = ?, edited = 1
             WHERE id = ?
         ");
-        $stmt->execute([$qty, $make, $model, $series, $cpu, $gpu, $ram, $storage, $battery, $bios_state, $notes, $id]);
+        $stmt->execute([$qty, $make, $model, $series, $cpu, $gpu, $ram, $storage, $battery, $bios_state, $os, $batch_number, $notes, $id]);
         echo json_encode(['success' => true, 'message' => 'Log updated successfully by Admin.']);
         exit();
 

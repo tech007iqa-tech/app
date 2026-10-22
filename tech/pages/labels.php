@@ -67,6 +67,17 @@ $user_role = htmlspecialchars($_SESSION['role']);
     </main>
 
     <script>
+        function formatPacificDate(utcStr, options = { year: 'numeric', month: '2-digit', day: '2-digit' }) {
+            if (!utcStr) return '';
+            let str = String(utcStr).trim();
+            if (!str.includes('Z') && !/[+-]\d{2}:?\d{2}$/.test(str)) {
+                str = str.replace(' ', 'T') + 'Z';
+            }
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return utcStr;
+            return d.toLocaleDateString('en-US', { ...options, timeZone: 'America/Los_Angeles' });
+        }
+
         let allLogs = [];
 
         async function fetchAllLogs() {
@@ -100,7 +111,7 @@ $user_role = htmlspecialchars($_SESSION['role']);
                         <td><strong>#${log.id}</strong></td>
                         <td><strong>${log.make} ${log.model}</strong><br><small style="color: #64748b;">Series: ${log.series || 'N/A'}</small></td>
                         <td><small>${log.cpu || '-'} / ${log.ram || '-'} / ${log.storage || '-'}</small></td>
-                        <td><small>${new Date(log.created_at).toLocaleDateString()}</small></td>
+                        <td><small>${formatPacificDate(log.created_at)}</small></td>
                         <td style="text-align: right;">
                             <button onclick="printLabel(${log.id})" class="btn-print">
                                 🖨️ Print .ODT

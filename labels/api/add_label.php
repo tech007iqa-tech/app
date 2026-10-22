@@ -43,38 +43,63 @@ try {
     $description        = sanitize_text($_POST[HW_FIELDS['DESCRIPTION']]        ?? 'Untested');
     $warehouse_location = sanitize_text($_POST[HW_FIELDS['LOCATION']]           ?? null);
 
-    // 2. Check for Duplicates (Avoid redundant Label Profiles)
-    // We check if an item with exact technical specs and location already exists.
+    // 2. Check for Spec Collision ("One label per specs", multiple locations)
     $check_stmt = $pdo_labels->prepare("
-        SELECT id FROM items
-        WHERE " . HW_FIELDS['BRAND'] . " = :brand
-        AND " . HW_FIELDS['MODEL'] . " = :model
-        AND (" . HW_FIELDS['SERIES'] . " = :series OR (" . HW_FIELDS['SERIES'] . " IS NULL AND :series_null IS NULL))
-        AND (" . HW_FIELDS['SERIAL_NUMBER'] . " = :sn OR (" . HW_FIELDS['SERIAL_NUMBER'] . " IS NULL AND :sn_null IS NULL))
-        AND (" . HW_FIELDS['CPU_SPECS'] . " = :cpu_specs OR (" . HW_FIELDS['CPU_SPECS'] . " IS NULL AND :cpu_specs_null IS NULL))
-        AND " . HW_FIELDS['BIOS_STATE'] . " = :bios_state
-        AND " . HW_FIELDS['DESCRIPTION'] . " = :description
-        AND (" . HW_FIELDS['LOCATION'] . " = :location OR (" . HW_FIELDS['LOCATION'] . " IS NULL AND :location_null IS NULL))
-        AND " . HW_FIELDS['STATUS'] . " = 'In Warehouse'
+        SELECT id, warehouse_location FROM items
+        WHERE LOWER(TRIM(" . HW_FIELDS['BRAND'] . ")) = LOWER(TRIM(:brand))
+        AND LOWER(TRIM(" . HW_FIELDS['MODEL'] . ")) = LOWER(TRIM(:model))
+        AND (
+            LOWER(TRIM(COALESCE(" . HW_FIELDS['SERIES'] . ", ''))) = LOWER(TRIM(:series))
+            OR (:series = '' AND (" . HW_FIELDS['SERIES'] . " IS NULL OR " . HW_FIELDS['SERIES'] . " = ''))
+        )
+        AND (
+            LOWER(TRIM(COALESCE(" . HW_FIELDS['CPU_SPECS'] . ", ''))) = LOWER(TRIM(:cpu_specs))
+            OR (:cpu_specs = '' AND (" . HW_FIELDS['CPU_SPECS'] . " IS NULL OR " . HW_FIELDS['CPU_SPECS'] . " = ''))
+        )
+        AND (
+            LOWER(TRIM(COALESCE(" . HW_FIELDS['RAM'] . ", ''))) = LOWER(TRIM(:ram))
+            OR (:ram = '' AND (" . HW_FIELDS['RAM'] . " IS NULL OR " . HW_FIELDS['RAM'] . " = ''))
+        )
+        AND (
+            LOWER(TRIM(COALESCE(" . HW_FIELDS['STORAGE'] . ", ''))) = LOWER(TRIM(:storage))
+            OR (:storage = '' AND (" . HW_FIELDS['STORAGE'] . " IS NULL OR " . HW_FIELDS['STORAGE'] . " = ''))
+        )
+        ORDER BY id ASC
         LIMIT 1
     ");
 
     $check_stmt->execute([
         ':brand'     => $brand,
         ':model'     => $model,
-        ':series'    => $series, ':series_null' => $series,
-        ':sn'        => $serial_number, ':sn_null' => $serial_number,
-        ':cpu_specs' => $cpu_specs, ':cpu_specs_null' => $cpu_specs,
-        ':bios_state'=> $bios_state,
-        ':description'=> $description,
-        ':location'  => $warehouse_location, ':location_null' => $warehouse_location
+        ':series'    => $series ?? '',
+        ':cpu_specs' => $cpu_specs ?? '',
+        ':ram'       => $ram ?? '',
+        ':storage'   => $storage ?? ''
     ]);
 
     $existing_item = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existing_item) {
-        $inserted_id = $existing_item['id'];
+        $inserted_id = (int)$existing_item['id'];
         $is_duplicate = true;
+
+        // Consolidate / merge location if new location specified
+        if (!empty($warehouse_location)) {
+            $locs = [];
+            if (!empty($existing_item['warehouse_location'])) {
+                $parts = array_map('trim', explode(',', $existing_item['warehouse_location']));
+                foreach ($parts as $p) {
+                    if ($p !== '' && !in_array($p, $locs, true)) {
+                        $locs[] = $p;
+                    }
+                }
+            }
+            if (!in_array($warehouse_location, $locs, true)) {
+                $locs[] = $warehouse_location;
+                $stmt_up_loc = $pdo_labels->prepare("UPDATE items SET warehouse_location = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+                $stmt_up_loc->execute([implode(', ', $locs), $inserted_id]);
+            }
+        }
     } else {
         // 3. Insert new row into labels.sqlite Database
         $is_duplicate = false;

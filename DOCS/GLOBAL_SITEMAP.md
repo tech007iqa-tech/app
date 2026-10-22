@@ -115,14 +115,32 @@ This sitemap outlines the comprehensive multi-module ecosystem of the IQA Wareho
 ---
 
 ## 🛠️ Module: Technician Control Center (`/tech/`)
-*Focus: Hardware testing, test yields, device audit logs, and component inventory.*
+*Focus: Hardware testing, test yields, master spec label consolidation, component parts inventory, and warehouse shelf routing.*
 
-- `index.php`: Technician dashboard (daily test yields, Good vs. Bad unit metrics).
+- `index.php`: Master technician dashboard (daily yields, Good vs. Bad metrics, technician velocity rankings, low parts ticker).
 - `pages/`:
-  - `logs.php`: Hardware testing logs and historical test lookup.
-  - `parts.php`: Parts inventory (RAM, Storage, Batteries) with automated low-stock alerts.
-  - `audit.php`: Administrator-only technician throughput audit ledger.
+  - `logs.php`: Hardware testing & lot intake workbench with real-time spec collision resolver, grade selectors, and touch-first controls.
+  - `admin_audit.php`: Administrator-only throughput audit, status change history, and pending deletion approval queue.
+  - `inventory.php`: Warehouse component parts inventory (RAM, Storage, Batteries, Tools) with automated reorder warnings.
+  - `labels.php`: Thermal master label directory and 1-click reprint center.
+  - `settings.php`: Technician workbench presets and printer queue settings.
 - `api/`:
-  - `search_logs.php`: Fast serial, make, and model test history lookup.
-  - `log_test.php`: Hardware test submission endpoint.
-- `core/`: Shared database handles and auth guards.
+  - `add_log.php`: Hardware test submission, spec collision resolver, and master label consolidation in `labels.db`.
+  - `lookup_label.php`: Real-time spec matching against master catalog items in `labels.db`.
+  - `get_logs.php`: Paginated & filtered hardware test logs with UTC-to-Pacific time conversion.
+  - `search_logs.php`: Rapid serial, make, and model autocomplete search.
+  - `print_label.php`: Flat XML (`.fodt`) 2x1 dual-page thermal label generator.
+  - `pass_warehouse.php`: Dispatches hardware handoff flag (`ready_for_warehouse = 1`) to warehouse racks.
+  - `request_actions.php`: Technician deletion requests (`delete_requested = 1`) and status changes to `Bad` (rate-limited).
+  - `admin_actions.php`: Admin approval/rejection of pending logs and hard purges.
+  - `get_inventory.php`, `add_part.php`, `update_part.php`, `delete_part.php`: Parts inventory REST suite.
+- `core/`:
+  - `auth.php`: RBAC session validator and Pacific Timezone (`America/Los_Angeles`) enforcer.
+  - `database.php`: Central connection proxy to `Database::tech()`, `labels()`, `warehouse()`, and `orders()`.
+  - `login.php`: Standalone touch-optimized technician login screen.
+- `DOCS/`:
+  - `AI_AGENT_INSTRUCTIONS.md`: Mandatory agent rules, constraints, RBAC, and timezone invariants.
+  - `AI_TECHNICAL_DEEP_DIVE.md`: Database schemas, Smart Spec Collision Engine, state machines, and API catalog.
+  - `MODULE_SITEMAP.md`: Exhaustive line-by-line file directory, route inventory, and dependency matrix.
+  - `CROSS_MODULE_INTEGRATION_GUIDE.md`: Protocols for connecting `/tech` to `/labels/`, `/warehouse/`, `/orders/`, and thermal barcode scanners.
+

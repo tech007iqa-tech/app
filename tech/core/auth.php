@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+date_default_timezone_set('America/Los_Angeles');
 
 $script_name = $_SERVER['SCRIPT_NAME'] ?? '';
 $is_subpage = (strpos($script_name, '/pages/') !== false);
