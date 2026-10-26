@@ -1,0 +1,347 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TECHNICIAN WORKBENCH — QUALITY OF LIFE (QoL) MODULAR STYLESHEET
+   IQA Metal Warehouse Systems | Zero-Dependency Vanilla CSS3
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. BENCH AUDIO TOGGLE BUTTON ────────────────────────────────────────── */
+.btn-sound-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 40px;
+    user-select: none;
+}
+
+.btn-sound-toggle:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
+.btn-sound-toggle.muted {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.btn-sound-toggle.muted:hover {
+    background: #fee2e2;
+}
+
+/* ── 2. HOTKEY BADGES (<kbd>) ────────────────────────────────────────────── */
+kbd.hotkey-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    margin-left: 6px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    pointer-events: none;
+}
+
+button:hover kbd.hotkey-badge {
+    color: #0f172a;
+    border-color: #94a3b8;
+    background: #ffffff;
+}
+
+/* Light hotkey badge for dark primary buttons */
+.btn-primary kbd.hotkey-badge,
+.btn-save-log kbd.hotkey-badge,
+.btn-thermal kbd.hotkey-badge {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.45);
+    border-bottom-color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── 3. SHORTCUTS HELP MODAL ─────────────────────────────────────────────── */
+.hotkey-help-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 10005;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.hotkey-help-card {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid #cbd5e1;
+    overflow: hidden;
+    animation: modalScaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hotkey-help-header {
+    padding: 18px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hotkey-help-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hotkey-help-grid {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.hotkey-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.hotkey-desc {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+/* ── 4. RECENT SHELF LOCATION QUICK-CHIPS ────────────────────────────────── */
+.recent-shelf-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.recent-shelf-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.shelf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0369a1;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.shelf-chip:hover {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+    color: #0284c7;
+    transform: translateY(-1px);
+}
+
+.shelf-chip.active {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+/* ── 5. CLIPBOARD COPY TOOLTIPS & ACTIONS ────────────────────────────────── */
+.btn-copy-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.btn-copy-chip:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.copy-feedback-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    z-index: 10006;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.copy-feedback-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ── 6. HARDWARE PARTS CONSUMPTION PICKER ─────────────────────────────────── */
+.parts-consumed-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+}
+
+.parts-consumed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.parts-consumed-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.parts-consumed-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 28px;
+}
+
+.consumed-part-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.consumed-part-chip button {
+    background: none;
+    border: none;
+    color: #059669;
+    font-weight: 900;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.9rem;
+}
+
+.consumed-part-chip button:hover {
+    color: #dc2626;
+}
+
+/* ── 7. CUSTOM PRESET PINNING ────────────────────────────────────────────── */
+.btn-pin-preset {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px dashed #3b82f6;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-pin-preset:hover {
+    background: #dbeafe;
+    border-style: solid;
+}
+
+.preset-pill-card.custom-preset {
+    border-color: #93c5fd;
+    background: #f0f7ff;
+}
+
+.preset-pill-card.custom-preset .preset-card-title {
+    color: #1d4ed8;
+}
+
+.preset-pill-card.custom-preset:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* ── 8. RESPONSIVE TOUCH ACCESSIBILITY ────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hotkey-help-grid {
+        grid-template-columns: 1fr;
+    }
+    kbd.hotkey-badge {
+        display: none; /* Hide keyboard labels on touchscreens */
+    }
+}

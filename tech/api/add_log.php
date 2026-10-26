@@ -236,6 +236,30 @@ try {
     $is_multi_batch = (count($batch_serials) > 1);
 
     foreach ($batch_serials as $curr_sn) {
+        $curr_sn = trim($curr_sn);
+
+        // 5-Second Idempotency / Duplicate Guard
+        if (!empty($curr_sn)) {
+            $stmt_dup = $conn_tech->prepare("
+                SELECT id, label_id FROM logs 
+                WHERE serial_number = ? 
+                  AND tech_id = ? 
+                  AND created_at >= datetime('now', '-5 seconds')
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmt_dup->execute([$curr_sn, $tech_id]);
+            $dup = $stmt_dup->fetch(PDO::FETCH_ASSOC);
+
+            if ($dup) {
+                // Reuse existing record to prevent duplicate rows and stock inflation
+                $inserted_log_ids[] = (int)$dup['id'];
+                if (!empty($dup['label_id'])) {
+                    $inserted_label_ids[] = (int)$dup['label_id'];
+                }
+                continue;
+            }
+        }
+
         $row_qty = $is_multi_batch ? 1 : $qty;
 
         $stmt_log->execute([
@@ -253,6 +277,27 @@ try {
         $inserted_log_ids[] = $new_log_id;
         if ($smart_label_id) {
             $inserted_label_ids[] = $smart_label_id;
+        }
+    }
+
+    // Deduct any bench parts consumed during repair/upgrade from parts_inventory
+    $parts_consumed_raw = $_POST['parts_consumed'] ?? '';
+    if (!empty($parts_consumed_raw)) {
+        $parts_consumed = json_decode($parts_consumed_raw, true);
+        if (is_array($parts_consumed) && count($parts_consumed) > 0) {
+            $stmt_part = $conn_tech->prepare("
+                UPDATE parts_inventory 
+                SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END,
+                    last_updated = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ");
+            foreach ($parts_consumed as $p) {
+                $p_id = (int)($p['id'] ?? 0);
+                $p_qty = max(1, (int)($p['qty'] ?? 1));
+                if ($p_id > 0) {
+                    $stmt_part->execute([$p_qty, $p_qty, $p_id]);
+                }
+            }
         }
     }
 

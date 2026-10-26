@@ -29,8 +29,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
     <!-- Include Orders Design System -->
     <link rel="stylesheet" href="../../orders/assets/styles/components.css">
     <link rel="stylesheet" href="../../orders/assets/styles/style.css">
-    <link rel="stylesheet" href="../assets/styles/dashboard.css">
-    <link rel="stylesheet" href="../assets/styles/logs.css">
+    <link rel="stylesheet" href="../assets/styles/dashboard.css?v=<?= filemtime(__DIR__ . '/../assets/styles/dashboard.css') ?>">
+    <link rel="stylesheet" href="../assets/styles/logs.css?v=<?= filemtime(__DIR__ . '/../assets/styles/logs.css') ?>">
+    <link rel="stylesheet" href="../assets/styles/qol_workbench.css?v=<?= filemtime(__DIR__ . '/../assets/styles/qol_workbench.css') ?>">
     <link rel="icon" type="image/png" href="../../orders/assets/icon/smart-home-sensor-wifi-black-outline-25276_1024.png">
 </head>
 <body class="modern-theme" style="background-color: #f8fafc;">
@@ -46,6 +47,12 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             </a>
         </nav>
         <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" class="btn-sound-toggle" onclick="TechWorkbench.Audio.toggleMute()" title="Toggle Bench Sound Cues (Alt+M)">
+                <span>🔊</span> <span>Sound: ON</span>
+            </button>
+            <button type="button" class="btn-settings" onclick="TechWorkbench.Hotkeys.openHelpModal()" title="Keyboard Shortcuts (?)">
+                <span>⌨️</span> Shortcuts
+            </button>
             <?php if ($is_admin): ?>
             <a href="admin_audit.php" class="btn-settings" style="background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; font-weight: 700;">👥 Admin Audit</a>
             <?php endif; ?>
@@ -61,11 +68,41 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 <p>Log laptop tests, scan serial barcodes, verify technical specs, print 2"×1" thermal labels, and track deliveries.</p>
             </div>
             <div>
-                <button type="button" onclick="openIntakeModal()" class="btn-primary" style="padding: 14px 26px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.2s;">
+                <button type="button" onclick="openIntakeModal()" class="btn-primary" style="padding: 14px 26px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.2s;" title="Open New Hardware Intake (Alt+N)">
                     <span style="font-size: 1.2rem;">➕</span>
                     <span>Add New Log (Full Technical Sheet)</span>
+                    <kbd class="hotkey-badge">Alt+N</kbd>
                 </button>
             </div>
+        </div>
+
+        <!-- OFFLINE LOCALSTORAGE INTAKE SYNC BANNER -->
+        <div id="offlineSyncBanner" style="display: none; margin-bottom: 20px; padding: 12px 18px; border-radius: 10px; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-weight: 700; justify-content: space-between; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">📶</span>
+                <span id="offlineSyncText">Offline intake records queued locally.</span>
+            </div>
+            <button type="button" onclick="syncOfflineQueue()" class="btn-primary" style="padding: 6px 16px; font-size: 0.85rem; border-radius: 6px; background: #d97706; color: white; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <span>Sync Now</span> <span>⚡</span>
+            </button>
+        </div>
+
+        <!-- INLINE SUCCESS ALERT BANNER -->
+        <div id="intakeSuccessAlert" style="display: none; margin-bottom: 20px; padding: 14px 20px; border-radius: 12px; background: #ecfdf5; border: 1.5px solid #10b981; color: #065f46; font-weight: 800; font-size: 0.95rem; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.3rem;">🎉</span>
+                <span id="intakeSuccessText">Hardware log added successfully!</span>
+            </div>
+            <button type="button" onclick="document.getElementById('intakeSuccessAlert').style.display='none'" style="background: none; border: none; color: #065f46; font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+        </div>
+
+        <!-- MAIN PAGE FLOATING TOAST -->
+        <div id="pageNoticeToast" style="display: none; position: fixed; top: 24px; right: 24px; z-index: 999999; min-width: 320px; max-width: 520px; padding: 16px 22px; border-radius: 12px; background: #0f172a; color: white; box-shadow: 0 16px 32px rgba(0,0,0,0.28), 0 6px 12px rgba(0,0,0,0.18); font-weight: 700; font-size: 0.95rem; align-items: center; justify-content: space-between; gap: 14px; border-left: 6px solid #22c55e; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="toastIcon" style="font-size: 1.3rem;">✅</span>
+                <span id="toastMessageText" style="line-height: 1.4;">Hardware log saved successfully!</span>
+            </div>
+            <button type="button" onclick="hidePageToast()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
         </div>
 
         <!-- ═════════════════════════════════════════════════════════════════════
@@ -105,7 +142,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                             <!-- ── LEFT COLUMN: FULL TECHNICAL INTAKE FORM ── -->
                             <div class="intake-form-column">
 
-                                <!-- INTAKE MODE SWITCHER & CONTINUOUS RAPID INTAKE -->
+                                <!-- INTAKE MODE SWITCHER & CUTE REUSE PREVIOUS BUTTON -->
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                                     <div class="intake-mode-switcher">
                                         <button type="button" class="mode-switch-btn active" id="btnModeSingle" onclick="switchIntakeMode('single')">
@@ -116,10 +153,14 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                         </button>
                                     </div>
 
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: #475569; cursor: pointer; user-select: none;">
-                                        <input type="checkbox" id="intake_continuous" checked style="accent-color: #2563eb; width: 16px; height: 16px;">
-                                        <span>⚡ Continuous Rapid Intake (Keep specs ready)</span>
-                                    </label>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <!-- Small Cute Repeat Previous Specs Button -->
+                                        <button type="button" id="btnReusePrevious" class="btn-cute-reuse" onclick="populateFromPreviousEntry()" style="display: none;" title="Populate specifications from previous entry">
+                                            <span class="cute-sparkle">✨</span>
+                                            <span>Reuse Previous:</span>
+                                            <strong id="cutePrevModelName" class="cute-tag">...</strong>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- BATCH / LOT INTAKE CARD (ACTIVE IN BATCH MODE) -->
@@ -466,6 +507,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                         <label for="intake_notes">Internal Technician Repair &amp; Testing Notes</label>
                                         <textarea id="intake_notes" name="work_notes" rows="2" class="form-control" placeholder="Document testing, thermal repaste, ports check, cosmetic notes..."></textarea>
                                     </div>
+
+                                    <!-- Modular Bench Upgrade & Parts Consumed Tracker -->
+                                    <div id="partsPickerMountPoint"></div>
                                 </div>
 
                             </div>
@@ -610,16 +654,18 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                             <span>✨ Start Fresh</span>
                         </button>
                         
-                        <button type="button" class="btn-odt" onclick="submitIntake('odt')" title="Save log and generate Windows LibreOffice ODT label">
-                            <span>📄 Save &amp; Windows ODT</span>
+                        <button type="button" id="btnReusePreviousSticky" class="btn-cute-reuse-sticky" onclick="populateFromPreviousEntry()" style="display: none;" title="Populate specifications from previous entry">
+                            <span>📋 Reuse Previous (<strong id="cutePrevModelNameSticky">...</strong>)</span>
                         </button>
                         
-                        <button type="button" class="btn-thermal" onclick="submitIntake('thermal')" title="Save log and trigger direct 2x1 browser thermal print">
+                        <button type="button" class="btn-thermal" onclick="submitIntake('thermal')" title="Save log and trigger direct 2x1 browser thermal print (Alt+P)">
                             <span>🖨️ Print Thermal Label</span>
+                            <kbd class="hotkey-badge">Alt+P</kbd>
                         </button>
                         
-                        <button type="button" class="btn-save-log" onclick="submitIntake('save')" title="Save test log to database">
+                        <button type="button" class="btn-save-log" onclick="submitIntake('save')" title="Save test log to database (Ctrl+Enter)">
                             <span>💾 Save Hardware Log</span>
+                            <kbd class="hotkey-badge">Ctrl+↵</kbd>
                         </button>
                     </div>
                 </form>
@@ -650,11 +696,14 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
                         <button type="button" onclick="closeDeliveryModal()" style="padding: 10px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 700; cursor: pointer;">Cancel</button>
-                        <button type="button" onclick="confirmDeliveryUpdate()" class="btn-primary" style="padding: 10px 24px; border-radius: 8px; background: #2563eb; color: white; border: none; font-weight: 800; cursor: pointer;">Confirm Delivery</button>
+                        <button type="button" id="btnConfirmDelivery" onclick="confirmDeliveryUpdate()" class="btn-primary" style="padding: 10px 24px; border-radius: 8px; background: #2563eb; color: white; border: none; font-weight: 800; cursor: pointer;">Confirm Delivery</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Silent Thermal Browser Print Iframe -->
+        <iframe id="thermalPrintFrame" style="display: none; width: 0; height: 0; border: 0;" title="Thermal Print Engine"></iframe>
 
         <!-- ═════════════════════════════════════════════════════════════════════
              REAL-TIME TODAY'S TECHNICIAN PRODUCTIVITY RIBBON
@@ -717,6 +766,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                         <input type="date" id="end_date" onchange="onDateFilterChange()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; background: white;">
                     </div>
                     <button onclick="clearDateFilter()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #475569; font-size: 0.85rem; font-weight: 700; cursor: pointer;">Reset</button>
+                    <button type="button" onclick="TechWorkbench.Exporter.exportFilteredLogs()" class="btn-settings" style="padding: 6px 12px; border-radius: 6px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Export filtered logs as Excel-compatible CSV (with UTF-8 BOM)">
+                        <span>📥</span> Export CSV
+                    </button>
                 </div>
             </div>
 
@@ -833,14 +885,27 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px;">
                     <button type="button" onclick="closeEditModal()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 700; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn-submit" style="padding: 10px 30px;">Save Changes</button>
+                    <button type="submit" id="btnSaveEditLog" class="btn-submit" style="padding: 10px 30px;">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- ═════════════════════════════════════════════════════════════════════
-         MODULAR INTAKE JAVASCRIPT CONTROLLER
+         MODULAR TECHNICIAN WORKBENCH SUBSYSTEMS (ES6)
+         ═════════════════════════════════════════════════════════════════════ -->
+    <script src="../assets/js/modules/sound_fx.js"></script>
+    <script src="../assets/js/modules/bench_hotkeys.js"></script>
+    <script src="../assets/js/modules/scanner_guard.js"></script>
+    <script src="../assets/js/modules/shelf_chips.js"></script>
+    <script src="../assets/js/modules/clipboard_tools.js"></script>
+    <script src="../assets/js/modules/custom_presets.js"></script>
+    <script src="../assets/js/modules/parts_picker.js"></script>
+    <script src="../assets/js/modules/export_csv.js"></script>
+    <script src="../assets/js/tech_workbench.js"></script>
+
+    <!-- ═════════════════════════════════════════════════════════════════════
+         PAGE-LEVEL INTAKE CONTROLLER & DISPATCH
          ═════════════════════════════════════════════════════════════════════ -->
     <script>
         'use strict';
@@ -939,26 +1004,50 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 // Spec Pills
                 const ramPill = item.ram ? `<span class="chip-mini-spec ram">⚡ ${escapeHtml(item.ram)}</span>` : '';
                 const ssdPill = item.storage ? `<span class="chip-mini-spec storage">💾 ${escapeHtml(item.storage)}</span>` : '';
-                const cpuPill = item.cpu_specs 
-                    ? `<span class="chip-mini-spec cpu">🧠 ${escapeHtml(item.cpu_specs)}</span>` 
-                    : (item.cpu_gen ? `<span class="chip-mini-spec cpu">${escapeHtml(item.cpu_gen)}</span>` : '');
+                
+                // Full CPU Spec text
+                let cpuText = '';
+                if (item.cpu_specs && item.cpu_gen && !item.cpu_specs.toLowerCase().includes(item.cpu_gen.toLowerCase())) {
+                    cpuText = `${item.cpu_specs} (${item.cpu_gen})`;
+                } else if (item.cpu_specs) {
+                    cpuText = item.cpu_specs;
+                } else if (item.cpu_gen) {
+                    cpuText = item.cpu_gen;
+                }
+                const cpuPill = cpuText ? `<span class="chip-mini-spec cpu">🧠 ${escapeHtml(cpuText)}</span>` : '';
+
+                // Secondary specs: OS or Parts/Salvage
+                const osPill = item.os_version ? `<span class="chip-mini-spec extra">🪟 ${escapeHtml(item.os_version)}</span>` : '';
+                const partsPill = (item.description === 'For Parts' || item.status === 'Bad')
+                    ? `<span class="chip-mini-spec salvage">🛠️ For Parts</span>`
+                    : '';
 
                 html += `
                     <div class="smart-label-chip ${isActive ? 'active' : ''}" style="border-left: 5px solid ${brandColors.border};" onclick="selectSmartLabel(${item.id})">
-                        <div class="smart-chip-top">
-                            <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+                        <!-- Top Header: ID + Brand + Locations -->
+                        <div class="smart-chip-header">
+                            <div class="smart-chip-id-group">
                                 <span class="smart-chip-id-badge">#${item.id}</span>
                                 <span class="smart-chip-brand-badge" style="background: ${brandColors.bg}; color: ${brandColors.text}; border: 1px solid ${brandColors.border}40;">${escapeHtml(item.brand || 'Other')}</span>
-                                <span class="smart-chip-model-name">${escapeHtml(item.model || '')} ${escapeHtml(item.series || '')}</span>
                             </div>
-                            <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                            <div class="smart-chip-loc-group">
                                 ${locHtml}
                             </div>
                         </div>
+
+                        <!-- Dedicated Model Line & Model Number / Series Row (Uncut & Prominent) -->
+                        <div class="smart-chip-model-row">
+                            <span class="smart-chip-model-line">${escapeHtml(item.model || '')}</span>
+                            ${item.series ? `<span class="smart-chip-series-pill">${escapeHtml(item.series)}</span>` : ''}
+                        </div>
+
+                        <!-- Full Hardware Specifications Row -->
                         <div class="smart-chip-specs-row">
                             ${ramPill}
                             ${ssdPill}
                             ${cpuPill}
+                            ${osPill}
+                            ${partsPill}
                         </div>
                     </div>
                 `;
@@ -1138,6 +1227,12 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             const modal = document.getElementById('techIntakeModal');
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+
+            // Always open with a default blank slate entry
+            resetIntakeForm();
+
+            // Refresh availability of the cute repeat button
+            checkPreviousSpecsAvailable();
 
             fetchSmartCatalog();
 
@@ -1534,13 +1629,21 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         }
 
         // ── 3. REAL-TIME BARCODE S/N LOOKUP BRIDGE ───────────────────────────
+        let isSubmittingIntake = false;
+        let lastScannerSubmitTime = 0;
+
         document.getElementById('intake_serial_number').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                const now = Date.now();
+                if (now - lastScannerSubmitTime < 1000 || isSubmittingIntake) {
+                    return; // Ignore scanner jitter or accidental double-scan
+                }
                 const sn = e.target.value.trim();
                 const brand = document.getElementById('intake_brand')?.value.trim();
                 const model = document.getElementById('intake_model')?.value.trim();
                 if (sn && brand && model) {
+                    lastScannerSubmitTime = now;
                     submitIntake('thermal');
                 }
             }
@@ -1578,6 +1681,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                         document.getElementById('intake_label_id').value = d.id;
                         document.getElementById('snMatchedText').innerHTML = `🏷️ <strong>Matched Label #${d.id}</strong>: ${escapeHtml(d.brand)} ${escapeHtml(d.model)} (${escapeHtml(d.cpu_specs || '-')})`;
                         alertBox.style.display = 'flex';
+                        if (window.TechWorkbench.Audio) window.TechWorkbench.Audio.playMatch();
 
                         // Autofill specs from existing label
                         if (d.brand) selectBrandPill(d.brand);
@@ -1715,6 +1819,189 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             }
         }
 
+        // ── PREVIOUS SPECS PERSISTENCE & REUSE ENGINE ───────────────────────
+        window.lastSubmittedSpecs = null;
+
+        function savePreviousSpecsSnapshot(result, fallbackBrand, fallbackModel) {
+            try {
+                const b = document.getElementById('intake_brand')?.value || fallbackBrand || 'Dell';
+                const m = document.getElementById('intake_model')?.value || fallbackModel || '';
+                const s = document.getElementById('intake_series')?.value || '';
+                const displayTitle = `${b} ${m}${s ? ' ' + s : ''}`.trim();
+
+                const specs = {
+                    brand: b,
+                    model: m,
+                    series: s,
+                    single_batch: document.getElementById('intake_single_batch')?.value || '',
+                    batch_number: document.getElementById('intake_batch_number')?.value || '',
+                    cpu_gen: document.getElementById('intake_cpu_gen')?.value || '',
+                    cpu_specs: document.getElementById('intake_cpu_specs')?.value || '',
+                    cpu_cores: document.getElementById('intake_cpu_cores_display')?.value || '',
+                    cpu_speed: document.getElementById('intake_cpu_speed_display')?.value || '',
+                    ram: document.getElementById('intake_ram')?.value || '16 GB',
+                    storage: document.getElementById('intake_storage')?.value || '256 GB SSD',
+                    condition: document.getElementById('intake_condition')?.value || 'Refurbished',
+                    wh_status: document.getElementById('intake_wh_status')?.value || 'In Warehouse',
+                    location: document.getElementById('intake_location')?.value || '',
+                    pin_location: document.getElementById('intake_pin_location')?.checked || false,
+                    bios_state: document.getElementById('intake_bios_state')?.value || 'Unlocked',
+                    delivery_status: document.getElementById('intake_delivery_status')?.value || 'Pending',
+                    delivery_destination: document.getElementById('intake_delivery_destination')?.value || '',
+                    gpu: document.getElementById('intake_gpu')?.value || '',
+                    screen_res: document.getElementById('intake_screen_res')?.value || '',
+                    battery: document.getElementById('intake_battery')?.value || 'Included / Good',
+                    battery_specs: document.getElementById('intake_battery_specs')?.value || '',
+                    os: document.getElementById('intake_os')?.value || 'Windows 11 Pro',
+                    cosmetic_grade: document.getElementById('intake_cosmetic_grade')?.value || 'A',
+                    notes: document.getElementById('intake_notes')?.value || '',
+                    status: document.getElementById('intake_status')?.value || 'Good',
+                    displayTitle: displayTitle || 'Previous Laptop'
+                };
+
+                window.lastSubmittedSpecs = specs;
+                sessionStorage.setItem('tech_last_submitted_specs', JSON.stringify(specs));
+            } catch(e) {
+                console.warn('Could not save previous specs snapshot', e);
+            }
+        }
+
+        function checkPreviousSpecsAvailable() {
+            let specs = window.lastSubmittedSpecs;
+            if (!specs) {
+                try {
+                    const saved = sessionStorage.getItem('tech_last_submitted_specs');
+                    if (saved) {
+                        specs = JSON.parse(saved);
+                        window.lastSubmittedSpecs = specs;
+                    }
+                } catch(e) {}
+            }
+
+            const btnTop = document.getElementById('btnReusePrevious');
+            const btnSticky = document.getElementById('btnReusePreviousSticky');
+            const labelTop = document.getElementById('cutePrevModelName');
+            const labelSticky = document.getElementById('cutePrevModelNameSticky');
+
+            if (specs && specs.model) {
+                const title = specs.displayTitle || `${specs.brand || ''} ${specs.model || ''}`.trim();
+                if (btnTop) {
+                    btnTop.style.display = 'inline-flex';
+                    if (labelTop) labelTop.textContent = title;
+                    btnTop.title = `Click to populate specs from last entry (${title})`;
+                }
+                if (btnSticky) {
+                    btnSticky.style.display = 'inline-flex';
+                    if (labelSticky) labelSticky.textContent = title;
+                    btnSticky.title = `Populate previous entry specs (${title})`;
+                }
+            } else {
+                if (btnTop) btnTop.style.display = 'none';
+                if (btnSticky) btnSticky.style.display = 'none';
+            }
+        }
+
+        function populateFromPreviousEntry() {
+            let specs = window.lastSubmittedSpecs;
+            if (!specs) {
+                try {
+                    const saved = sessionStorage.getItem('tech_last_submitted_specs');
+                    if (saved) specs = JSON.parse(saved);
+                } catch(e) {}
+            }
+            if (!specs) return;
+
+            // Brand
+            selectBrandPill(specs.brand || 'Dell');
+
+            // Model, Series, Batch
+            if (document.getElementById('intake_model')) document.getElementById('intake_model').value = specs.model || '';
+            if (document.getElementById('intake_series')) document.getElementById('intake_series').value = specs.series || '';
+            if (document.getElementById('intake_single_batch')) document.getElementById('intake_single_batch').value = specs.single_batch || '';
+
+            // Processor
+            if (document.getElementById('intake_cpu_gen')) document.getElementById('intake_cpu_gen').value = specs.cpu_gen || '';
+            if (document.getElementById('intake_cpu_specs')) document.getElementById('intake_cpu_specs').value = specs.cpu_specs || '';
+            onCpuCoresInput(specs.cpu_cores || '');
+            onCpuSpeedInput(specs.cpu_speed || '');
+
+            // RAM & Storage
+            selectSpecPill('ram', specs.ram || '16 GB');
+            selectSpecPill('storage', specs.storage || '256 GB SSD');
+
+            // Condition & Status
+            if (document.getElementById('intake_condition')) document.getElementById('intake_condition').value = specs.condition || 'Refurbished';
+            if (document.getElementById('intake_wh_status')) document.getElementById('intake_wh_status').value = specs.wh_status || 'In Warehouse';
+
+            // Location
+            if (specs.location) {
+                document.getElementById('intake_location').value = specs.location;
+            }
+            if (specs.pin_location) {
+                const pin = document.getElementById('intake_pin_location');
+                if (pin) pin.checked = true;
+            }
+
+            // Security & Delivery
+            if (document.getElementById('intake_bios_state')) document.getElementById('intake_bios_state').value = specs.bios_state || 'Unlocked';
+            if (document.getElementById('intake_delivery_status')) {
+                document.getElementById('intake_delivery_status').value = specs.delivery_status || 'Pending';
+                onDeliveryTargetChange(specs.delivery_status || 'Pending');
+            }
+            if (document.getElementById('intake_delivery_destination')) {
+                document.getElementById('intake_delivery_destination').value = specs.delivery_destination || '';
+            }
+
+            // Specs Sheet
+            if (document.getElementById('intake_gpu')) document.getElementById('intake_gpu').value = specs.gpu || '';
+            if (document.getElementById('intake_screen_res')) document.getElementById('intake_screen_res').value = specs.screen_res || '';
+            if (document.getElementById('intake_battery')) document.getElementById('intake_battery').value = specs.battery || 'Included / Good';
+            if (document.getElementById('intake_battery_specs')) document.getElementById('intake_battery_specs').value = specs.battery_specs || '';
+            if (document.getElementById('intake_os')) document.getElementById('intake_os').value = specs.os || 'Windows 11 Pro';
+            if (document.getElementById('intake_cosmetic_grade')) document.getElementById('intake_cosmetic_grade').value = specs.cosmetic_grade || 'A';
+            if (document.getElementById('intake_notes')) document.getElementById('intake_notes').value = specs.notes || '';
+
+            setIntakeStatus(specs.status || 'Good');
+
+            // CRITICAL: Ensure serial number is empty and focused ready for barcode scanning
+            const snInput = (currentIntakeMode === 'batch')
+                ? document.getElementById('batch_sn_scanner')
+                : document.getElementById('intake_serial_number');
+            if (snInput) {
+                snInput.value = '';
+                snInput.focus();
+            }
+
+            // Trigger smart catalog match & preview update
+            onSpecsInputChange();
+            updateLivePreview();
+
+            // Sound chime
+            if (window.TechWorkbench && window.TechWorkbench.Audio) {
+                window.TechWorkbench.Audio.playSuccess();
+            }
+
+            // Visual feedback on the cute button
+            const btnTop = document.getElementById('btnReusePrevious');
+            if (btnTop) {
+                btnTop.classList.add('pop-active');
+                btnTop.innerHTML = '<span class="cute-sparkle">✅</span> <span>Specs Populated!</span>';
+                setTimeout(() => {
+                    btnTop.classList.remove('pop-active');
+                    checkPreviousSpecsAvailable();
+                }, 2200);
+            }
+
+            const msgEl = document.getElementById('intakeFormMessage');
+            if (msgEl) {
+                msgEl.innerHTML = `✨ Populated previous specs for <strong>${escapeHtml(specs.displayTitle || 'machine')}</strong>!`;
+                msgEl.style.color = '#16a34a';
+                setTimeout(() => {
+                    if (msgEl.textContent && msgEl.textContent.includes('Populated')) msgEl.textContent = '';
+                }, 4000);
+            }
+        }
+
         function resetIntakeForm() {
             const form = document.getElementById('techIntakeForm');
             const pinLoc = document.getElementById('intake_pin_location');
@@ -1726,6 +2013,22 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 pinLoc.checked = true;
             }
 
+            // Ensure complete blank slate across all fields
+            if (document.getElementById('intake_model')) document.getElementById('intake_model').value = '';
+            if (document.getElementById('intake_series')) document.getElementById('intake_series').value = '';
+            if (document.getElementById('intake_single_batch')) document.getElementById('intake_single_batch').value = '';
+            if (document.getElementById('intake_serial_number')) document.getElementById('intake_serial_number').value = '';
+            if (document.getElementById('intake_cpu_gen')) document.getElementById('intake_cpu_gen').value = '';
+            if (document.getElementById('intake_cpu_specs')) document.getElementById('intake_cpu_specs').value = '';
+            if (document.getElementById('intake_cpu')) document.getElementById('intake_cpu').value = '';
+            if (document.getElementById('intake_gpu')) document.getElementById('intake_gpu').value = '';
+            if (document.getElementById('intake_screen_res')) document.getElementById('intake_screen_res').value = '';
+            if (document.getElementById('intake_notes')) document.getElementById('intake_notes').value = '';
+            if (document.getElementById('intake_label_id')) document.getElementById('intake_label_id').value = '';
+            if (document.getElementById('intake_battery_specs')) document.getElementById('intake_battery_specs').value = '';
+            if (document.getElementById('intake_delivery_destination')) document.getElementById('intake_delivery_destination').value = '';
+
+            clearBatchSerials();
             selectBrandPill('Dell');
             selectSpecPill('ram', '16 GB');
             selectSpecPill('storage', '256 GB SSD');
@@ -1737,19 +2040,60 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             clearSmartSearch();
             updateLivePreview();
 
-            const snInput = document.getElementById('intake_serial_number');
+            // Refresh cute repeat button state
+            checkPreviousSpecsAvailable();
+
+            const snInput = (currentIntakeMode === 'batch') 
+                ? document.getElementById('batch_sn_scanner') 
+                : document.getElementById('intake_serial_number');
             if (snInput) snInput.focus();
         }
 
-        // ── 5. FORM SUBMISSION EXECUTION (PRINT / ODT / SAVE) ────────────────
+        // ── MAIN PAGE TOAST & NOTIFICATION SYSTEM ───────────────────────────
+        function showPageNotice(msgHtml, isSuccess = true) {
+            // Floating Toast (Top Right)
+            const toast = document.getElementById('pageNoticeToast');
+            const toastText = document.getElementById('toastMessageText');
+            const toastIcon = document.getElementById('toastIcon');
+            if (toast && toastText) {
+                toastText.innerHTML = msgHtml;
+                if (toastIcon) toastIcon.textContent = isSuccess ? '✅' : '⚠️';
+                toast.style.borderLeftColor = isSuccess ? '#22c55e' : '#f59e0b';
+                toast.style.display = 'flex';
+                toast.style.opacity = '1';
+                clearTimeout(window._toastTimer);
+                window._toastTimer = setTimeout(() => { hidePageToast(); }, 5000);
+            }
+
+            // Inline Banner above table
+            const alertBox = document.getElementById('intakeSuccessAlert');
+            const alertText = document.getElementById('intakeSuccessText');
+            if (alertBox && alertText) {
+                alertText.innerHTML = msgHtml;
+                alertBox.style.display = 'flex';
+                clearTimeout(window._alertTimer);
+                window._alertTimer = setTimeout(() => { alertBox.style.display = 'none'; }, 6000);
+            }
+        }
+
+        function hidePageToast() {
+            const toast = document.getElementById('pageNoticeToast');
+            if (toast) {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 250);
+            }
+        }
+
+        // ── 5. FORM SUBMISSION EXECUTION (PRINT / SAVE) ─────────────────────
         async function submitIntake(action) {
+            if (isSubmittingIntake) {
+                return;
+            }
+
             const form = document.getElementById('techIntakeForm');
             const msgEl = document.getElementById('intakeFormMessage');
-            msgEl.textContent = 'Saving hardware record...';
-            msgEl.style.color = '#2563eb';
-
-            const brand = document.getElementById('intake_brand').value.trim();
-            const model = document.getElementById('intake_model').value.trim();
+            const brand = document.getElementById('intake_brand')?.value.trim();
+            const model = document.getElementById('intake_model')?.value.trim();
 
             if (!brand || !model) {
                 msgEl.textContent = '❌ Brand and Model are required.';
@@ -1757,11 +2101,35 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 return;
             }
 
+            // Acquire lock and disable all action buttons
+            isSubmittingIntake = true;
+            const actionButtons = document.querySelectorAll('.intake-action-bar button');
+            actionButtons.forEach(btn => btn.disabled = true);
+
+            // Morph clicked button to display inline spinner
+            const btnClassMap = {
+                'save': '.btn-save-log',
+                'thermal': '.btn-thermal'
+            };
+            const targetBtn = document.querySelector(`.intake-action-bar ${btnClassMap[action] || '.btn-save-log'}`);
+            const originalBtnHtml = targetBtn ? targetBtn.innerHTML : null;
+
+            if (targetBtn) {
+                targetBtn.classList.add('btn-submitting');
+                if (action === 'save') {
+                    targetBtn.innerHTML = '<span class="spinner-inline"></span><span>Saving Hardware Log...</span>';
+                } else if (action === 'thermal') {
+                    targetBtn.innerHTML = '<span class="spinner-inline"></span><span>Saving &amp; Printing...</span>';
+                }
+            }
+
+            msgEl.textContent = '⏳ Recording hardware test & updating warehouse stock...';
+            msgEl.style.color = '#2563eb';
+
             const formData = new FormData(form);
             formData.append('print_action', action);
 
             const isBatch = (currentIntakeMode === 'batch');
-            const isContinuous = document.getElementById('intake_continuous')?.checked ?? true;
 
             if (isBatch) {
                 const batchNum = document.getElementById('intake_batch_number').value.trim();
@@ -1778,75 +2146,92 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                     method: 'POST',
                     body: formData
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errMsg = `Server returned status ${response.status}`;
+                    try {
+                        const parsed = JSON.parse(errorText);
+                        if (parsed.error) errMsg = parsed.error;
+                    } catch(e) {}
+                    if (window.TechWorkbench.Audio) window.TechWorkbench.Audio.playError();
+                    msgEl.textContent = '❌ Error: ' + errMsg;
+                    msgEl.style.color = '#dc2626';
+                    return;
+                }
+
                 const result = await response.json();
 
                 if (!result.success) {
+                    if (window.TechWorkbench.Audio) window.TechWorkbench.Audio.playError();
                     msgEl.textContent = '❌ Error: ' + (result.error || 'Failed to save');
                     msgEl.style.color = '#dc2626';
                     return;
                 }
 
-                msgEl.textContent = '✅ ' + (result.message || 'Saved successfully!');
-                msgEl.style.color = '#15803d';
+                // 1. Immediately close the dialog modal so technician returns to the workbench table
+                closeIntakeModal();
 
-                const labelId = result.label_id;
-                const labelIds = result.label_ids || (labelId ? [labelId] : []);
+                // Modular QoL: Play positive sound chime & update shelf chips & reset parts picker
+                if (window.TechWorkbench.Audio) window.TechWorkbench.Audio.playSuccess();
+                if (window.TechWorkbench.ShelfChips) {
+                    const locVal = document.getElementById('intake_location')?.value;
+                    if (locVal) window.TechWorkbench.ShelfChips.recordLocation(locVal);
+                }
+                if (window.TechWorkbench.PartsPicker) {
+                    window.TechWorkbench.PartsPicker.reset();
+                }
 
-                // Handle selected printing action
+                // 2. Announce success on the main page
+                const unitDesc = `${result.make || brand} ${result.model || model}`;
+                const snText = result.serial_number ? ` (S/N: ${result.serial_number})` : (isBatch ? ` (${result.units_logged || 1} units)` : '');
+                const successMsg = action === 'thermal' 
+                    ? `Hardware log for <strong>${escapeHtml(unitDesc)}</strong>${escapeHtml(snText)} saved & thermal label printed!` 
+                    : `Hardware log for <strong>${escapeHtml(unitDesc)}</strong>${escapeHtml(snText)} saved successfully!`;
+                showPageNotice(successMsg, true);
+
+                // 3. Handle thermal printing
                 if (action === 'thermal') {
+                    const labelId = result.label_id;
+                    const labelIds = result.label_ids || (labelId ? [labelId] : []);
                     if (labelIds.length > 0) {
                         labelIds.forEach((lid, i) => {
                             setTimeout(() => printThermalDirect(lid), i * 600);
                         });
                     }
-                } else if (action === 'odt') {
-                    if (labelId) {
-                        printODTDirect(labelId, result.make, result.model);
-                    } else if (result.log_id) {
-                        printLabel(result.log_id);
-                    }
                 }
 
-                fetchLogs();
+                // 4. Refresh logs table and highlight the newly added record
+                fetchLogs(result.log_id);
 
-                if (isContinuous) {
-                    if (isBatch) {
-                        clearBatchSerials();
-                        autoGenerateBatchNumber();
-                        setTimeout(() => {
-                            document.getElementById('batch_sn_scanner')?.focus();
-                        }, 100);
-                    } else {
-                        // Continuous single unit: clear S/N, keep all specs intact!
-                        const snInput = document.getElementById('intake_serial_number');
-                        if (snInput) {
-                            snInput.value = '';
-                            clearMatchedProfile();
-                            snInput.focus();
-                        }
-                    }
+                // 5. Snapshot submitted specs so user can agree to repeat them via cute button
+                savePreviousSpecsSnapshot(result, brand, model);
 
-                    const pinLoc = document.getElementById('intake_pin_location');
-                    if (!pinLoc || !pinLoc.checked) {
-                        // If not pinned, clear location, or keep if preferred
-                    }
-
-                    updateLivePreview();
-                    setTimeout(() => { msgEl.textContent = ''; }, 3500);
-
-                    if (action === 'save' && !isContinuous) {
-                        closeIntakeModal();
-                    }
-                } else {
-                    setTimeout(() => {
-                        closeIntakeModal();
-                        msgEl.textContent = '';
-                    }, 800);
-                }
+                // 6. Reset form to default blank slate
+                resetIntakeForm();
+                checkPreviousSpecsAvailable();
+                updateLivePreview();
 
             } catch (err) {
-                msgEl.textContent = '❌ Network Error saving record.';
-                msgEl.style.color = '#dc2626';
+                const isOffline = !navigator.onLine || (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')));
+                if (isOffline) {
+                    queueOfflineIntake(formData, action);
+                    closeIntakeModal();
+                    showPageNotice('⚠️ Wi-Fi disconnected: record saved to device queue (will auto-sync when online).', false);
+                } else {
+                    if (window.TechWorkbench.Audio) window.TechWorkbench.Audio.playError();
+                    msgEl.textContent = '❌ ' + (err.message || 'Error saving record.');
+                    msgEl.style.color = '#dc2626';
+                }
+            } finally {
+                isSubmittingIntake = false;
+                actionButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-submitting');
+                });
+                if (targetBtn && originalBtnHtml) {
+                    targetBtn.innerHTML = originalBtnHtml;
+                }
             }
         }
 
@@ -1904,10 +2289,21 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             }
         }
 
+        let isUpdatingDelivery = false;
         async function confirmDeliveryUpdate() {
+            if (isUpdatingDelivery) return;
+            const btn = document.getElementById('btnConfirmDelivery');
+            const originalHtml = btn ? btn.innerHTML : 'Confirm Delivery';
+
             const id = document.getElementById('deliveryLogId').value;
             const type = document.getElementById('deliveryActionType').value;
             const dest = document.getElementById('deliveryDestinationInput').value.trim();
+
+            isUpdatingDelivery = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-inline"></span> Updating...';
+            }
 
             try {
                 const formData = new FormData();
@@ -1922,6 +2318,12 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 const result = await response.json();
 
                 if (result.success) {
+                    if (type === 'shelf' && dest && window.TechWorkbench.ShelfChips) {
+                        window.TechWorkbench.ShelfChips.recordLocation(dest);
+                    }
+                    if (window.TechWorkbench.Audio) {
+                        window.TechWorkbench.Audio.playSuccess();
+                    }
                     closeDeliveryModal();
                     fetchLogs();
                 } else {
@@ -1929,6 +2331,12 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 }
             } catch (err) {
                 alert('Network error updating delivery status.');
+            } finally {
+                isUpdatingDelivery = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
             }
         }
 
@@ -1976,7 +2384,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             fetchLogs();
         }
 
-        async function fetchLogs() {
+        async function fetchLogs(highlightId = null) {
             const tbody = document.getElementById('logsTableBody');
             const start = document.getElementById('start_date').value;
             const end = document.getElementById('end_date').value;
@@ -2010,22 +2418,27 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                     result.data.forEach(log => {
                         const isGood = log.status === 'Good';
                         const badgeClass = isGood ? 'good' : 'bad';
-                        const rowStyle = isGood ? 'background: #ffffff;' : 'background: #fff8f8;';
+                        const isJustAdded = (highlightId && parseInt(log.id) === parseInt(highlightId));
+                        const addedClass = isJustAdded ? 'row-just-added' : '';
+                        const rowStyle = isJustAdded ? '' : (isGood ? 'background: #ffffff;' : 'background: #fff8f8;');
 
                         // Delivery Badge
                         let deliveryBadge = '';
                         const dStat = log.delivery_status || 'Pending';
                         if (dStat === 'Delivered to Shelf') {
-                            deliveryBadge = `<span class="badge badge-shelved">📦 Shelved: ${escapeHtml(log.delivery_destination || log.location || 'Warehouse')}</span>`;
+                            deliveryBadge = `<span class="badge badge-shelved" onclick="openDeliveryModal(${log.id}, '${escapeJs(log.location || '')}')" style="cursor: pointer;" title="Click to update delivery">📦 Shelved: ${escapeHtml(log.delivery_destination || log.location || 'Warehouse')}</span>`;
                         } else if (dStat === 'Delivered to Order') {
-                            deliveryBadge = `<span class="badge badge-delivered">🚚 Delivered: ${escapeHtml(log.delivery_destination || 'Order')}</span>`;
+                            deliveryBadge = `<span class="badge badge-delivered" onclick="openDeliveryModal(${log.id}, '${escapeJs(log.location || '')}')" style="cursor: pointer;" title="Click to update delivery">🚚 Delivered: ${escapeHtml(log.delivery_destination || 'Order')}</span>`;
                         } else {
-                            deliveryBadge = `<span class="badge badge-pending">⏳ Pending Delivery</span>`;
+                            deliveryBadge = `<span class="badge badge-pending" onclick="openDeliveryModal(${log.id}, '${escapeJs(log.location || '')}')" style="cursor: pointer;" title="Click to update delivery">⏳ Pending Delivery</span>`;
                         }
 
-                        // S/N display
+                        // S/N display with 1-click copy
                         const snDisplay = log.serial_number ? 
-                            `<span style="font-family: monospace; font-weight: 800; color: #0f172a; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; font-size: 0.78rem;">S/N: ${escapeHtml(log.serial_number)}</span>` : '';
+                            `<span style="font-family: monospace; font-weight: 800; color: #0f172a; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 0.78rem;">
+                                <span>S/N: ${escapeHtml(log.serial_number)}</span>
+                                <button type="button" class="btn-copy-chip" onclick="TechWorkbench.Clipboard.copySerial('${escapeJs(log.serial_number)}')" title="Copy Serial Number">📋</button>
+                            </span>` : '';
 
                         // Dates (Pacific Time)
                         const dateStr = formatPacificDate(log.created_at);
@@ -2060,6 +2473,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                 <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
                                     ${deliverBtn}
                                     ${thermalPrintBtn}
+                                    <button type="button" onclick="TechWorkbench.Clipboard.copySpecs(${JSON.stringify(log).replace(/"/g, '&quot;')})" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700;" title="Copy Full Technical Specs to Clipboard">📋 Specs</button>
                                     <button onclick="toggleStatus(${log.id})" style="background: #cbd5e1; color: #1e293b; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700;">🔄 Status</button>
                                     <button onclick="openEditModal(${JSON.stringify(log).replace(/"/g, '&quot;')})" style="background: #e2e8f0; color: #475569; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700;">✏️ Edit</button>
                                     <button onclick="requestDelete(${log.id})" style="background: #fee2e2; color: #991b1b; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 700;">🗑️ Delete</button>
@@ -2069,7 +2483,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                         }
 
                         html += `
-                            <tr style="${rowStyle}">
+                            <tr id="log-row-${log.id}" class="${addedClass}" style="${rowStyle}">
                                 <td>
                                     <div style="display: flex; flex-direction: column; gap: 4px;">
                                         <span class="badge ${badgeClass}" style="align-self: flex-start;">${escapeHtml(log.status)}</span>
@@ -2145,11 +2559,22 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             document.getElementById('editModal').style.display = 'none';
         }
 
+        let isSavingEdit = false;
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSavingEdit) return;
+
+            const btn = document.getElementById('btnSaveEditLog') || e.target.querySelector('button[type="submit"]');
+            const originalHtml = btn ? btn.innerHTML : 'Save Changes';
             const msg = document.getElementById('editFormMessage');
             msg.textContent = 'Saving...';
-            msg.style.color = '#475569';
+            msg.style.color = '#2563eb';
+
+            isSavingEdit = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-inline"></span> Saving...';
+            }
 
             const formData = new FormData(e.target);
             try {
@@ -2173,6 +2598,12 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             } catch (err) {
                 msg.textContent = '❌ Network Error';
                 msg.style.color = '#b91c1c';
+            } finally {
+                isSavingEdit = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
             }
         });
 
@@ -2287,7 +2718,101 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             return String(str).replace(/'/g, "\\'");
         }
 
-        // Initial fetch
+        // ── 10. OFFLINE LOCALSTORAGE INTAKE QUEUE SYNC ────────────────────────
+        function getOfflineQueue() {
+            try {
+                return JSON.parse(localStorage.getItem('tech_intake_offline_queue') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function setOfflineQueue(queue) {
+            localStorage.setItem('tech_intake_offline_queue', JSON.stringify(queue));
+            renderOfflineQueueBanner();
+        }
+
+        function queueOfflineIntake(formData, action) {
+            const queue = getOfflineQueue();
+            const record = {
+                id: 'offline_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                queued_at: new Date().toISOString(),
+                action: action,
+                data: {}
+            };
+            for (const [key, value] of formData.entries()) {
+                record.data[key] = value;
+            }
+            queue.push(record);
+            setOfflineQueue(queue);
+        }
+
+        function renderOfflineQueueBanner() {
+            const banner = document.getElementById('offlineSyncBanner');
+            const textEl = document.getElementById('offlineSyncText');
+            if (!banner || !textEl) return;
+
+            const queue = getOfflineQueue();
+            if (queue.length > 0) {
+                banner.style.display = 'flex';
+                textEl.innerHTML = `<strong>${queue.length}</strong> offline intake record(s) queued locally on device. Wi-Fi reconnection will auto-sync.`;
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        let isSyncingOfflineQueue = false;
+        async function syncOfflineQueue() {
+            if (isSyncingOfflineQueue) return;
+            const queue = getOfflineQueue();
+            if (queue.length === 0) {
+                renderOfflineQueueBanner();
+                return;
+            }
+
+            isSyncingOfflineQueue = true;
+            const banner = document.getElementById('offlineSyncBanner');
+            const textEl = document.getElementById('offlineSyncText');
+            if (textEl) {
+                textEl.innerHTML = `⏳ Syncing <strong>${queue.length}</strong> offline record(s) to server...`;
+            }
+
+            const remaining = [];
+            let syncedCount = 0;
+
+            for (const item of queue) {
+                try {
+                    const fd = new FormData();
+                    for (const [k, v] of Object.entries(item.data)) {
+                        fd.append(k, v);
+                    }
+                    const res = await fetch('../api/add_log.php', { method: 'POST', body: fd });
+                    const result = await res.json();
+                    if (result && result.success) {
+                        syncedCount++;
+                    } else {
+                        remaining.push(item);
+                    }
+                } catch (e) {
+                    remaining.push(item);
+                }
+            }
+
+            setOfflineQueue(remaining);
+            isSyncingOfflineQueue = false;
+
+            if (syncedCount > 0) {
+                fetchLogs();
+            }
+        }
+
+        window.addEventListener('online', () => {
+            syncOfflineQueue();
+        });
+
+        // Initial fetch & check offline queue & previous specs
+        renderOfflineQueueBanner();
+        checkPreviousSpecsAvailable();
         fetchLogs();
     </script>
 </body>

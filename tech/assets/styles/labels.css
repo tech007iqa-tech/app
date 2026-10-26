@@ -43,6 +43,29 @@ th {
     gap: 6px;
 }
 .btn-print:hover { background: #334155; }
+.btn-print:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.spinner-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: spin-inline 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+@keyframes spin-inline {
+    to { transform: rotate(360deg); }
+}
+
 .search-bar {
     width: 100%;
     padding: 12px 16px;

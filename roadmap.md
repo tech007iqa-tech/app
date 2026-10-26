@@ -60,5 +60,5 @@
 - [x] Fixed Pipeline KPI date calculation bug in `customer_registry.php` caused by SQLite left-to-right modifier evaluation (`date('now', 'localtime', 'start of month')`).
 
 ### Phase 6: Hardware & Mobile Edge Sync 📅
-- [ ] Offline intake queue sync with localStorage fallback when workstation loses Wi-Fi.
+- [x] Offline intake queue sync with localStorage fallback when workstation loses Wi-Fi.
 - [ ] Direct network thermal printer raw ESC/POS and TSPL socket streaming.

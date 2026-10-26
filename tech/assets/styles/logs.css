@@ -583,6 +583,40 @@ details[open] .toggle-icon {
     z-index: 50;
 }
 
+.intake-action-bar button {
+    min-height: 48px;
+}
+
+.intake-action-bar button:disabled {
+    opacity: 0.55 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.intake-action-bar button.btn-submitting:disabled {
+    opacity: 0.95 !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45) !important;
+}
+
+.spinner-inline {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: spin-inline 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+@keyframes spin-inline {
+    to { transform: rotate(360deg); }
+}
+
 .btn-thermal {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
@@ -912,10 +946,10 @@ details[open] .toggle-icon {
 .smart-chips-shelf {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: 400px;
+    gap: 10px;
+    max-height: 480px;
     overflow-y: auto;
-    padding: 2px 2px 8px 2px;
+    padding: 3px 4px 12px 4px;
     scrollbar-width: thin;
 }
 
@@ -923,37 +957,50 @@ details[open] .toggle-icon {
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
     border-radius: 12px;
-    padding: 9px 12px;
+    padding: 12px 14px;
     cursor: pointer;
-    transition: all 0.18s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: left;
     box-sizing: border-box;
     user-select: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    gap: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .smart-label-chip:hover {
     border-color: #93c5fd;
     background: #f8fafc;
-    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
-    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    transform: translateY(-2px);
 }
 
 .smart-label-chip.active {
     border-color: #2563eb !important;
     background: #eff6ff !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), 0 4px 14px rgba(37, 99, 235, 0.18) !important;
 }
 
-.smart-chip-top {
+.smart-chip-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     width: 100%;
+}
+
+.smart-chip-id-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.smart-chip-loc-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .smart-chip-id-badge {
@@ -970,20 +1017,40 @@ details[open] .toggle-icon {
 .smart-chip-brand-badge {
     font-size: 0.68rem;
     font-weight: 800;
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 4px;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     flex-shrink: 0;
 }
 
-.smart-chip-model-name {
+/* Dedicated, prominent Model Line & Series row */
+.smart-chip-model-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    line-height: 1.35;
+}
+
+.smart-chip-model-line {
     font-weight: 800;
     color: #0f172a;
-    font-size: 0.88rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.96rem;
+    letter-spacing: -0.2px;
+}
+
+.smart-chip-series-pill {
+    font-size: 0.82rem;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #1e293b;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
 .smart-chip-specs-row {
@@ -994,13 +1061,14 @@ details[open] .toggle-icon {
 }
 
 .chip-mini-spec {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    line-height: 1.25;
 }
 
 .chip-mini-spec.ram {
@@ -1021,15 +1089,30 @@ details[open] .toggle-icon {
     background: #f1f5f9;
     color: #334155;
     border: 1px solid #cbd5e1;
+    font-weight: 700;
+}
+
+.chip-mini-spec.extra {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    font-size: 0.72rem;
+}
+
+.chip-mini-spec.salvage {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    font-weight: 800;
 }
 
 .chip-mini-loc {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     font-weight: 800;
     background: #e0f2fe;
     color: #0369a1;
     border: 1px solid #bae6fd;
-    padding: 2px 6px;
+    padding: 2px 8px;
     border-radius: 9999px;
     white-space: nowrap;
 }
@@ -1075,5 +1158,105 @@ details[open] .toggle-icon {
     font-size: 0.85rem;
     color: #065f46;
 }
+
+/* ── ROW HIGHLIGHT PULSE FOR NEW ADDITIONS ── */
+@keyframes rowHighlightPulse {
+    0% { background-color: #dcfce7 !important; }
+    40% { background-color: #bbf7d0 !important; }
+    100% { background-color: transparent; }
+}
+
+.row-just-added {
+    animation: rowHighlightPulse 3.5s ease-out;
+    border-left: 4px solid #16a34a !important;
+}
+
+/* ── SMALL CUTE REUSE PREVIOUS SPECS BUTTON ── */
+.btn-cute-reuse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #1d4ed8;
+    border: 1.5px solid #93c5fd;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    line-height: 1.2;
+}
+
+.btn-cute-reuse:hover {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    border-color: #3b82f6;
+    color: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.16);
+}
+
+.btn-cute-reuse:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.12);
+}
+
+.btn-cute-reuse .cute-sparkle {
+    font-size: 0.95rem;
+    animation: sparkle-wiggle 2s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes sparkle-wiggle {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.22) rotate(14deg); }
+}
+
+.btn-cute-reuse .cute-tag {
+    background: white;
+    color: #1e40af;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.btn-cute-reuse.pop-active {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+    border-color: #4ade80 !important;
+    color: #166534 !important;
+}
+
+.btn-cute-reuse-sticky {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1.5px solid #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    min-height: 44px;
+}
+
+.btn-cute-reuse-sticky:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+}
+
 
 

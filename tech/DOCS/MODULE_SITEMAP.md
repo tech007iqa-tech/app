@@ -15,6 +15,7 @@ c:\xampp\htdocs\app\tech\
 │   ├── CROSS_MODULE_INTEGRATION_GUIDE.md  # Inter-module protocols (/labels, /warehouse, /orders)
 │   └── MODULE_SITEMAP.md                  # This exhaustive file and route inventory
 ├── README.md                              # Module overview and quick navigation index
+├── roadmap.md                             # Planned implementation blueprint for anti-duplicate submission lock
 ├── index.php                              # Root executive dashboard (yields, stats, quick links)
 ├── api/                                   # 12 backend REST/JSON endpoints
 │   ├── add_log.php                        # Hardware intake & spec collision resolver

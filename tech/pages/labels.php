@@ -113,7 +113,7 @@ $user_role = htmlspecialchars($_SESSION['role']);
                         <td><small>${log.cpu || '-'} / ${log.ram || '-'} / ${log.storage || '-'}</small></td>
                         <td><small>${formatPacificDate(log.created_at)}</small></td>
                         <td style="text-align: right;">
-                            <button onclick="printLabel(${log.id})" class="btn-print">
+                            <button onclick="printLabel(${log.id}, this)" class="btn-print">
                                 🖨️ Print .ODT
                             </button>
                         </td>
@@ -138,7 +138,12 @@ $user_role = htmlspecialchars($_SESSION['role']);
             } catch (err) {}
         });
 
-        async function printLabel(id) {
+        async function printLabel(id, btnEl) {
+            const originalHtml = btnEl ? btnEl.innerHTML : null;
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = '<span class="spinner-inline"></span> Generating...';
+            }
             try {
                 const formData = new FormData();
                 formData.append('id', id);
@@ -161,6 +166,11 @@ $user_role = htmlspecialchars($_SESSION['role']);
                 }
             } catch (err) {
                 alert('Network Error');
+            } finally {
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    if (originalHtml) btnEl.innerHTML = originalHtml;
+                }
             }
         }
 
