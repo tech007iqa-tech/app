@@ -50,6 +50,7 @@ try {
             </a>
         </nav>
         <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="storage.php" class="btn-settings" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 700;">🗄️ Storage</a>
             <a href="logs.php" class="btn-settings" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700;">➕ Log / Add Items</a>
             <a href="settings.php" class="btn-settings">⚙️ Settings</a>
         </div>

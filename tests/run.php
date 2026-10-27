@@ -29,6 +29,7 @@ TestRunner::init();
 // Load Test Suites
 require_once __DIR__ . '/Unit/SecurityTest.php';
 require_once __DIR__ . '/Unit/ApiResponseTest.php';
+require_once __DIR__ . '/Unit/StorageTest.php';
 require_once __DIR__ . '/Integration/DatabaseHealthTest.php';
 require_once __DIR__ . '/Integration/SchemaRegressionTest.php';
 require_once __DIR__ . '/Integration/InvariantsTest.php';

@@ -53,6 +53,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             <button type="button" class="btn-settings" onclick="TechWorkbench.Hotkeys.openHelpModal()" title="Keyboard Shortcuts (?)">
                 <span>⌨️</span> Shortcuts
             </button>
+            <a href="storage.php" class="btn-settings" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 700;">
+                <span>🗄️</span> Storage
+            </a>
             <?php if ($is_admin): ?>
             <a href="admin_audit.php" class="btn-settings" style="background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; font-weight: 700;">👥 Admin Audit</a>
             <?php endif; ?>
@@ -108,8 +111,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         <!-- ═════════════════════════════════════════════════════════════════════
              FULL TECHNICAL SHEET INTAKE MODAL (OVERLAY)
              ═════════════════════════════════════════════════════════════════════ -->
-        <div id="techIntakeModal" class="intake-modal-backdrop" onclick="onModalBackdropClick(event)">
-            <div class="intake-modal-dialog" id="techIntakeDialog" onclick="event.stopPropagation()">
+        <div id="techIntakeModal" class="intake-modal-backdrop">
+            <div class="intake-modal-dialog" id="techIntakeDialog">
                 
                 <!-- STICKY MODAL HEADER -->
                 <div class="intake-modal-header">
@@ -902,6 +905,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
     <script src="../assets/js/modules/custom_presets.js"></script>
     <script src="../assets/js/modules/parts_picker.js"></script>
     <script src="../assets/js/modules/export_csv.js"></script>
+    <script src="../assets/js/modules/storage_donor_match.js?v=<?= filemtime(__DIR__ . '/../assets/js/modules/storage_donor_match.js') ?>"></script>
     <script src="../assets/js/tech_workbench.js"></script>
 
     <!-- ═════════════════════════════════════════════════════════════════════
@@ -1266,9 +1270,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         }
 
         function onModalBackdropClick(e) {
-            if (e.target.id === 'techIntakeModal') {
-                closeIntakeModal();
-            }
+            // Intentionally disabled: Modal only closes when the user explicitly clicks the '✕' close button
+            // to prevent accidental dismissal during hardware intake.
         }
 
         // Close on Esc key

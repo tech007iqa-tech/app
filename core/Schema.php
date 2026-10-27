@@ -276,6 +276,22 @@ class Schema {
                 low_stock_threshold INTEGER DEFAULT 5,
                 notes TEXT,
                 last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+            )",
+            'storage_units' => "CREATE TABLE IF NOT EXISTS storage_units (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sku TEXT UNIQUE NOT NULL,
+                date_added DATE NOT NULL,
+                brand TEXT NOT NULL,
+                model_num TEXT NOT NULL,
+                series TEXT DEFAULT '',
+                battery TEXT DEFAULT '',
+                screen TEXT DEFAULT '',
+                issue TEXT DEFAULT '',
+                need TEXT DEFAULT '',
+                notes TEXT DEFAULT '',
+                status TEXT DEFAULT 'In Storage',
+                tech_id TEXT DEFAULT 'tech',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )"
         ],
         'labels' => [
@@ -1065,6 +1081,13 @@ class Schema {
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_serial ON logs(serial_number)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_delivery ON logs(delivery_status)");
             $conn->exec("CREATE INDEX IF NOT EXISTS idx_tech_logs_batch ON logs(batch_number)");
+        }
+
+        if ($db_name === 'tech' && $table === 'storage_units') {
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_storage_sku ON storage_units(sku)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_storage_brand_model ON storage_units(brand, model_num)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_storage_status ON storage_units(status)");
+            $conn->exec("CREATE INDEX IF NOT EXISTS idx_storage_date ON storage_units(date_added DESC)");
         }
 
         // --- Labels Module Evolution & Indexes ---

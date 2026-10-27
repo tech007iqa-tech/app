@@ -134,7 +134,7 @@ window.TechWorkbench = window.TechWorkbench || {};
             if (document.getElementById('hotkeyHelpModal')) return;
 
             const modalHtml = `
-                <div id="hotkeyHelpModal" class="hotkey-help-overlay" onclick="if(event.target===this)TechWorkbench.Hotkeys.closeHelpModal()">
+                <div id="hotkeyHelpModal" class="hotkey-help-overlay">
                     <div class="hotkey-help-card">
                         <div class="hotkey-help-header">
                             <h3><span>⌨️</span> Warehouse Bench Keyboard Shortcuts</h3>

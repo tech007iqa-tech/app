@@ -30,7 +30,9 @@ $user_role = htmlspecialchars($_SESSION['role']);
                 <span class="step-num">🏷️</span> Label Generation
             </a>
         </nav>
-        <div>
+        <div style="display: flex; gap: 8px;">
+            <a href="storage.php" class="btn-settings" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 700;">🗄️ Storage</a>
+            <a href="logs.php" class="btn-settings" style="background: #eff6ff; color: #1e40af; border-color: #bfdbfe; font-weight: 700;">📋 Logs</a>
             <a href="settings.php" class="btn-settings">⚙️ Settings</a>
         </div>
     </div>

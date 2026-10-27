@@ -18,6 +18,8 @@ For detailed architectural specifications, rules, and integration protocols, con
 | 🗺️ [MODULE_SITEMAP.md](file:///c:/xampp/htdocs/app/tech/DOCS/MODULE_SITEMAP.md) | Developers & Auditing | Exhaustive inventory of every file, endpoint, stylesheet, route parameter, and dependency graph. |
 | 🔌 [CROSS_MODULE_INTEGRATION_GUIDE.md](file:///c:/xampp/htdocs/app/tech/DOCS/CROSS_MODULE_INTEGRATION_GUIDE.md) | External Integrators & Agents | Direct protocols for connecting `/tech` to `/labels/`, `/warehouse/`, `/orders/`, and thermal barcode scanners. |
 | 🗺️ [roadmap.md](file:///c:/xampp/htdocs/app/tech/roadmap.md) | Engineers & Technicians | Planned implementation blueprint for anti-duplicate submission locks and visual loading states. |
+| 📦 [STORAGE_ROADMAP.md](file:///c:/xampp/htdocs/app/tech/STORAGE_ROADMAP.md) | Engineers & Technicians | Step-by-step modular blueprint for the Storage & Donor Matching subsystem. |
+| 🗄️ [STORAGE_MODULE.md](file:///c:/xampp/htdocs/app/tech/DOCS/STORAGE_MODULE.md) | Engineers & AI Agents | Comprehensive architecture, schemas, API catalog, and donor matching guide. |
 
 ---
 

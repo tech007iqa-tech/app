@@ -221,6 +221,14 @@ $total_tested = $good_count + $bad_count;
             </a>
             <?php endif; ?>
 
+            <!-- Storage & Donor Inventory Module -->
+            <a href="pages/storage.php" class="module-card" style="border-color: #38bdf8;">
+                <div class="icon-box" style="background: #e0f2fe; color: #0284c7;">🗄️</div>
+                <h2>Storage & Donors</h2>
+                <p>Triage units waiting for donor parts, harvest working screens & batteries, and promote to Good.</p>
+                <div class="badge badge-active" style="background: #e0f2fe; color: #0369a1;">Module Active</div>
+            </a>
+
             <!-- Inventory Module -->
             <a href="pages/inventory.php" class="module-card">
                 <div class="icon-box">📦</div>
