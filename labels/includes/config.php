@@ -24,7 +24,7 @@ if (!defined('LABELS_STANDALONE')) {
 // 3. Application Metadata
 define('LABELS_APP_NAME', 'IQA Label Engine');
 define('LABELS_APP_SUBTITLE', 'Warehouse Inventory & Thermal Label Logistics');
-define('LABELS_VERSION', '2.5.0 Modular');
+define('LABELS_VERSION', '2.5.1 Modular');
 define('LABELS_LABEL_WIDTH', '2in');
 define('LABELS_LABEL_HEIGHT', '1in');
 

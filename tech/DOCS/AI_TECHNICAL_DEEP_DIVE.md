@@ -1,5 +1,5 @@
 # 🧠 AI Technical Deep Dive: Technician Control Center (`/tech`)
-*IQA Metal Warehouse Systems | Comprehensive Engineering Specification*
+*IQA Metal Warehouse Systems | Comprehensive Engineering Specification • Version 2.5.1*
 
 This document serves as the canonical technical reference and architectural deep dive for the `/tech` module. Future AI agents and developers should read this document to understand the underlying data structures, state machines, cross-module communication channels, and API endpoints without inspecting every file individually.
 
@@ -13,21 +13,28 @@ The `/tech` module is structured around procedural PHP 8.1+ front controllers, d
 📁 /tech/
 ├── 📄 index.php                   # Executive Technician & Admin Dashboard
 ├── 📄 README.md                   # Visual Module Portal & Executive Overview
+├── 📄 STORAGE_ROADMAP.md          # 6-Phase Storage Subsystem Implementation Blueprint
 ├── 📁 core/
 │   ├── 📄 auth.php                # RBAC Guard, session validation, force-password router
+│   ├── 📄 barcode.php             # Zero-dependency vector SVG Code 128 (Subset B) barcode engine
 │   ├── 📄 database.php            # Connection loader -> core/Database.php, timezone init
-│   └── 📄 login.php               # Standalone secure technician portal & PPP sequence auth
+│   ├── 📄 login.php               # Standalone secure technician portal & PPP sequence auth
+│   └── 📄 storage_seeder.php      # SQLite migration importer for 127 initial storage units
 ├── 📁 pages/
 │   ├── 📄 logs.php                # Master Hardware Intake & Log Workbench
+│   ├── 📄 storage.php             # Master Touch-First Storage & Donor Workbench
+│   ├── 📄 print_storage_label.php # 2"×1" Thermal Barcode Label Print Station (Code 128)
 │   ├── 📄 admin_audit.php         # Admin Audit Trail & Request Approval Queue
 │   ├── 📄 inventory.php           # Parts Inventory & Low Stock Alert Center
 │   ├── 📄 labels.php              # Quick Thermal & ODT Label Search & Dispatch
 │   └── 📄 settings.php            # Technician Profile & Security Settings
-├── 📁 api/                        # 12 Specialized AJAX Endpoints (Detailed below)
+├── 📁 api/                        # 16 Specialized AJAX Endpoints (Detailed below)
 ├── 📁 assets/
+│   ├── 📁 js/modules/             # Workstation controllers (storage_workbench.js, storage_donor_match.js)
 │   └── 📁 styles/
 │       ├── 📄 dashboard.css       # Daily impact widgets & global search styles
-│       └── 📄 logs.css            # Intake form grid, production chips & badges
+│       ├── 📄 logs.css            # Intake form grid, production chips & badges
+│       └── 📄 storage.css         # Touch-first storage workbench styles (≥48px targets)
 ├── 📁 exports/
 │   └── 📁 labels/                 # Generated .fodt Flat XML label print jobs
 └── 📁 DOCS/                       # Comprehensive AI Documentation System
@@ -115,6 +122,30 @@ CREATE TABLE daily_status_changes (
     change_count INTEGER DEFAULT 0,            -- Number of Good->Bad changes executed today
     PRIMARY KEY (tech_id, change_date)
 );
+```
+
+### 2.4 Table: `storage_units` (`tech.db`)
+Tracks incomplete units missing parts, donor machines holding viable components, and harvest audit history.
+```sql
+CREATE TABLE storage_units (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sku TEXT UNIQUE NOT NULL,                  -- Internal SKU (e.g. 'DL-22', 'RM-10', 'DP-5')
+    date_added DATE NOT NULL,                  -- Pacific Time (YYYY-MM-DD)
+    brand TEXT NOT NULL,                       -- 'Dell', 'HP', 'Lenovo', 'Apple', 'Microsoft'
+    model_num TEXT NOT NULL,                   -- '7420', '650 G10', 'A2179', 'T480'
+    series TEXT DEFAULT '',                    -- 'Latitude', 'EliteBook', 'ThinkPad'
+    battery TEXT DEFAULT '',                   -- 'Good', 'No Bat', 'Bad BAT', 'Harvested / Taken'
+    screen TEXT DEFAULT '',                    -- 'Good Screen', 'Bad Screen', 'Cracked', 'Harvested / Taken'
+    issue TEXT DEFAULT '',                     -- 'No Power', 'BIOs Lock', 'MB Bad'
+    need TEXT DEFAULT '',                      -- 'Screen', 'Battery', 'SSD', 'Back Plate'
+    notes TEXT DEFAULT '',                     -- Inspection remarks & harvest audit trails
+    status TEXT DEFAULT 'In Storage',          -- 'In Storage', 'Promoted to Good', 'Harvested / Scrapped'
+    tech_id TEXT DEFAULT 'tech',               -- Technician username
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_storage_sku ON storage_units(sku);
+CREATE INDEX idx_storage_brand_model ON storage_units(brand, model_num);
+CREATE INDEX idx_storage_status ON storage_units(status);
 ```
 
 ---
@@ -242,6 +273,12 @@ The label generation engine produces standard **2x1 inch** dual-page thermal lab
 - **Output Path**: `tech/exports/labels/label_{id}_{timestamp}.fodt`.
 - **Zero-Dependency Guarantee**: The XML document is assembled via XML string composition. It requires no `ZipArchive` extensions and works seamlessly on local Windows XAMPP and Linux servers.
 
+### 6.1 Zero-Dependency Code 128 Barcode Engine (`core/barcode.php`)
+- **Format**: Vector SVG Code 128 (Subset B) generator written completely in native PHP.
+- **Resolution-Independent**: Crisp, razor-sharp vector lines on thermal heads of any DPI (203 DPI, 300 DPI, 600 DPI) with zero pixel distortion.
+- **Modulo-103 Checksum**: Validates character encodings according to ISO/IEC 15417 standards for instantaneous decode by optical and laser barcode guns.
+- **Thermal Sticker Station (`pages/print_storage_label.php`)**: Formatted for 2.0" x 1.0" rolls with SKU-only large typography and detailed spec modes.
+
 ---
 
 ## 📡 7. Comprehensive API Endpoint Catalog
@@ -262,3 +299,7 @@ All API endpoints are located in `tech/api/` and return strict JSON payloads (`{
 | `api/add_part.php` | `POST` | Operator/Admin | Inserts a new component into `parts_inventory`. |
 | `api/update_part.php` | `POST` | Operator/Admin | Modifies component details or increments/decrements quantity. |
 | `api/delete_part.php` | `POST` | Admin Only | Deletes a component from `parts_inventory`. |
+| `api/get_storage.php` | `GET` | Operator/Admin | Fetches filtered storage inventory, aggregated counts, and performs tokenized donor matching queries (`?donor_model=...`). |
+| `api/add_storage.php` | `POST` | Operator/Admin | Ingests new units into storage with automated brand-prefix sequential SKU allocation. |
+| `api/update_storage.php` | `POST` | Operator/Admin | Edits unit details or records donor component harvests with automatic structured audit logging. |
+| `api/promote_storage.php` | `POST` | Operator/Admin | Transitions unit state: promotes repaired unit to Good (inserting into `logs`) or retires as scrapped. |

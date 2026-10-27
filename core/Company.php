@@ -136,4 +136,9 @@ class Company
     {
         return self::get('trade_description', 'Used Computer, Laptop & Electronics Refurbishing');
     }
+
+    public static function getVersion()
+    {
+        return self::get('system_version', '2.5.1');
+    }
 }

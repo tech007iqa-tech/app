@@ -124,5 +124,12 @@ TestRunner::suite('System Invariants & Security Guardrails (GEMINI.md)', functio
         Assert::false(str_contains($registryContent, "'start of month', 'localtime'"), 'Buggy SQLite modifier order must not be present');
         Assert::false(str_contains($registryContent, "'start of year', 'localtime'"), 'Buggy SQLite modifier order must not be present');
     });
+
+    TestRunner::test('System version invariant: Company::getVersion and LABELS_VERSION must report 2.5.1', function() {
+        require_once __DIR__ . '/../../labels/includes/config.php';
+        Assert::same('2.5.1', Company::getVersion(), 'System version must be 2.5.1');
+        Assert::true(defined('LABELS_VERSION'), 'LABELS_VERSION constant must be defined');
+        Assert::true(str_contains(LABELS_VERSION, '2.5.1'), 'LABELS_VERSION must contain 2.5.1');
+    });
 });
 

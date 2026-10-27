@@ -1,6 +1,9 @@
 # 🗺️ Storage & Donor Module — Implementation Roadmap (`/tech`)
 *IQA Metal Warehouse Systems | Engineering & Modular Implementation Blueprint*
 
+[![Version](https://img.shields.io/badge/version-2.5.1-green.svg)](https://github.com/)
+[![Status](https://img.shields.io/badge/Status-All_Phases_Complete-brightgreen.svg)](https://github.com/)
+
 ---
 
 ## 🎯 Domain Purpose & Objective

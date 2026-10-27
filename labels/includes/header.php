@@ -139,7 +139,7 @@ $company_name = Company::getName();
                     <span class="brand-logo-icon">🏷️</span>
                     <div>
                         <div class="brand-name"><?= htmlspecialchars($company_name) ?></div>
-                        <div class="brand-module">v<?= htmlspecialchars(LABELS_VERSION) ?></div>
+                        <div class="brand-module"><?= htmlspecialchars(LABELS_APP_NAME) ?></div>
                     </div>
                 </div>
                 <label for="nav-toggle" class="drawer-close-btn" title="Close Drawer">✕</label>

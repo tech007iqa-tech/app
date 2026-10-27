@@ -1,8 +1,8 @@
 # 📦 IQA Metal Warehouse Systems
 
-[![Version](https://img.shields.io/badge/version-2.5.0-green.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/version-2.5.1-green.svg)](https://github.com/)
 [![Tech](https://img.shields.io/badge/Stack-Vanilla_PHP_|_SQLite_|_JS-blue.svg)](https://github.com/)
-[![Tests](https://img.shields.io/badge/Tests-42_Passed_|_Zero_Dependencies-brightgreen.svg)](tests/run.php)
+[![Tests](https://img.shields.io/badge/Tests-48_Passed_|_Zero_Dependencies-brightgreen.svg)](tests/run.php)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/)
 
 A premium, high-performance warehouse management ecosystem designed for speed, reliability, and precision. Built for physical warehouse environments where quick hardware intake, accurate label logistics, and customer relation lifecycles are mission-critical.
@@ -38,8 +38,11 @@ A premium, high-performance warehouse management ecosystem designed for speed, r
 - **Global Registry**: Searchable customer database with session-persistent filters.
 
 ### 🛠️ Technician Control Center (`/tech`)
-*Hardware Testing & Technician Audits*
+*Hardware Testing, Storage Donor Hub & Technician Audits*
 - **Test Logs**: Track daily throughput with detailed good/bad unit tracking per technician.
+- **🗄️ Storage & Donor Hub (`/tech/pages/storage.php`)**: Dedicated touch-first workbench for incomplete laptops ("Missing 1 Part") and donor machines. Triage working screens/batteries, track component harvest audits, and promote complete units to Good.
+- **⚡ Smart Cross-Module Donor Matcher**: Instant debounced matching during bench intake (`pages/logs.php`) that cross-references incoming units needing parts with donor units in Storage.
+- **🖨️ Pure Vector Barcodes & 2"×1" Thermal Stickers**: Zero-dependency PHP vector Code 128 barcode engine (`core/barcode.php`) and 2x1 thermal label station (`pages/print_storage_label.php`) with SKU-only and detailed specs modes.
 - **Parts Inventory**: Live management of warehouse components (RAM, Storage) with low-stock alerts.
 - **Admin Audit Trail**: Searchable, centralized logs for evaluating individual technician performance and throughput.
 

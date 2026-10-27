@@ -1,5 +1,5 @@
 # 📦 IQA Metal Warehouse Systems — AI Agent Instructions (`/tech`)
-*Last Updated: October 2026 | Timezone: America/Los_Angeles (Pacific Time)*
+*Last Updated: October 2026 • Version 2.5.1 | Timezone: America/Los_Angeles (Pacific Time)*
 
 Welcome to the **Technician Control Center (`/tech`)** module of the IQA Metal Warehouse Systems ecosystem. This document contains mandatory rules, architectural boundaries, and guidelines for AI agents and human developers maintaining or extending this module.
 
@@ -13,6 +13,7 @@ The `/tech` module serves as the primary operational workbench for warehouse har
 4. **Thermal Label Generation**: Generating dependency-free Flat XML (`.fodt`) 2x1 thermal labels via LibreOffice for immediate physical attachment to laptops/desktops.
 5. **Component Stock Tracking**: Managing warehouse inventory for RAM, SSDs, batteries, screens, and diagnostic tools with automated low-stock warnings.
 6. **Administrative Governance & Auditing**: Enforcing dual-control security (technician delete requests requiring admin approvals) and tracking technician daily velocity.
+7. **Storage & Donor Triage Hub**: Managing units waiting for parts ("Missing 1 Part") and donor machines holding viable screens/batteries, with debounced cross-module matching from the testing bench (`pages/logs.php`).
 
 ---
 
@@ -60,3 +61,5 @@ For deep technical architectures and cross-module bridges, consult the following
 - [AI_TECHNICAL_DEEP_DIVE.md](file:///c:/xampp/htdocs/app/tech/DOCS/AI_TECHNICAL_DEEP_DIVE.md) — Comprehensive architecture, data schemas, state machines, and complete API catalog.
 - [MODULE_SITEMAP.md](file:///c:/xampp/htdocs/app/tech/DOCS/MODULE_SITEMAP.md) — Exhaustive inventory of every file, endpoint, route, and UI view.
 - [CROSS_MODULE_INTEGRATION_GUIDE.md](file:///c:/xampp/htdocs/app/tech/DOCS/CROSS_MODULE_INTEGRATION_GUIDE.md) — Protocols for interacting with `/labels/`, `/warehouse/`, `/orders/`, and scanner hardware.
+- [STORAGE_MODULE.md](file:///c:/xampp/htdocs/app/tech/DOCS/STORAGE_MODULE.md) — Architecture and API catalog for the Storage & Donor Matching subsystem.
+- [STORAGE_ROADMAP.md](file:///c:/xampp/htdocs/app/tech/STORAGE_ROADMAP.md) — Blueprint and phase milestones for storage implementation.

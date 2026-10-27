@@ -1,5 +1,5 @@
 # 🗄️ Storage & Donor Hub — Engineering & AI Agent Documentation (`/tech`)
-*IQA Metal Warehouse Systems | Comprehensive Subsystem Specification*
+*IQA Metal Warehouse Systems | Comprehensive Subsystem Specification • Version 2.5.1*
 
 ---
 
@@ -13,7 +13,12 @@ The **Storage & Donor Hub** (`/tech/pages/storage.php`) is a mission-critical wo
 
 ```
 📁 tech/
-├── 📄 pages/storage.php             # Master Touch-First Storage Workbench
+├── 📁 pages/
+│   ├── 📄 storage.php             # Master Touch-First Storage Workbench
+│   └── 📄 print_storage_label.php # 2"×1" Thermal Code 128 Barcode Label Station
+├── 📁 core/
+│   ├── 📄 barcode.php             # Zero-Dependency Vector SVG Code 128 Engine
+│   └── 📄 storage_seeder.php      # Database Seeder & Unit Importer
 ├── 📁 assets/
 │   ├── 📁 styles/storage.css        # Touch-First Styles (≥48px targets)
 │   └── 📁 js/modules/
@@ -160,4 +165,4 @@ sequenceDiagram
 4. **Touch-First UI (≥48px)**:
    - All interactive controls, inputs, and action buttons in `pages/storage.php` and `storage.css` must maintain a minimum touch target of 48px height.
 5. **Regression Verification**:
-   - Always run `C:\xampp\php\php.exe tests/run.php` after modifying storage schemas or endpoints. All 46 tests must pass.
+   - Always run `C:\xampp\php\php.exe tests/run.php` after modifying storage schemas or endpoints. All 48 tests must pass.

@@ -1,5 +1,5 @@
 # 🔌 Cross-Module Integration Guide — Technician Control Center (`/tech`)
-*Last Updated: October 2026 | Timezone: America/Los_Angeles (Pacific Time)*
+*Last Updated: October 2026 • Version 2.5.1 | Timezone: America/Los_Angeles (Pacific Time)*
 
 The **Technician Control Center (`/tech`)** is designed as a modular, decoupled engine that bridges hardware intake with the physical warehouse, catalog label engine, and B2B order fulfillment pipeline.
 
@@ -261,3 +261,22 @@ $sql = "
 $stmt = $db->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ```
+
+---
+
+## 🗄️ 5. Integration with Storage & Donor Matching (`pages/storage.php`)
+
+### Real-Time Bench Donor Match Protocol (`storage_donor_match.js` -> `api/get_storage.php`)
+When a bench technician is entering a laptop in `pages/logs.php` and flags a broken screen or dead battery:
+1. `TechWorkbench.DonorMatch` debounces the model field (`#intake_model_num` or `#intake_series`).
+2. Dispatches an async request to `../api/get_storage.php?donor_model={encoded_model}`.
+3. If matching storage units with working donor parts exist, renders an interactive alert badge above the form:
+   ```html
+   <div class="donor-alert-pill">⚡ Donor Match in Storage: DL-05 has a Good Screen!</div>
+   ```
+
+### Promotion Bridge (`api/promote_storage.php` -> `logs`)
+When a missing-part unit in Storage is repaired using donor parts or freshly delivered components:
+1. Technician clicks **`Promote to Good`** on the Storage Workbench.
+2. `api/promote_storage.php` updates `storage_units.status = 'Promoted to Good'`.
+3. An atomic transaction inserts a new entry into `logs` (`tech.db`) with `status = 'Good'` and `delivery_status = 'Pending'`, allowing the promoted machine to immediately enter the warehouse shelving and thermal labeling workflow.

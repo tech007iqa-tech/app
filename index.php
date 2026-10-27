@@ -103,11 +103,11 @@ if (!Company::isSetupComplete()) {
                     </span>
                 </div>
                 <h2>Technician Center</h2>
-                <p class="card-summary">Hardware diagnostics, computer testing logs, spec auditing, and technical parts inventory management.</p>
+                <p class="card-summary">Hardware diagnostics, computer testing logs, storage donor triage, and technical parts inventory management.</p>
                 <div class="feature-tags">
                     <span class="feature-pill">Hardware Diagnostics</span>
-                    <span class="feature-pill">Parts Inventory</span>
-                    <span class="feature-pill">Testing Yields</span>
+                    <span class="feature-pill">Storage &amp; Donors</span>
+                    <span class="feature-pill">Thermal Labels</span>
                 </div>
                 <div class="card-action-row">
                     <span class="module-launch-link">Launch Module</span>
