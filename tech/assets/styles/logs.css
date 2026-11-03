@@ -829,6 +829,16 @@ details[open] .toggle-icon {
     color: #1e293b;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+#btnFormModeIntake.active {
+    background: white;
+    color: #15803d;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.15);
+}
+#btnFormModeTechSheet.active {
+    background: white;
+    color: #1d4ed8;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+}
 
 .batch-intake-card {
     background: #f0fdf4;

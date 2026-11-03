@@ -71,9 +71,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 <p>Log laptop tests, scan serial barcodes, verify technical specs, print 2"×1" thermal labels, and track deliveries.</p>
             </div>
             <div>
-                <button type="button" onclick="openIntakeModal()" class="btn-primary" style="padding: 14px 26px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.2s;" title="Open New Hardware Intake (Alt+N)">
-                    <span style="font-size: 1.2rem;">➕</span>
-                    <span>Add New Log (Full Technical Sheet)</span>
+                <button type="button" onclick="openIntakeModal()" class="btn-primary" style="padding: 12px 24px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; font-weight: 800; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.2s;" title="Open Hardware Intake (Alt+N)">
+                    <span style="font-size: 1.15rem;">⚡</span>
+                    <span>Hardware Intake</span>
                     <kbd class="hotkey-badge">Alt+N</kbd>
                 </button>
             </div>
@@ -116,9 +116,10 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 
                 <!-- STICKY MODAL HEADER -->
                 <div class="intake-modal-header">
-                    <div class="intake-modal-title">
-                        <span>🏷️</span>
-                        <span>Hardware Intake &amp; Full Technical Sheet</span>
+                    <div class="intake-modal-title" style="display: flex; align-items: center; gap: 10px;">
+                        <span id="modalTitleIcon">🔬</span>
+                        <span id="modalTitleText">Full Technical Sheet</span>
+                        <span id="modalModeBadge" style="font-size: 0.75rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; background: #e0e7ff; color: #3730a3;">🔬 Full Technical Mode</span>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -145,22 +146,33 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                             <!-- ── LEFT COLUMN: FULL TECHNICAL INTAKE FORM ── -->
                             <div class="intake-form-column">
 
-                                <!-- INTAKE MODE SWITCHER & CUTE REUSE PREVIOUS BUTTON -->
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-                                    <div class="intake-mode-switcher">
-                                        <button type="button" class="mode-switch-btn active" id="btnModeSingle" onclick="switchIntakeMode('single')">
-                                            <span>💻 Single Unit</span>
+                                <!-- WORKFLOW & INTAKE MODE CONTROLS -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; background: #f8fafc; padding: 10px 14px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                    <!-- BEHAVIOR SWITCHER: HARDWARE INTAKE vs FULL TECHNICAL SHEET -->
+                                    <div class="intake-mode-switcher" style="background: #e2e8f0;">
+                                        <button type="button" class="mode-switch-btn" id="btnFormModeIntake" onclick="setFormSpecMode('intake')" title="Streamlined fast intake with essential hardware specs">
+                                            <span>⚡</span> <span>Hardware Intake</span>
                                         </button>
-                                        <button type="button" class="mode-switch-btn" id="btnModeBatch" onclick="switchIntakeMode('batch')">
-                                            <span>📦 Batch / Lot Intake (Same Specs)</span>
+                                        <button type="button" class="mode-switch-btn active" id="btnFormModeTechSheet" onclick="setFormSpecMode('techsheet')" title="Deep technical diagnostic sheet (GPU, display, battery health, OS, cosmetic grade)">
+                                            <span>🔬</span> <span>Full Technical Sheet</span>
                                         </button>
                                     </div>
 
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <!-- Small Cute Repeat Previous Specs Button -->
+                                    <!-- SERIAL MODE SWITCHER: SINGLE vs BATCH -->
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <div class="intake-mode-switcher">
+                                            <button type="button" class="mode-switch-btn active" id="btnModeSingle" onclick="switchIntakeMode('single')">
+                                                <span>💻 Single</span>
+                                            </button>
+                                            <button type="button" class="mode-switch-btn" id="btnModeBatch" onclick="switchIntakeMode('batch')">
+                                                <span>📦 Batch</span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Cute Repeat Previous Specs Button -->
                                         <button type="button" id="btnReusePrevious" class="btn-cute-reuse" onclick="populateFromPreviousEntry()" style="display: none;" title="Populate specifications from previous entry">
                                             <span class="cute-sparkle">✨</span>
-                                            <span>Reuse Previous:</span>
+                                            <span>Reuse:</span>
                                             <strong id="cutePrevModelName" class="cute-tag">...</strong>
                                         </button>
                                     </div>
@@ -200,44 +212,6 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                             </div>
                                         </div>
                                         <input type="hidden" id="intake_batch_serials" name="batch_serials" value="">
-                                    </div>
-                                </div>
-
-                                <!-- ONE-TOUCH QUICK PRESETS -->
-                                <div class="preset-shelf-container">
-                                    <div class="preset-shelf-header">
-                                        <div class="preset-shelf-title">
-                                            <span>⚡</span>
-                                            <span>One-Touch Quick Presets (Click to autofill)</span>
-                                        </div>
-                                        <span style="font-size: 0.75rem; color: #64748b;">Saves 90% of typing</span>
-                                    </div>
-                                    <div class="preset-cards-grid">
-                                        <div class="preset-pill-card" onclick="applyPreset('fleet-office')">
-                                            <div class="preset-card-title">⚡ Office Fleet</div>
-                                            <div class="preset-card-subtitle">Dell · i5-8th · 16GB · 256GB SSD</div>
-                                            <span class="preset-card-badge">Most Common</span>
-                                        </div>
-                                        <div class="preset-pill-card" onclick="applyPreset('executive-pro')">
-                                            <div class="preset-card-title">🚀 Executive Pro</div>
-                                            <div class="preset-card-subtitle">HP · i7-10th · 16GB · 512GB SSD</div>
-                                            <span class="preset-card-badge" style="background:#e0f2fe; color:#0369a1;">Refurbished</span>
-                                        </div>
-                                        <div class="preset-pill-card" onclick="applyPreset('budget-student')">
-                                            <div class="preset-card-title">📦 Budget Student</div>
-                                            <div class="preset-card-subtitle">Lenovo · i5-8th · 8GB · 256GB SSD</div>
-                                            <span class="preset-card-badge" style="background:#fef3c7; color:#92400e;">Untested</span>
-                                        </div>
-                                        <div class="preset-pill-card" onclick="applyPreset('apple-m1')">
-                                            <div class="preset-card-title">🍎 MacBook M1</div>
-                                            <div class="preset-card-subtitle">Apple Air · M1 · 8GB · 256GB SSD</div>
-                                            <span class="preset-card-badge" style="background:#f1f5f9; color:#0f172a;">Apple</span>
-                                        </div>
-                                        <div class="preset-pill-card" onclick="applyPreset('for-parts')">
-                                            <div class="preset-card-title">🛠️ For Parts</div>
-                                            <div class="preset-card-subtitle">No RAM · No SSD · Salvage Batch</div>
-                                            <span class="preset-card-badge" style="background:#fee2e2; color:#b91c1c;">Salvage</span>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -337,7 +311,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                         </div>
                                     </div>
 
-                                    <div class="form-grid-2">
+                                    <div class="form-grid-2" id="cpuDetailsRow" style="display: grid;">
                                         <div class="form-group">
                                             <label for="intake_cpu_cores_display">Core Count</label>
                                             <div class="input-suffix-wrapper">
@@ -458,8 +432,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                     </div>
                                 </div>
 
-                                <!-- SECTION 5: DEEP DIAGNOSTIC & SPECIFICATION SHEET -->
-                                <div class="form-panel-section">
+                                <!-- SECTION 5: DEEP DIAGNOSTIC SHEET (Full Technical Sheet Mode) -->
+                                <div id="deepDiagnosticSection" class="form-panel-section" style="display: block; border-left: 4px solid #0284c7;">
                                     <h3 class="form-section-header" style="color: #0369a1;">
                                         <span>🔬</span> Deep Diagnostic Sheet (Full Technical Details)
                                     </h3>
@@ -505,14 +479,14 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                             </select>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="form-group">
+                                <!-- SECTION 6: TECHNICIAN REPAIR & TESTING NOTES -->
+                                <div class="form-panel-section">
+                                    <div class="form-group" style="margin-bottom: 0;">
                                         <label for="intake_notes">Internal Technician Repair &amp; Testing Notes</label>
                                         <textarea id="intake_notes" name="work_notes" rows="2" class="form-control" placeholder="Document testing, thermal repaste, ports check, cosmetic notes..."></textarea>
                                     </div>
-
-                                    <!-- Modular Bench Upgrade & Parts Consumed Tracker -->
-                                    <div id="partsPickerMountPoint"></div>
                                 </div>
 
                             </div>
@@ -902,10 +876,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
     <script src="../assets/js/modules/scanner_guard.js"></script>
     <script src="../assets/js/modules/shelf_chips.js"></script>
     <script src="../assets/js/modules/clipboard_tools.js"></script>
-    <script src="../assets/js/modules/custom_presets.js"></script>
-    <script src="../assets/js/modules/parts_picker.js"></script>
     <script src="../assets/js/modules/export_csv.js"></script>
-    <script src="../assets/js/modules/storage_donor_match.js?v=<?= filemtime(__DIR__ . '/../assets/js/modules/storage_donor_match.js') ?>"></script>
     <script src="../assets/js/tech_workbench.js"></script>
 
     <!-- ═════════════════════════════════════════════════════════════════════
@@ -946,14 +917,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         let smartCatalog = [];
         let specCollisionTimer = null;
 
-        // Built-in Quick Presets Catalog
-        const IQA_Presets = [
-            { id: 'fleet-office', brand: 'Dell', model: 'Latitude', series: '5400', cpu_gen: '8th Gen', cpu_specs: 'i5-8350U', cpu_cores: '4', cpu_speed: '1.70', ram: '16 GB', storage: '256 GB SSD', condition: 'Refurbished' },
-            { id: 'executive-pro', brand: 'HP', model: 'EliteBook', series: '840 G6', cpu_gen: '8th Gen', cpu_specs: 'i7-8665U', cpu_cores: '4', cpu_speed: '1.90', ram: '16 GB', storage: '512 GB SSD', condition: 'Refurbished' },
-            { id: 'budget-student', brand: 'Lenovo', model: 'ThinkPad', series: 'T480', cpu_gen: '8th Gen', cpu_specs: 'i5-8250U', cpu_cores: '4', cpu_speed: '1.60', ram: '8 GB', storage: '256 GB SSD', condition: 'Untested' },
-            { id: 'apple-m1', brand: 'Apple', model: 'MacBook Air', series: 'A2337', cpu_gen: 'Apple M1', cpu_specs: 'M1 8-Core', cpu_cores: '8', cpu_speed: '3.20', ram: '8 GB', storage: '256 GB SSD', condition: 'Refurbished' },
-            { id: 'for-parts', brand: 'Dell', model: 'Latitude', series: '5490', cpu_gen: '8th Gen', cpu_specs: 'i5-8250U', cpu_cores: '4', cpu_speed: '', ram: 'No RAM', storage: 'No SSD', condition: 'For Parts' }
-        ];
+        // Workflow spec mode state ('intake' or 'techsheet' - defaults to full technical sheet)
+        let currentSpecMode = 'techsheet';
 
         // ── 0. SMART LABEL CATALOG & COLLISION CONTROLLER ─────────────────────
         async function fetchSmartCatalog() {
@@ -1227,13 +1192,53 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         }
 
         // ── 1. MODAL VISIBILITY & FULLSCREEN CONTROLS ───────────────────────
-        function openIntakeModal() {
+        function setFormSpecMode(mode) {
+            currentSpecMode = mode;
+            const btnIntake = document.getElementById('btnFormModeIntake');
+            const btnTechSheet = document.getElementById('btnFormModeTechSheet');
+            const deepSection = document.getElementById('deepDiagnosticSection');
+            const cpuDetailsRow = document.getElementById('cpuDetailsRow');
+            const modalTitleText = document.getElementById('modalTitleText');
+            const modalModeBadge = document.getElementById('modalModeBadge');
+            const modalTitleIcon = document.getElementById('modalTitleIcon');
+
+            if (mode === 'techsheet') {
+                if (btnTechSheet) btnTechSheet.classList.add('active');
+                if (btnIntake) btnIntake.classList.remove('active');
+                if (deepSection) deepSection.style.display = 'block';
+                if (cpuDetailsRow) cpuDetailsRow.style.display = 'grid';
+                if (modalTitleIcon) modalTitleIcon.textContent = '🔬';
+                if (modalTitleText) modalTitleText.textContent = 'Full Technical Sheet & Diagnostics';
+                if (modalModeBadge) {
+                    modalModeBadge.textContent = '🔬 Deep Technical Mode';
+                    modalModeBadge.style.background = '#e0e7ff';
+                    modalModeBadge.style.color = '#3730a3';
+                }
+            } else {
+                if (btnIntake) btnIntake.classList.add('active');
+                if (btnTechSheet) btnTechSheet.classList.remove('active');
+                if (deepSection) deepSection.style.display = 'none';
+                if (cpuDetailsRow) cpuDetailsRow.style.display = 'none';
+                if (modalTitleIcon) modalTitleIcon.textContent = '🏷️';
+                if (modalTitleText) modalTitleText.textContent = 'Hardware Intake';
+                if (modalModeBadge) {
+                    modalModeBadge.textContent = '⚡ Simple Intake Mode';
+                    modalModeBadge.style.background = '#dcfce7';
+                    modalModeBadge.style.color = '#15803d';
+                }
+            }
+        }
+
+        function openIntakeModal(mode = 'techsheet') {
             const modal = document.getElementById('techIntakeModal');
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
 
             // Always open with a default blank slate entry
             resetIntakeForm();
+
+            // Set the requested spec workflow mode
+            setFormSpecMode(mode);
 
             // Refresh availability of the cute repeat button
             checkPreviousSpecsAvailable();
@@ -1444,25 +1449,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             fetchLogs();
         }
 
-        // ── 2. PRESETS & PILL HANDLERS ───────────────────────────────────────
+        // ── 2. SPECIFICATION PILL HANDLERS ───────────────────────────────────
         function applyPreset(presetId) {
-            const p = IQA_Presets.find(item => item.id === presetId);
-            if (!p) return;
-
-            selectBrandPill(p.brand);
-            document.getElementById('intake_model').value = p.model;
-            document.getElementById('intake_series').value = p.series;
-            document.getElementById('intake_cpu_gen').value = p.cpu_gen;
-            document.getElementById('intake_cpu_specs').value = p.cpu_specs;
-            
-            onCpuCoresInput(p.cpu_cores);
-            onCpuSpeedInput(p.cpu_speed);
-
-            selectSpecPill('ram', p.ram);
-            selectSpecPill('storage', p.storage);
-            document.getElementById('intake_condition').value = p.condition;
-
-            onSpecsInputChange();
+            // Presets removed per streamlined intake separation
         }
 
         function selectBrandPill(brand) {

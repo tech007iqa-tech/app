@@ -109,6 +109,7 @@
                         <a href="storage.php?search=${encodeURIComponent(term)}" target="_blank" style="background: white; color: #0369a1; border: 1px solid #7dd3fc; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; text-decoration: none;" title="Open Storage Hub in new tab">
                             Open Hub ↗
                         </a>
+                        <button type="button" onclick="TechWorkbench.DonorMatch.clearAlert()" style="background: none; border: none; color: #0284c7; font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1; font-weight: 700;" title="Dismiss">&times;</button>
                     </div>
                 </div>
 
