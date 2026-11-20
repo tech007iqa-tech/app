@@ -97,6 +97,10 @@ Many warehouse managers perform hardware audits using iPads. To prevent styling 
 - **Viewport Bounds**: Modal windows and overlays should use `100dvh` (Dynamic Viewport Height) to ensure they render cleanly behind the Safari navigation toolbars.
 - **Touch Targets**: All clickable elements (buttons, badge inputs, close tags) must maintain a minimum bounding box of `48px` × `48px` to support error-free touch interaction.
 - **Hover Dependency**: Never hide critical actions behind hover triggers. All edit and delete paths must be directly clickable on touchscreen interfaces.
+- **Customer Registry Lifecycle & Return Navigation (iPhone / iOS Safari)**:
+  - **One-Time Consumed Return Handoff**: When a user clicks an order from a customer's history in `customer_registry.php` and navigates to `checkout.php`, the server records `$_SESSION['return_customer_id'] = $customer_id` and `$_SESSION['last_viewed_order_id'] = $active_order_id`. Upon hitting Back in Mobile Safari or tapping the exit checkmark, PHP server-renders the customer's full details and fulfillment history directly into `#side-details` and executes an immediate inline mobile scroll to `[data-order-id]`. `$_SESSION['return_customer_id']` is consumed and unset immediately so subsequent visits stay clean.
+  - **Clean Breadcrumb Reset**: Clicking the `1 Customers` breadcrumb (`index.php?reset=1` calling `clearActiveCustomer()`) MUST always clear client storage (`sessionStorage`/`localStorage`), purge session customer state, and render the default blank view (`Select a customer on the left to see full details.`). Never allow sticky storage or session caching to force-select a customer on a clean visit without an explicit `#customer-CUST-xxx` URL hash or query parameter.
+  - **Anti-Cache Headers**: `index.php` enforces `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` to prevent iOS Safari BFCache from freezing stale empty states.
 
 ---
 

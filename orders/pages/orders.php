@@ -66,7 +66,7 @@ if (UI::is_ajax()) {
                 </td>
                 <td style="padding: 20px 24px;">
                     <div style="display:flex; align-items:center; gap: 8px;">
-                        <a href="index.php#customer-details" onclick="localStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>')"><div style="font-weight: 700; color: var(--text-main);"><?= htmlspecialchars($company) ?></div></a>
+                        <a href="index.php#customer-<?= urlencode($order['customer_id']) ?>" onclick="sessionStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>'); localStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>');"><div style="font-weight: 700; color: var(--text-main);"><?= htmlspecialchars($company) ?></div></a>
                         <button type="button" class="btn-transfer-small no-print" onclick="openTransferModal('<?= htmlspecialchars($order['order_id']) ?>', '<?= htmlspecialchars($order['customer_id']) ?>')" title="Transfer" style="background:none; border:none; cursor:pointer; font-size: 0.8rem; opacity:0.3; transition: opacity 0.2s;">⇄</button>
                     </div>
                     <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace; margin-top: 2px;"><?= htmlspecialchars($order['customer_id']) ?></div>
@@ -190,7 +190,7 @@ if (UI::is_ajax()) {
                         </td>
                         <td style="padding: 20px 24px;">
                             <div style="display:flex; align-items:center; gap: 8px;">
-                                <a href="index.php#customer-details" onclick="localStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>')"><div style="font-weight: 700; color: var(--text-main);"><?= htmlspecialchars($company) ?></div></a>
+                                <a href="index.php#customer-<?= urlencode($order['customer_id']) ?>" onclick="sessionStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>'); localStorage.setItem('active_customer_id', '<?= $order['customer_id'] ?>');"><div style="font-weight: 700; color: var(--text-main);"><?= htmlspecialchars($company) ?></div></a>
                                 <button type="button" class="btn-transfer-small no-print" onclick="openTransferModal('<?= htmlspecialchars($order['order_id']) ?>', '<?= htmlspecialchars($order['customer_id']) ?>')" title="Transfer" style="background:none; border:none; cursor:pointer; font-size: 0.8rem; opacity:0.3; transition: opacity 0.2s;">⇄</button>
                             </div>
                             <div style="font-size: 0.7rem; color: #94a3b8; font-family: monospace; margin-top: 2px;"><?= htmlspecialchars($order['customer_id']) ?></div>

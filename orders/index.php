@@ -2,11 +2,19 @@
 if (!ob_start('ob_gzhandler')) {
     ob_start();
 }
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 require_once 'core/database.php';
 require_once __DIR__ . '/core/UI.php';
 include 'core/auth.php';
 
 // --- ROUTING & LOGIC PHASE (Pre-Output) ---
+if (isset($_GET['reset'])) {
+    unset($_SESSION['active_customer_id']);
+    unset($_SESSION['return_customer_id']);
+    unset($_SESSION['last_viewed_order_id']);
+}
 $view = $_GET['view'] ?? 'default';
 $is_new_order = (!isset($_GET['view']) || $_GET['view'] === 'new_order') && !empty($_GET['customer_id']);
 
@@ -139,7 +147,8 @@ $page_content = ob_get_clean();
     <div class="breadcrumb-container" role="banner">
         <nav class="breadcrumbs">
             <?php if ($user_role === 'Admin'): ?>
-                <a href="index.php"
+                <a href="index.php?reset=1"
+                    onclick="if (typeof clearActiveCustomer === 'function') { clearActiveCustomer(); }"
                     class="crumb <?= !isset($_GET['customer_id']) && (!isset($_GET['view']) || $_GET['view'] === 'default') ? 'active' : '' ?>">
                     <span class="step-num">1</span> Customers
                 </a>

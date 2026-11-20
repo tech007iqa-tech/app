@@ -32,6 +32,13 @@ try {
         $active_order_id = $row['order_id'] ?? 'ORD-DEFAULT';
     }
 
+    // Persist active navigation state in session for reliable return navigation
+    $_SESSION['active_customer_id'] = $customer_id;
+    $_SESSION['return_customer_id'] = $customer_id;
+    if ($active_order_id) {
+        $_SESSION['last_viewed_order_id'] = $active_order_id;
+    }
+
     // 3. Fetch order details (specifically for the date)
     $stmt_o = $conn_items->prepare("SELECT * FROM orders WHERE customer_id = ? AND order_id = ?");
     $stmt_o->execute([$customer_id, $active_order_id]);
@@ -168,8 +175,8 @@ try {
             Manifest</h1>
 
         <div class="header-success no-print" style="text-align: center; margin-bottom: 30px;">
-            <a href="index.php"
-                onclick="return confirm('Are you sure you want to leave checkout? Any unsaved changes on this manifest will be lost.')"
+            <a href="index.php?select_customer=<?= urlencode($customer_id) ?>#customer-<?= urlencode($customer_id) ?>"
+                onclick="sessionStorage.setItem('active_customer_id', '<?= htmlspecialchars($customer_id) ?>'); localStorage.setItem('active_customer_id', '<?= htmlspecialchars($customer_id) ?>'); return confirm('Are you sure you want to leave checkout? Any unsaved changes on this manifest will be lost.')"
                 style="text-decoration: none; display: inline-block; outline: none; -webkit-tap-highlight-color: transparent;">
                 <div class="icon-check" style="cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
                     onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)';">✓

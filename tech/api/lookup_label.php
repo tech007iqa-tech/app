@@ -72,18 +72,20 @@ try {
     // ─────────────────────────────────────────────────────────────────────────
     if ($action === 'check_specs') {
         $brand     = trim($_GET['brand'] ?? $_POST['brand'] ?? '');
-        $model     = trim($_GET['model'] ?? $_POST['model'] ?? '');
-        $series    = trim($_GET['series'] ?? $_POST['series'] ?? '');
-        $cpu_specs = trim($_GET['cpu_specs'] ?? $_POST['cpu_specs'] ?? '');
-        $ram       = trim($_GET['ram'] ?? $_POST['ram'] ?? '');
-        $storage   = trim($_GET['storage'] ?? $_POST['storage'] ?? '');
+        $model      = trim($_GET['model'] ?? $_POST['model'] ?? '');
+        $series     = trim($_GET['series'] ?? $_POST['series'] ?? '');
+        $cpu_gen    = trim($_GET['cpu_gen'] ?? $_POST['cpu_gen'] ?? '');
+        $cpu_specs  = trim($_GET['cpu_specs'] ?? $_POST['cpu_specs'] ?? '');
+        $ram        = trim($_GET['ram'] ?? $_POST['ram'] ?? '');
+        $storage    = trim($_GET['storage'] ?? $_POST['storage'] ?? '');
+        $os_version = trim($_GET['os_version'] ?? $_GET['os'] ?? $_POST['os_version'] ?? $_POST['os'] ?? '');
 
         if ($brand === '' || $model === '') {
             echo json_encode(['success' => true, 'found' => false, 'message' => 'Brand and Model required for collision check.']);
             exit();
         }
 
-        // Query for matching specs
+        // Query for matching specs (including OS and CPU Gen)
         $stmt_check = $conn->prepare("
             SELECT * FROM items
             WHERE LOWER(TRIM(brand)) = LOWER(TRIM(:brand))
@@ -91,6 +93,10 @@ try {
               AND (
                     LOWER(TRIM(COALESCE(series, ''))) = LOWER(TRIM(:series))
                     OR (:series = '' AND (series IS NULL OR series = ''))
+                  )
+              AND (
+                    LOWER(TRIM(COALESCE(cpu_gen, ''))) = LOWER(TRIM(:cpu_gen))
+                    OR (:cpu_gen = '' AND (cpu_gen IS NULL OR cpu_gen = ''))
                   )
               AND (
                     LOWER(TRIM(COALESCE(cpu_specs, ''))) = LOWER(TRIM(:cpu_specs))
@@ -104,6 +110,10 @@ try {
                     LOWER(TRIM(COALESCE(storage, ''))) = LOWER(TRIM(:storage))
                     OR (:storage = '' AND (storage IS NULL OR storage = ''))
                   )
+              AND (
+                    LOWER(TRIM(COALESCE(os_version, ''))) = LOWER(TRIM(:os))
+                    OR (:os = '' AND (os_version IS NULL OR os_version = ''))
+                  )
             ORDER BY id ASC
             LIMIT 1
         ");
@@ -112,9 +122,11 @@ try {
             ':brand'     => $brand,
             ':model'     => $model,
             ':series'    => $series,
+            ':cpu_gen'   => $cpu_gen,
             ':cpu_specs' => $cpu_specs,
             ':ram'       => $ram,
-            ':storage'   => $storage
+            ':storage'   => $storage,
+            ':os'        => $os_version
         ]);
 
         $matched = $stmt_check->fetch(PDO::FETCH_ASSOC);

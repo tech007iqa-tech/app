@@ -420,14 +420,14 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                         <div class="form-group">
                                             <label>Delivery Target Status</label>
                                             <select id="intake_delivery_status" name="delivery_status" class="form-control" onchange="onDeliveryTargetChange(this.value)">
-                                                <option value="Pending" selected>⏳ Pending Delivery / Testing In Progress</option>
-                                                <option value="Delivered to Shelf">📦 Deliver to Warehouse Shelf Stock</option>
+                                                <option value="Delivered to Shelf" selected>📦 Deliver to Warehouse Shelf Stock</option>
+                                                <option value="Pending">⏳ Pending Delivery / Testing In Progress</option>
                                                 <option value="Delivered to Order">🚚 Deliver to Customer Order / Buyer</option>
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <label for="intake_delivery_destination" id="lblDeliveryDestination">Destination Details</label>
-                                            <input type="text" id="intake_delivery_destination" name="delivery_destination" class="form-control" placeholder="e.g. Shelf A-1-2 or Order #1042 (Alex M.)">
+                                            <label for="intake_delivery_destination" id="lblDeliveryDestination">SHELF LOCATION:</label>
+                                            <input type="text" id="intake_delivery_destination" name="delivery_destination" class="form-control" placeholder="e.g. Shelf A-1-2">
                                         </div>
                                     </div>
                                 </div>
@@ -484,8 +484,11 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                 <!-- SECTION 6: TECHNICIAN REPAIR & TESTING NOTES -->
                                 <div class="form-panel-section">
                                     <div class="form-group" style="margin-bottom: 0;">
-                                        <label for="intake_notes">Internal Technician Repair &amp; Testing Notes</label>
-                                        <textarea id="intake_notes" name="work_notes" rows="2" class="form-control" placeholder="Document testing, thermal repaste, ports check, cosmetic notes..."></textarea>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <label for="intake_notes" style="margin-bottom: 0;">Internal Technician Repair &amp; Testing Notes</label>
+                                            <span id="notesWordCountBadge" style="font-size: 0.78rem; font-weight: 700; color: #64748b; transition: all 0.2s;">0 / 3 words</span>
+                                        </div>
+                                        <textarea id="intake_notes" name="work_notes" rows="2" class="form-control" placeholder="Max 3 words (e.g. Screen scratch A, New battery, Clean tested)..." oninput="onNotesInput(this)" onblur="onNotesBlur(this)" style="transition: background-color 0.2s, border-color 0.2s;"></textarea>
                                     </div>
                                 </div>
 
@@ -569,6 +572,9 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                                 <div class="mockup-spec-line">
                                                     <strong>GPU:</strong> <span id="prevSpecsGpu">Integrated</span> &nbsp;|&nbsp;
                                                     <strong>OS:</strong> <span id="prevSpecsOs">Win 11 Pro</span>
+                                                </div>
+                                                <div class="mockup-spec-line">
+                                                    <strong>NOTE:</strong> <span id="prevSpecsNotes">—</span>
                                                 </div>
                                             </div>
                                             <div class="mockup-footer">
@@ -1151,20 +1157,39 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             const brand = document.getElementById('intake_brand')?.value?.trim() || '';
             const model = document.getElementById('intake_model')?.value?.trim() || '';
             const series = document.getElementById('intake_series')?.value?.trim() || '';
+            const cpuGen = document.getElementById('intake_cpu_gen')?.value?.trim() || '';
             const cpuSpecs = document.getElementById('intake_cpu_specs')?.value?.trim() || '';
             const ram = document.getElementById('intake_ram')?.value?.trim() || '';
             const storage = document.getElementById('intake_storage')?.value?.trim() || '';
+            const os = document.getElementById('intake_os')?.value?.trim() || '';
+            const gpu = document.getElementById('intake_gpu')?.value?.trim() || '';
+            const condition = document.getElementById('intake_condition')?.value?.trim() || 'Refurbished';
 
             if (!brand || !model) return;
 
-            // Find matching label in smartCatalog
+            const norm = (s) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+            // Find matching label in smartCatalog: MUST match all specifications including OS!
             const match = smartCatalog.find(l => {
-                return l.brand.toLowerCase() === brand.toLowerCase() &&
-                       l.model.toLowerCase() === model.toLowerCase() &&
-                       (l.series || '').toLowerCase() === series.toLowerCase() &&
-                       (l.cpu_specs || '').toLowerCase() === cpuSpecs.toLowerCase() &&
-                       (l.ram || '').toLowerCase() === ram.toLowerCase() &&
-                       (l.storage || '').toLowerCase() === storage.toLowerCase();
+                const brandMatch = norm(l.brand) === norm(brand);
+                const modelMatch = norm(l.model) === norm(model);
+                const seriesMatch = norm(l.series) === norm(series);
+                const cpuGenMatch = (!l.cpu_gen && !cpuGen) || (norm(l.cpu_gen) === norm(cpuGen));
+                const cpuSpecsMatch = norm(l.cpu_specs) === norm(cpuSpecs);
+                const ramMatch = norm(l.ram) === norm(ram);
+                const storageMatch = norm(l.storage) === norm(storage);
+
+                // OS MUST MATCH! If OS is different (e.g. Big Sur vs Sequoia), it CANNOT share the same label
+                const osMatch = (!l.os_version && !os) || (norm(l.os_version) === norm(os));
+
+                // GPU match
+                const gpuMatch = (!l.gpu && !gpu) || (norm(l.gpu) === norm(gpu));
+
+                // Condition / salvage match
+                const isForParts = (l.description === 'For Parts' || l.status === 'Bad');
+                const condMatch = (condition === 'For Parts') ? isForParts : !isForParts;
+
+                return brandMatch && modelMatch && seriesMatch && cpuGenMatch && cpuSpecsMatch && ramMatch && storageMatch && osMatch && gpuMatch && condMatch;
             });
 
             if (match) {
@@ -1182,13 +1207,15 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 }
                 renderLocationChips(match.locations_list);
             } else {
-                // Unique specs
+                // Unique specs (including different OS or custom variant): clear connected label ID
                 document.getElementById('intake_label_id').value = '';
                 const banner = document.getElementById('smartMatchedBanner');
                 if (banner) banner.style.display = 'none';
                 const locBar = document.getElementById('smartLocationChips');
                 if (locBar) locBar.style.display = 'none';
             }
+            renderSmartChips(smartCatalog);
+            updateLivePreview();
         }
 
         // ── 1. MODAL VISIBILITY & FULLSCREEN CONTROLS ───────────────────────
@@ -1776,6 +1803,13 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             if (specsLoc) specsLoc.textContent = `📍 LOC: ${loc}`;
             const specsCond = document.getElementById('prevSpecsCond');
             if (specsCond) specsCond.textContent = cond;
+
+            // Notes on Sticker B (strictly 3 words max)
+            const rawNotes = document.getElementById('intake_notes')?.value?.trim() || '';
+            const wordsList = rawNotes.length > 0 ? rawNotes.split(/\s+/).filter(Boolean) : [];
+            const clean3Words = wordsList.slice(0, 3).join(' ');
+            const specsNotes = document.getElementById('prevSpecsNotes');
+            if (specsNotes) specsNotes.textContent = clean3Words || '—';
         }
 
         // Live input listeners for mockup and reactive spec collision matching
@@ -1787,27 +1821,91 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             }
         });
 
-        function switchPreviewTab(mode) {
+        // ── 3-WORD NOTE INPUT ENFORCEMENT & VISUAL WARNING ───────────────────
+        function onNotesInput(input) {
+            const val = input.value.trim();
+            const words = val.length > 0 ? val.split(/\s+/).filter(Boolean) : [];
+            const count = words.length;
+            const badge = document.getElementById('notesWordCountBadge');
+
+            if (count > 3) {
+                // Red background in CSS when user goes past 3 words
+                input.style.backgroundColor = '#fee2e2';
+                input.style.borderColor = '#ef4444';
+                input.style.color = '#991b1b';
+                if (badge) {
+                    badge.textContent = `⚠️ ${count} / 3 words (Max 3 words allowed)`;
+                    badge.style.color = '#dc2626';
+                    badge.style.fontWeight = '800';
+                }
+            } else {
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+                input.style.color = '';
+                if (badge) {
+                    badge.textContent = `${count} / 3 words`;
+                    badge.style.color = count === 3 ? '#16a34a' : '#64748b';
+                    badge.style.fontWeight = '700';
+                }
+            }
+            updateLivePreview();
+        }
+
+        function onNotesBlur(input) {
+            const val = input.value.trim();
+            const words = val.length > 0 ? val.split(/\s+/).filter(Boolean) : [];
+            if (words.length > 3) {
+                input.value = words.slice(0, 3).join(' ');
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+                input.style.color = '';
+                const badge = document.getElementById('notesWordCountBadge');
+                if (badge) {
+                    badge.textContent = '3 / 3 words';
+                    badge.style.color = '#16a34a';
+                    badge.style.fontWeight = '700';
+                }
+                updateLivePreview();
+            }
+        }
+
+        // ── THERMAL PRINT MODE (DUAL / BRAND / SPECS) & PERSISTENCE ─────────
+        function getSavedPrintMode() {
+            try {
+                const saved = localStorage.getItem('tech_thermal_print_mode');
+                if (saved === 'both' || saved === 'a' || saved === 'b') return saved;
+            } catch(e) {}
+            return 'both'; // Dual is default
+        }
+
+        function switchPreviewTab(mode, save = true) {
+            const targetMode = (mode === 'both' || mode === 'a' || mode === 'b') ? mode : 'both';
             const btnBoth = document.getElementById('btnPrevBoth');
             const btnA = document.getElementById('btnPrevA');
             const btnB = document.getElementById('btnPrevB');
             const mockupA = document.getElementById('mockupLabelA');
             const mockupB = document.getElementById('mockupLabelB');
 
-            [btnBoth, btnA, btnB].forEach(b => b.classList.remove('active'));
+            [btnBoth, btnA, btnB].forEach(b => b?.classList.remove('active'));
 
-            if (mode === 'both') {
-                btnBoth.classList.add('active');
-                mockupA.style.display = 'flex';
-                mockupB.style.display = 'flex';
-            } else if (mode === 'a') {
-                btnA.classList.add('active');
-                mockupA.style.display = 'flex';
-                mockupB.style.display = 'none';
-            } else if (mode === 'b') {
-                btnB.classList.add('active');
-                mockupA.style.display = 'none';
-                mockupB.style.display = 'flex';
+            if (targetMode === 'both') {
+                btnBoth?.classList.add('active');
+                if (mockupA) mockupA.style.display = 'flex';
+                if (mockupB) mockupB.style.display = 'flex';
+            } else if (targetMode === 'a') {
+                btnA?.classList.add('active');
+                if (mockupA) mockupA.style.display = 'flex';
+                if (mockupB) mockupB.style.display = 'none';
+            } else if (targetMode === 'b') {
+                btnB?.classList.add('active');
+                if (mockupA) mockupA.style.display = 'none';
+                if (mockupB) mockupB.style.display = 'flex';
+            }
+
+            if (save) {
+                try {
+                    localStorage.setItem('tech_thermal_print_mode', targetMode);
+                } catch(e) {}
             }
         }
 
@@ -1838,7 +1936,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                     location: document.getElementById('intake_location')?.value || '',
                     pin_location: document.getElementById('intake_pin_location')?.checked || false,
                     bios_state: document.getElementById('intake_bios_state')?.value || 'Unlocked',
-                    delivery_status: document.getElementById('intake_delivery_status')?.value || 'Pending',
+                    delivery_status: document.getElementById('intake_delivery_status')?.value || 'Delivered to Shelf',
                     delivery_destination: document.getElementById('intake_delivery_destination')?.value || '',
                     gpu: document.getElementById('intake_gpu')?.value || '',
                     screen_res: document.getElementById('intake_screen_res')?.value || '',
@@ -1937,8 +2035,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             // Security & Delivery
             if (document.getElementById('intake_bios_state')) document.getElementById('intake_bios_state').value = specs.bios_state || 'Unlocked';
             if (document.getElementById('intake_delivery_status')) {
-                document.getElementById('intake_delivery_status').value = specs.delivery_status || 'Pending';
-                onDeliveryTargetChange(specs.delivery_status || 'Pending');
+                document.getElementById('intake_delivery_status').value = specs.delivery_status || 'Delivered to Shelf';
+                onDeliveryTargetChange(specs.delivery_status || 'Delivered to Shelf');
             }
             if (document.getElementById('intake_delivery_destination')) {
                 document.getElementById('intake_delivery_destination').value = specs.delivery_destination || '';
@@ -2015,7 +2113,18 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             if (document.getElementById('intake_cpu')) document.getElementById('intake_cpu').value = '';
             if (document.getElementById('intake_gpu')) document.getElementById('intake_gpu').value = '';
             if (document.getElementById('intake_screen_res')) document.getElementById('intake_screen_res').value = '';
-            if (document.getElementById('intake_notes')) document.getElementById('intake_notes').value = '';
+            if (document.getElementById('intake_notes')) {
+                const ni = document.getElementById('intake_notes');
+                ni.value = '';
+                ni.style.backgroundColor = '';
+                ni.style.borderColor = '';
+                ni.style.color = '';
+                const badge = document.getElementById('notesWordCountBadge');
+                if (badge) {
+                    badge.textContent = '0 / 3 words';
+                    badge.style.color = '#64748b';
+                }
+            }
             if (document.getElementById('intake_label_id')) document.getElementById('intake_label_id').value = '';
             if (document.getElementById('intake_battery_specs')) document.getElementById('intake_battery_specs').value = '';
             if (document.getElementById('intake_delivery_destination')) document.getElementById('intake_delivery_destination').value = '';
@@ -2030,6 +2139,10 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             clearMatchedProfile();
             unlinkSmartLabel();
             clearSmartSearch();
+            if (document.getElementById('intake_delivery_status')) {
+                document.getElementById('intake_delivery_status').value = 'Delivered to Shelf';
+                onDeliveryTargetChange('Delivered to Shelf');
+            }
             updateLivePreview();
 
             // Refresh cute repeat button state
@@ -2091,6 +2204,24 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 msgEl.textContent = '❌ Brand and Model are required.';
                 msgEl.style.color = '#dc2626';
                 return;
+            }
+
+            // Sanitize notes input to 3 words max and reset error background if needed
+            const notesInput = document.getElementById('intake_notes');
+            if (notesInput) {
+                const rawNotesVal = notesInput.value.trim();
+                const noteWords = rawNotesVal.length > 0 ? rawNotesVal.split(/\s+/).filter(Boolean) : [];
+                if (noteWords.length > 3) {
+                    notesInput.value = noteWords.slice(0, 3).join(' ');
+                    notesInput.style.backgroundColor = '';
+                    notesInput.style.borderColor = '';
+                    notesInput.style.color = '';
+                    const badge = document.getElementById('notesWordCountBadge');
+                    if (badge) {
+                        badge.textContent = '3 / 3 words';
+                        badge.style.color = '#16a34a';
+                    }
+                }
             }
 
             // Acquire lock and disable all action buttons
@@ -2186,9 +2317,10 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                 if (action === 'thermal') {
                     const labelId = result.label_id;
                     const labelIds = result.label_ids || (labelId ? [labelId] : []);
+                    const newLogId = result.log_id || result.id || null;
                     if (labelIds.length > 0) {
                         labelIds.forEach((lid, i) => {
-                            setTimeout(() => printThermalDirect(lid), i * 600);
+                            setTimeout(() => printThermalDirect(lid, null, null, newLogId), i * 600);
                         });
                     }
                 }
@@ -2228,8 +2360,21 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
         }
 
         // Direct Browser Thermal Printing Bridge (2" x 1")
-        function printThermalDirect(labelId) {
-            const printUrl = `../../labels/print_label.php?id=${labelId}&mode=both&autoprint=1`;
+        function printThermalDirect(labelId, mode = null, notes = null, logId = null) {
+            const activeMode = mode || getSavedPrintMode();
+            let noteParam = '';
+            if (notes !== null && notes !== undefined) {
+                const words = String(notes).trim().split(/\s+/).filter(Boolean).slice(0, 3).join(' ');
+                if (words) noteParam = `&notes=${encodeURIComponent(words)}`;
+            } else {
+                const formNotes = document.getElementById('intake_notes')?.value?.trim() || '';
+                if (formNotes) {
+                    const words = formNotes.split(/\s+/).filter(Boolean).slice(0, 3).join(' ');
+                    if (words) noteParam = `&notes=${encodeURIComponent(words)}`;
+                }
+            }
+            const logIdParam = logId ? `&log_id=${encodeURIComponent(logId)}` : '';
+            const printUrl = `../../labels/print_label.php?id=${labelId}&mode=${activeMode}${noteParam}${logIdParam}&autoprint=1`;
             const frame = document.getElementById('thermalPrintFrame');
             if (frame) {
                 frame.src = printUrl;
@@ -2458,7 +2603,7 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
                                 `<button onclick="openDeliveryModal(${log.id}, '${escapeJs(log.location || '')}')" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 800;" title="Update warehouse shelf or order delivery">🚚 Deliver</button>` : '';
 
                             const thermalPrintBtn = log.label_id ?
-                                `<button onclick="printThermalDirect(${log.label_id})" style="background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 800;" title="Print 2x1 Thermal Label">🖨️ Thermal</button>` : '';
+                                `<button onclick="printThermalDirect(${log.label_id}, null, '${escapeJs(log.notes || '')}', ${log.id})" style="background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 800;" title="Print 2x1 Thermal Label">🖨️ Thermal</button>` : '';
 
                             controlHtml = `
                                 ${statusText}
@@ -2802,7 +2947,8 @@ $selected_tech = htmlspecialchars($_GET['tech_id'] ?? '');
             syncOfflineQueue();
         });
 
-        // Initial fetch & check offline queue & previous specs
+        // Initial fetch & check offline queue & previous specs & apply saved thermal print mode
+        switchPreviewTab(getSavedPrintMode(), false);
         renderOfflineQueueBanner();
         checkPreviousSpecsAvailable();
         fetchLogs();

@@ -29,8 +29,10 @@
 /**
  * Displays customer details in the sidebar
  * @param {HTMLElement} el
+ * @param {Object} [options]
+ * @param {boolean} [options.scrollSide=false]
  */
-function showDetails(el) {
+function showDetails(el, options = {}) {
     const cards = document.getElementsByClassName('cust-card');
     for (let c of cards) {
         c.classList.remove('active');
@@ -42,10 +44,59 @@ function showDetails(el) {
 
     try {
         const data = JSON.parse(rawData);
+
+        // Persist active customer in session and local storage
+        if (data && data.customer_id) {
+            try {
+                sessionStorage.setItem('active_customer_id', data.customer_id);
+                localStorage.setItem('active_customer_id', data.customer_id);
+            } catch (e) {}
+
+            // Background sync session with server
+            try {
+                fetch('api/set_active_customer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'customer_id=' + encodeURIComponent(data.customer_id)
+                }).catch(() => {});
+            } catch (e) {}
+
+            // Sync URL hash without triggering unwanted jumps
+            if (window.history && window.history.replaceState) {
+                history.replaceState({ customer_id: data.customer_id }, '', '#customer-' + encodeURIComponent(data.customer_id));
+            }
+        }
+
         renderDetailView(data);
+
+        // Mobile UX: Scroll to details if user explicitly tapped to view
+        if (options.scrollSide && window.innerWidth < 992) {
+            const side = document.getElementById('customer-details');
+            if (side) {
+                side.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     } catch (e) {
         console.error("Failed to parse customer data", e);
     }
+}
+
+/**
+ * Preserves the active customer and clicked order before navigating away
+ * @param {string} customerId
+ * @param {string} orderId
+ */
+function recordActiveOrder(customerId, orderId) {
+    try {
+        if (customerId) {
+            sessionStorage.setItem('active_customer_id', customerId);
+            localStorage.setItem('active_customer_id', customerId);
+        }
+        if (orderId) {
+            sessionStorage.setItem('last_viewed_order_id', orderId);
+            localStorage.setItem('last_viewed_order_id', orderId);
+        }
+    } catch (e) {}
 }
 
 /**
@@ -149,7 +200,9 @@ function renderDetailView(data) {
                     ${drafts.length > 0 ? drafts.map(o => `
                         <div style="display:flex; align-items:center; gap:10px;">
                             <a href="index.php?customer_id=${encodeURIComponent(data.customer_id)}&order_id=${encodeURIComponent(o.order_id)}"
-                               class="order-row-link" style="flex:1;">
+                               class="order-row-link" style="flex:1;"
+                               data-order-id="${escapeHTML(o.order_id)}"
+                               onclick="recordActiveOrder('${escapeHTML(data.customer_id)}', '${escapeHTML(o.order_id)}')">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${o.order_id}</div>
                                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">${o.created_at}</div>
@@ -185,7 +238,9 @@ function renderDetailView(data) {
                     ${history.length > 0 ? history.map(o => `
                         <div style="display:flex; align-items:center; gap:10px;">
                             <a href="checkout.php?customer_id=${encodeURIComponent(data.customer_id)}&order_id=${encodeURIComponent(o.order_id)}"
-                               class="order-row-link completed" style="flex:1;">
+                               class="order-row-link completed" style="flex:1;"
+                               data-order-id="${escapeHTML(o.order_id)}"
+                               onclick="recordActiveOrder('${escapeHTML(data.customer_id)}', '${escapeHTML(o.order_id)}')">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-secondary);">${o.order_id}</div>
                                     <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">${o.created_at}</div>
@@ -440,29 +495,145 @@ function closeProfile() {
     }
 }
 /**
- * Auto-select customer from localStorage on load (Bridge from Batch Registry)
+ * Clears active customer selection from storage and resets view to default blank state
  */
-window.addEventListener('load', () => {
-    const targetId = localStorage.getItem('active_customer_id');
-
-    if (targetId) {
+function clearActiveCustomer() {
+    try {
+        sessionStorage.removeItem('active_customer_id');
         localStorage.removeItem('active_customer_id');
-        const cards = document.getElementsByClassName('cust-card');
-        for (let card of cards) {
-            const rawData = card.getAttribute('data-customer');
-            if (rawData) {
-                try {
-                    const data = JSON.parse(rawData);
-                    if (data.customer_id === targetId) {
-                        showDetails(card);
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        break;
-                    }
-                } catch(e) {}
-            }
+        sessionStorage.removeItem('last_viewed_order_id');
+        localStorage.removeItem('last_viewed_order_id');
+    } catch (e) {}
+
+    // Clear hash without reload
+    if (window.history && window.history.replaceState) {
+        history.replaceState(null, '', window.location.pathname);
+    }
+
+    // Remove active class from all customer cards
+    const cards = document.getElementsByClassName('cust-card');
+    for (let c of cards) {
+        c.classList.remove('active');
+    }
+
+    // Reset details view to default empty state
+    const side = document.getElementById('side-details');
+    if (side) {
+        side.innerHTML = `
+            <div class="empty-state" style="padding: 60px;">
+                Select a customer on the left to see full details.
+            </div>
+        `;
+    }
+
+    // Background sync session with server
+    try {
+        fetch('api/set_active_customer.php?clear=1', { method: 'POST' }).catch(() => {});
+    } catch (e) {}
+}
+
+/**
+ * Restores active customer and scroll position on page load, pageshow (iOS BFCache), and popstate
+ */
+function restoreActiveCustomer() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === '1') {
+        clearActiveCustomer();
+        if (window.history && window.history.replaceState) {
+            history.replaceState(null, '', window.location.pathname);
+        }
+        return false;
+    }
+
+    let targetId = null;
+
+    // 1. Check URL hash (e.g. #customer-CUST-xxx)
+    if (window.location.hash) {
+        const hashMatch = window.location.hash.match(/^#customer-(.+)$/);
+        if (hashMatch) {
+            targetId = decodeURIComponent(hashMatch[1]);
         }
     }
+
+    // 2. Check query params (?select_customer=xxx or ?view=default&customer_id=xxx)
+    if (!targetId) {
+        targetId = params.get('select_customer') || (params.get('view') === 'default' ? params.get('customer_id') : null);
+    }
+
+    if (!targetId) return false;
+
+    const cards = document.getElementsByClassName('cust-card');
+    let matchedCard = null;
+
+    for (let card of cards) {
+        const rawData = card.getAttribute('data-customer');
+        if (rawData) {
+            try {
+                const data = JSON.parse(rawData);
+                if (data.customer_id === targetId) {
+                    matchedCard = card;
+                    break;
+                }
+            } catch(e) {}
+        }
+    }
+
+    if (matchedCard) {
+        const sideDetails = document.getElementById('side-details');
+        const alreadyRendered = matchedCard.classList.contains('active') && sideDetails && !sideDetails.querySelector('.empty-state');
+        if (!alreadyRendered) {
+            showDetails(matchedCard);
+        }
+
+        const lastOrderId = sessionStorage.getItem('last_viewed_order_id') || localStorage.getItem('last_viewed_order_id');
+
+        // On mobile devices (such as iPhone 13), restore view to customer details or the specific order item
+        setTimeout(() => {
+            if (window.innerWidth < 992) {
+                let scrollTarget = null;
+                if (lastOrderId) {
+                    scrollTarget = document.querySelector(`[data-order-id="${lastOrderId}"]`);
+                }
+                if (!scrollTarget) {
+                    scrollTarget = document.getElementById('customer-details');
+                }
+                if (scrollTarget) {
+                    scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (lastOrderId && scrollTarget.classList.contains('order-row-link')) {
+                        scrollTarget.style.transition = 'box-shadow 0.3s ease, transform 0.2s ease';
+                        scrollTarget.style.boxShadow = '0 0 0 3px var(--accent-color)';
+                        setTimeout(() => {
+                            scrollTarget.style.boxShadow = '';
+                        }, 1800);
+                    }
+                }
+            } else {
+                matchedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // Clean up last_viewed_order_id so it doesn't re-scroll on future manual reloads,
+            // but KEEP active_customer_id intact so the customer remains selected!
+            sessionStorage.removeItem('last_viewed_order_id');
+            localStorage.removeItem('last_viewed_order_id');
+        }, 100);
+
+        return true;
+    }
+    return false;
+}
+
+// Support DOMContentLoaded, load, pageshow (critical for iOS Safari BFCache restore), and popstate
+document.addEventListener('DOMContentLoaded', restoreActiveCustomer);
+window.addEventListener('load', restoreActiveCustomer);
+window.addEventListener('pageshow', () => {
+    restoreActiveCustomer();
 });
+window.addEventListener('popstate', restoreActiveCustomer);
+
+// Immediately execute if document is already parsed
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    restoreActiveCustomer();
+}
 
 /**
  * Import Modal Logic

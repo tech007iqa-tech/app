@@ -47,11 +47,13 @@ $screen_res    = trim($_POST['screen_res'] ?? '');
 $bios_state    = trim($_POST['bios_state'] ?? 'Unknown');
 $os            = trim($_POST['os_version'] ?? $_POST['os'] ?? '');
 $cosmetic_grade= trim($_POST['cosmetic_grade'] ?? '');
-$notes         = trim($_POST['work_notes'] ?? $_POST['notes'] ?? '');
+$notes_raw     = trim($_POST['work_notes'] ?? $_POST['notes'] ?? '');
+$notes_words   = array_values(array_filter(preg_split('/\s+/', $notes_raw), fn($w) => $w !== ''));
+$notes         = implode(' ', array_slice($notes_words, 0, 3));
 $location      = trim($_POST['warehouse_location'] ?? $_POST['location'] ?? '');
 
 // Delivery Tracking Fields
-$delivery_status      = trim($_POST['delivery_status'] ?? 'Pending');
+$delivery_status      = trim($_POST['delivery_status'] ?? 'Delivered to Shelf');
 $delivery_destination = trim($_POST['delivery_destination'] ?? '');
 if (empty($delivery_destination) && !empty($location) && $delivery_status === 'Delivered to Shelf') {
     $delivery_destination = $location;
@@ -101,13 +103,37 @@ try {
         $stmt_verify = $conn_labels->prepare("SELECT * FROM items WHERE id = ? LIMIT 1");
         $stmt_verify->execute([$smart_label_id]);
         $existing_label = $stmt_verify->fetch(PDO::FETCH_ASSOC);
-        if (!$existing_label) {
+        if ($existing_label) {
+            // Strictly verify that the submitted specs actually match this label
+            // If the user changed OS or specs from the preset, it CANNOT reuse this label ID
+            $os_match = (empty($existing_label['os_version']) && empty($os)) || 
+                        (strcasecmp(trim($existing_label['os_version'] ?? ''), $os) === 0);
+            $cpu_gen_match = (empty($existing_label['cpu_gen']) && empty($cpu_gen)) || 
+                             (strcasecmp(trim($existing_label['cpu_gen'] ?? ''), $cpu_gen) === 0);
+
+            $specs_match = (
+                strcasecmp(trim($existing_label['brand'] ?? ''), $make) === 0 &&
+                strcasecmp(trim($existing_label['model'] ?? ''), $model) === 0 &&
+                strcasecmp(trim($existing_label['series'] ?? ''), $series) === 0 &&
+                strcasecmp(trim($existing_label['cpu_specs'] ?? ''), $cpu_specs) === 0 &&
+                strcasecmp(trim($existing_label['ram'] ?? ''), $ram) === 0 &&
+                strcasecmp(trim($existing_label['storage'] ?? ''), $storage) === 0 &&
+                $os_match &&
+                $cpu_gen_match
+            );
+
+            if (!$specs_match) {
+                // Specs differed (such as OS difference)! Detach from this label so it finds or creates the correct one!
+                $smart_label_id = null;
+                $existing_label = null;
+            }
+        } else {
             $smart_label_id = null;
         }
     }
 
     if ($smart_label_id === null) {
-        // Query for an exact spec collision in labels.db
+        // Query for an exact spec collision in labels.db (including OS and CPU Family)
         $stmt_spec = $conn_labels->prepare("
             SELECT * FROM items
             WHERE LOWER(TRIM(brand)) = LOWER(TRIM(:brand))
@@ -115,6 +141,10 @@ try {
               AND (
                     LOWER(TRIM(COALESCE(series, ''))) = LOWER(TRIM(:series))
                     OR (:series = '' AND (series IS NULL OR series = ''))
+                  )
+              AND (
+                    LOWER(TRIM(COALESCE(cpu_gen, ''))) = LOWER(TRIM(:cpu_gen))
+                    OR (:cpu_gen = '' AND (cpu_gen IS NULL OR cpu_gen = ''))
                   )
               AND (
                     LOWER(TRIM(COALESCE(cpu_specs, ''))) = LOWER(TRIM(:cpu_specs))
@@ -128,6 +158,10 @@ try {
                     LOWER(TRIM(COALESCE(storage, ''))) = LOWER(TRIM(:storage))
                     OR (:storage = '' AND (storage IS NULL OR storage = ''))
                   )
+              AND (
+                    LOWER(TRIM(COALESCE(os_version, ''))) = LOWER(TRIM(:os))
+                    OR (:os = '' AND (os_version IS NULL OR os_version = ''))
+                  )
             ORDER BY id ASC
             LIMIT 1
         ");
@@ -135,9 +169,11 @@ try {
             ':brand'     => $make,
             ':model'     => $model,
             ':series'    => $series,
+            ':cpu_gen'   => $cpu_gen,
             ':cpu_specs' => $cpu_specs,
             ':ram'       => $ram,
-            ':storage'   => $storage
+            ':storage'   => $storage,
+            ':os'        => $os
         ]);
         $existing_label = $stmt_spec->fetch(PDO::FETCH_ASSOC);
         if ($existing_label) {
@@ -170,6 +206,7 @@ try {
         if (empty($existing_label['gpu']) && !empty($gpu)) $enrich['gpu'] = $gpu;
         if (empty($existing_label['screen_res']) && !empty($screen_res)) $enrich['screen_res'] = $screen_res;
         if (empty($existing_label['os_version']) && !empty($os)) $enrich['os_version'] = $os;
+        if (empty($existing_label['work_notes']) && !empty($notes)) $enrich['work_notes'] = $notes;
 
         if ($updated_loc || !empty($enrich)) {
             $setParts = [];

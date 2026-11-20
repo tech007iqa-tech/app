@@ -14,7 +14,12 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/hardware_mapping.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$mode = isset($_GET['mode']) ? $_GET['mode'] : 'both'; // 'both', 'a', 'b'
+$log_id = isset($_GET['log_id']) ? (int)$_GET['log_id'] : 0;
+$mode = isset($_GET['mode']) ? strtolower(trim($_GET['mode'])) : 'both'; // 'both', 'a', 'b'
+if ($mode === 'brand') $mode = 'a';
+elseif ($mode === 'specs') $mode = 'b';
+elseif ($mode === 'dual') $mode = 'both';
+elseif (!in_array($mode, ['both', 'a', 'b'])) $mode = 'both';
 $qty = max(1, min(100, (int)($_GET['qty'] ?? 1)));
 $autoprint = isset($_GET['autoprint']) && $_GET['autoprint'] == '1';
 
@@ -24,6 +29,50 @@ if ($id > 0) {
         $stmt = $pdo_labels->prepare("SELECT * FROM items WHERE id = :id");
         $stmt->execute([':id' => $id]);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {}
+}
+
+if ($log_id > 0) {
+    try {
+        $conn_tech = Database::tech();
+        $stmt_log = $conn_tech->prepare("SELECT * FROM logs WHERE id = ?");
+        $stmt_log->execute([$log_id]);
+        $log_data = $stmt_log->fetch(PDO::FETCH_ASSOC);
+        if ($log_data) {
+            if (!$item) {
+                $id = $log_data['label_id'] ?: $log_id;
+                $item = [
+                    'id' => $id,
+                    'brand' => $log_data['make'],
+                    'model' => $log_data['model'],
+                    'series' => $log_data['series'],
+                    'serial_number' => $log_data['serial_number'],
+                    'cpu_specs' => $log_data['cpu_specs'] ?: $log_data['cpu'],
+                    'cpu_gen' => $log_data['cpu_gen'],
+                    'cpu_cores' => $log_data['cpu_cores'],
+                    'cpu_speed' => $log_data['cpu_speed'],
+                    'ram' => $log_data['ram'],
+                    'storage' => $log_data['storage'],
+                    'gpu' => $log_data['gpu'],
+                    'os_version' => $log_data['os'],
+                    'warehouse_location' => $log_data['location'],
+                    'work_notes' => $log_data['notes'],
+                    'bios_state' => $log_data['bios_state'],
+                    'battery' => (stripos($log_data['battery'], 'Good') !== false ? 1 : 0),
+                    'description' => ($log_data['status'] === 'Good' ? 'Refurbished' : 'For Parts')
+                ];
+            } else {
+                // If item was fetched from labels.db, overlay the log's edited values
+                if (!empty($log_data['storage'])) $item['storage'] = $log_data['storage'];
+                if (!empty($log_data['ram'])) $item['ram'] = $log_data['ram'];
+                if (!empty($log_data['os'])) $item['os_version'] = $log_data['os'];
+                if (!empty($log_data['make'])) $item['brand'] = $log_data['make'];
+                if (!empty($log_data['model'])) $item['model'] = $log_data['model'];
+                if (!empty($log_data['series'])) $item['series'] = $log_data['series'];
+                if (!empty($log_data['location'])) $item['warehouse_location'] = $log_data['location'];
+                if (isset($log_data['notes']) && $log_data['notes'] !== '') $item['work_notes'] = $log_data['notes'];
+            }
+        }
     } catch (Exception $e) {}
 }
 
@@ -49,6 +98,11 @@ $battery = ($b_val === null || $b_val === '') ? 'N/A' : ((int)$b_val === 1 ? 'YE
 $gpu = htmlspecialchars($item[$F['GPU']] ?? 'Integrated', ENT_QUOTES, 'UTF-8');
 $os = htmlspecialchars($item[$F['OS_VERSION']] ?? '—', ENT_QUOTES, 'UTF-8');
 $bios = htmlspecialchars($item[$F['BIOS_STATE']] ?? 'Unknown', ENT_QUOTES, 'UTF-8');
+
+$raw_notes = trim($_GET['notes'] ?? $item[$F['WORK_NOTES']] ?? $item['work_notes'] ?? '');
+$words = preg_split('/\s+/', $raw_notes);
+$words = array_values(array_filter($words, fn($w) => $w !== ''));
+$notes_3words = htmlspecialchars(implode(' ', array_slice($words, 0, 3)), ENT_QUOTES, 'UTF-8');
 
 $cpu_detail = trim(implode(' @ ', array_filter([$cpu_cores, $cpu_speed])));
 $cpu_full = trim($cpu_specs . ($cpu_detail ? ' (' . $cpu_detail . ')' : ''));
@@ -468,6 +522,10 @@ $display_sn = $sn ?: ('ID#' . str_pad($id, 5, '0', STR_PAD_LEFT));
                     <strong>GPU:</strong> <?= $gpu ?> &nbsp;|&nbsp; <strong>OS:</strong> <?= $os ?>
                 </div>
 
+                <div class="spec-line">
+                    <strong>NOTE:</strong> <?= $notes_3words ?: '—' ?>
+                </div>
+
                 <div class="specs-footer">
                     <span>BIOS: <strong><?= strtoupper($bios) ?></strong></span>
                     <span class="loc-badge">📍 <?= $location ?></span>
@@ -481,6 +539,9 @@ $display_sn = $sn ?: ('ID#' . str_pad($id, 5, '0', STR_PAD_LEFT));
 
     <script>
         function switchMode(newMode) {
+            try {
+                localStorage.setItem('tech_thermal_print_mode', newMode);
+            } catch(e) {}
             const url = new URL(window.location.href);
             url.searchParams.set('mode', newMode);
             const qty = document.getElementById('qtySelector').value;

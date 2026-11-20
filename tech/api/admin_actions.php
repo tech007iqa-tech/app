@@ -88,13 +88,87 @@ try {
             exit();
         }
 
+        // ── SYNCHRONIZE WITH LABELS.DB ──
+        $conn_labels = Database::labels();
+        $notes_words = array_values(array_filter(preg_split('/\s+/', $notes), fn($w) => $w !== ''));
+        $notes_clean = implode(' ', array_slice($notes_words, 0, 3));
+        $battery_int = (stripos($battery, 'Good') !== false || $battery === '1') ? 1 : (stripos($battery, 'Dead') !== false || $battery === '0' ? 0 : null);
+
+        $current_label_id = (int)($log['label_id'] ?? 0);
+        $final_label_id = $current_label_id;
+
+        $other_logs_count = 0;
+        if ($current_label_id > 0) {
+            $stmt_cnt = $conn->prepare("SELECT COUNT(*) FROM logs WHERE label_id = ? AND id != ?");
+            $stmt_cnt->execute([$current_label_id, $id]);
+            $other_logs_count = (int)$stmt_cnt->fetchColumn();
+        }
+
+        if ($current_label_id > 0 && $other_logs_count === 0) {
+            $stmt_lbl_up = $conn_labels->prepare("
+                UPDATE items SET
+                    brand = ?, model = ?, series = ?,
+                    cpu_specs = ?, ram = ?, storage = ?, gpu = ?,
+                    os_version = ?, work_notes = ?,
+                    bios_state = ?, battery = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ");
+            $stmt_lbl_up->execute([
+                $make, $model, $series,
+                $cpu, $ram, $storage, $gpu,
+                $os, $notes_clean,
+                $bios_state, $battery_int, $current_label_id
+            ]);
+            $final_label_id = $current_label_id;
+        } else {
+            $stmt_spec = $conn_labels->prepare("
+                SELECT id FROM items
+                WHERE LOWER(TRIM(brand)) = LOWER(TRIM(:brand))
+                  AND LOWER(TRIM(model)) = LOWER(TRIM(:model))
+                  AND (LOWER(TRIM(COALESCE(series, ''))) = LOWER(TRIM(:series)) OR (:series = '' AND (series IS NULL OR series = '')))
+                  AND (LOWER(TRIM(COALESCE(ram, ''))) = LOWER(TRIM(:ram)) OR (:ram = '' AND (ram IS NULL OR ram = ''))
+                  AND (LOWER(TRIM(COALESCE(storage, ''))) = LOWER(TRIM(:storage)) OR (:storage = '' AND (storage IS NULL OR storage = '')))
+                  AND (LOWER(TRIM(COALESCE(os_version, ''))) = LOWER(TRIM(:os)) OR (:os = '' AND (os_version IS NULL OR os_version = '')))
+                ORDER BY id ASC LIMIT 1
+            ");
+            $stmt_spec->execute([
+                ':brand'   => $make,
+                ':model'   => $model,
+                ':series'  => $series,
+                ':ram'     => $ram,
+                ':storage' => $storage,
+                ':os'      => $os
+            ]);
+            $matched_id = $stmt_spec->fetchColumn();
+
+            if ($matched_id) {
+                $final_label_id = (int)$matched_id;
+            } else {
+                $stmt_ins = $conn_labels->prepare("
+                    INSERT INTO items (
+                        brand, model, series,
+                        cpu_specs, ram, storage, gpu,
+                        os_version, work_notes,
+                        bios_state, battery, description, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Refurbished', 'Tested')
+                ");
+                $stmt_ins->execute([
+                    $make, $model, $series,
+                    $cpu, $ram, $storage, $gpu,
+                    $os, $notes_clean,
+                    $bios_state, $battery_int
+                ]);
+                $final_label_id = (int)$conn_labels->lastInsertId();
+            }
+        }
+
         $stmt = $conn->prepare("
             UPDATE logs
-            SET qty = ?, make = ?, model = ?, series = ?, cpu = ?, gpu = ?, ram = ?, storage = ?, battery = ?, bios_state = ?, os = ?, batch_number = ?, notes = ?, edited = 1
+            SET qty = ?, make = ?, model = ?, series = ?, cpu = ?, gpu = ?, ram = ?, storage = ?, battery = ?, bios_state = ?, os = ?, batch_number = ?, notes = ?, label_id = ?, edited = 1
             WHERE id = ?
         ");
-        $stmt->execute([$qty, $make, $model, $series, $cpu, $gpu, $ram, $storage, $battery, $bios_state, $os, $batch_number, $notes, $id]);
-        echo json_encode(['success' => true, 'message' => 'Log updated successfully by Admin.']);
+        $stmt->execute([$qty, $make, $model, $series, $cpu, $gpu, $ram, $storage, $battery, $bios_state, $os, $batch_number, $notes, $final_label_id, $id]);
+        echo json_encode(['success' => true, 'message' => 'Log updated successfully by Admin.', 'label_id' => $final_label_id]);
         exit();
 
     } elseif ($action === 'admin_delete') {

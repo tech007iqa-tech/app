@@ -48,6 +48,9 @@
 - **Trends Table Column Ordering**: In the Model Demand Velocity table (`trends_tab_velocity.php`), the **Avg Price** column MUST be rendered before the **Details** column. Never invert this order.
 - **Chart.js Hidden Canvas Lifecycle**: When canvases reside in tabbed views with `display: none`, always destroy previous instances via `Chart.getChart(id)?.destroy()` and dispatch chart initialization with a ~50ms timeout upon tab switching.
 - **Foreign Key Safety on Uploads**: When attaching photos to a warehouse location/shelf, verify or ensure the parent location exists (`INSERT OR IGNORE INTO locations (location_code, status) VALUES (?, 'Idle')`) before inserting into `location_photos`.
+- **Customer Registry Lifecycle & Return Navigation**:
+  - **One-Time Consumed Return Handoff**: When navigating to `checkout.php`, the server records `$_SESSION['return_customer_id']` and `$_SESSION['last_viewed_order_id']`. When returning back to `index.php` (such as browser back on iPhone/Safari), PHP server-renders the customer details and fulfillment history directly into `#side-details`, auto-scrolls to the viewed order row, and immediately unsets `$_SESSION['return_customer_id']`.
+  - **Explicit Breadcrumb Reset**: Clicking the `1 Customers` breadcrumb (`index.php?reset=1` calling `clearActiveCustomer()`) MUST always clear client storage (`sessionStorage`/`localStorage`), purge session customer state, and render the default blank view (`Select a customer on the left to see full details.`). Never allow sticky storage or session caching to force-select a customer on a clean visit without an explicit `#customer-CUST-xxx` URL hash or query parameter.
 
 ---
 

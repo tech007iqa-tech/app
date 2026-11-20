@@ -378,6 +378,18 @@ try {
         <?php
         // Sort rules are parsed at the top of the file
 
+        // Detect active customer from query param or session (consumed once on return)
+        $active_customer_id = null;
+        if (!isset($_GET['reset'])) {
+            $active_customer_id = $_GET['select_customer'] ?? $_SESSION['return_customer_id'] ?? null;
+            unset($_SESSION['return_customer_id']); // One-time consume so clicking Customers or fresh navigation stays blank
+        } else {
+            unset($_SESSION['active_customer_id']);
+            unset($_SESSION['return_customer_id']);
+            unset($_SESSION['last_viewed_order_id']);
+        }
+        $active_cust = null;
+
         // Fetch All Customers with Aggregated Order Data using Integrated Query
         try {
             $sql = "
@@ -435,6 +447,9 @@ try {
         // Attach orders to customers
         foreach ($customers as &$c) {
             $c['orders_list'] = $order_map[$c['customer_id']] ?? [];
+            if ($active_customer_id && $c['customer_id'] === $active_customer_id) {
+                $active_cust = $c;
+            }
         }
         unset($c); // Clean up reference
 
@@ -479,10 +494,10 @@ try {
             foreach($customers as $c) {
                 $initial = strtoupper(substr($c['company_name'], 0, 1));
                 $json_data = htmlspecialchars(json_encode($c), ENT_QUOTES, 'UTF-8');
-                $status_class = $c['active_count'] > 0 ? 'status-active' : 'status-idle';
-                $status_text = $c['active_count'] > 0 ? 'Active Batch' : 'Idle';
+                $is_selected = ($active_cust && $c['customer_id'] === $active_cust['customer_id']);
+                $active_class = $is_selected ? ' active' : '';
 
-                echo "<div class='cust-card' onclick='showDetails(this)' data-customer='{$json_data}' data-search='" . htmlspecialchars($c['company_name'] . " " . $c['customer_id'] . " " . ($c['contact_person'] ?? '')) . "'>
+                echo "<div class='cust-card{$active_class}' onclick='showDetails(this)' data-customer='{$json_data}' data-search='" . htmlspecialchars($c['company_name'] . " " . $c['customer_id'] . " " . ($c['contact_person'] ?? '')) . "'>
                         <div class='cust-avatar'>{$initial}</div>
                         <div class='cust-main'>
                              <div class='cust-name' onclick='showProfile(event, {$json_data})'>" . htmlspecialchars($c['company_name']) . "</div>
@@ -504,7 +519,7 @@ try {
                             </div>
                         </div>
                         <div class='card-actions'>
-                            <a href=\"#customer-details\"><div class='btn-view-cust' title='View Details'>👁</div></a>
+                            <a href=\"#customer-details\" onclick=\"event.stopPropagation(); showDetails(this.closest('.cust-card'), { scrollSide: true });\"><div class='btn-view-cust' title='View Details'>👁</div></a>
                         </div>
                       </div>";
             }
@@ -519,9 +534,170 @@ try {
     <section class="item-list">
         <h2>Customer Details</h2>
         <div id="side-details">
-            <div class="empty-state" style='padding: 60px;'>
-                Select a customer on the left to see full details.
-            </div>
+            <?php if ($active_cust):
+                $history_statuses = ['finalized', 'paid', 'dispatched', 'canceled'];
+                $drafts = array_filter($active_cust['orders_list'] ?? [], fn($o) => !in_array(strtolower($o['status']), $history_statuses));
+                $history = array_filter($active_cust['orders_list'] ?? [], fn($o) => in_array(strtolower($o['status']), $history_statuses));
+                $cust_json_attr = htmlspecialchars(json_encode($active_cust), ENT_QUOTES, 'UTF-8');
+            ?>
+                <div class="detail-box">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 25px;">
+                        <div class="detail-item" style="margin:0;">
+                            <div class="detail-label">Billing Account</div>
+                            <div class="detail-value text-main" style="font-size: 1.4rem; letter-spacing: -0.02em;"><?= htmlspecialchars($active_cust['company_name']) ?></div>
+                            <div class="cust-id-badge"><?= htmlspecialchars($active_cust['customer_id']) ?></div>
+                        </div>
+                        <button onclick='handleEditClick(<?= $cust_json_attr ?>)' class="btn-view-cust" title="Edit Account" style="width: 44px; height: 44px; font-size: 1.2rem;">✎</button>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                        <div class="stat-chip">
+                            <span class="stat-value">$<?= number_format($active_cust['lifetime_value'] ?? 0, 2) ?></span>
+                            <span class="stat-label">Lifetime Value</span>
+                        </div>
+                        <div class="stat-chip">
+                            <span class="stat-value"><?= (int) ($active_cust['completed_count'] ?? 0) ?></span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-bottom: 1px dashed var(--border-color); padding-bottom: 20px; margin-bottom: 25px;">
+                        <div class="detail-item" style="margin:0;">
+                            <div class="detail-label" style="display: flex; align-items: center; gap: 5px;">📅 Next Callback</div>
+                            <div class="detail-value" style="font-weight: 800; color: var(--accent-color);"><?= !empty($active_cust['callback_date']) ? htmlspecialchars($active_cust['callback_date']) : 'Not Set' ?></div>
+                        </div>
+                        <div class="detail-item" style="margin:0;">
+                            <div class="detail-label" style="display: flex; align-items: center; gap: 5px;">✉️ Last Contact</div>
+                            <div class="detail-value" style="font-weight: 800;"><?= !empty($active_cust['message_date']) ? htmlspecialchars($active_cust['message_date']) : 'Not Set' ?></div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 10px;">
+                        <div class="detail-item">
+                            <div class="detail-label">Primary Contact</div>
+                            <div class="detail-value" style="font-size: 0.9rem;"><?= !empty($active_cust['contact_person']) ? htmlspecialchars($active_cust['contact_person']) : '—' ?></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Website</div>
+                            <div class="detail-value"><?= !empty($active_cust['website']) ? '<a href="' . htmlspecialchars($active_cust['website']) . '" target="_blank" style="color: var(--accent-color); text-decoration:none; display: flex; align-items: center; gap: 4px;">Visit ↗</a>' : '—' ?></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-item">
+                        <div class="detail-label">Active Batch Pipeline</div>
+                        <div id="side-drafts" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
+                            <?php if (count($drafts) > 0): ?>
+                                <?php foreach ($drafts as $o): ?>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <a href="index.php?customer_id=<?= urlencode($active_cust['customer_id']) ?>&order_id=<?= urlencode($o['order_id']) ?>"
+                                           class="order-row-link" style="flex:1;"
+                                           data-order-id="<?= htmlspecialchars($o['order_id']) ?>"
+                                           onclick="recordActiveOrder('<?= htmlspecialchars($active_cust['customer_id']) ?>', '<?= htmlspecialchars($o['order_id']) ?>')">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);"><?= htmlspecialchars($o['order_id']) ?></div>
+                                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;"><?= htmlspecialchars($o['created_at']) ?></div>
+                                            </div>
+                                            <div style="text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                                                <span class="badge status-active" style="font-size: 0.65rem;"><?= (int) ($o['total_qty'] ?? 0) ?> Items</span>
+                                                <div style="font-weight: 800; font-size: 0.9rem;">$<?= number_format($o['total_value'] ?? 0, 2) ?></div>
+                                            </div>
+                                        </a>
+                                        <form method="POST" onsubmit="return confirm('Delete this batch permanently?')" style="margin:0;">
+                                            <?= UI::csrf_field() ?>
+                                            <input type="hidden" name="action" value="delete_order">
+                                            <input type="hidden" name="order_id" value="<?= htmlspecialchars($o['order_id']) ?>">
+                                            <button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem; opacity:0.3; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3">🗑️</button>
+                                        </form>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-state" style="padding: 20px; font-size: 0.8rem; border-radius: 12px; border: 1px dashed var(--border-color); color: var(--text-dim);">No active batches.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div style="padding-top: 20px; padding-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <a href="index.php?customer_id=<?= urlencode($active_cust['customer_id']) ?>&action=create_new_order" class="btn-register" style="display:flex; align-items:center; justify-content:center; gap: 10px; height: 54px; font-size: 1rem; margin: 0;">
+                            <span>+</span> Create New Fresh Batch
+                        </a>
+                        <button type="button" onclick="openImportModal('<?= htmlspecialchars($active_cust['customer_id']) ?>')" class="btn-secondary-action" style="margin: 0;">
+                            <span>📋</span> Import from Clipboard
+                        </button>
+                    </div>
+
+                    <div class="detail-item">
+                        <div class="detail-label">Fulfillment History</div>
+                        <div id="side-completed" style="display: flex; flex-direction: column; gap: 10px;">
+                            <?php if (count($history) > 0): ?>
+                                <?php foreach ($history as $o): ?>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <a href="checkout.php?customer_id=<?= urlencode($active_cust['customer_id']) ?>&order_id=<?= urlencode($o['order_id']) ?>"
+                                           class="order-row-link completed" style="flex:1;"
+                                           data-order-id="<?= htmlspecialchars($o['order_id']) ?>"
+                                           onclick="recordActiveOrder('<?= htmlspecialchars($active_cust['customer_id']) ?>', '<?= htmlspecialchars($o['order_id']) ?>')">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-secondary);"><?= htmlspecialchars($o['order_id']) ?></div>
+                                                <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;"><?= htmlspecialchars($o['created_at']) ?></div>
+                                            </div>
+                                            <div style="text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                                                <span class="badge badge-completed" style="font-size: 0.65rem; opacity: 0.8;"><?= (int) ($o['total_qty'] ?? 0) ?> Items</span>
+                                                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-secondary);">$<?= number_format($o['total_value'] ?? 0, 2) ?></div>
+                                            </div>
+                                        </a>
+                                        <form method="POST" onsubmit="return confirm('Delete this completed order permanently?')" style="margin:0;">
+                                            <?= UI::csrf_field() ?>
+                                            <input type="hidden" name="action" value="delete_order">
+                                            <input type="hidden" name="order_id" value="<?= htmlspecialchars($o['order_id']) ?>">
+                                            <button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem; opacity:0.1; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=0.1">🗑️</button>
+                                        </form>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-state" style="padding: 20px; font-size: 0.8rem; border-radius: 12px; border: 1px dashed var(--border-color); color: var(--text-dim);">No completion history.</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="detail-item crm-notes-box">
+                        <div class="detail-label" style="display: flex; align-items: center; gap: 5px; color: var(--text-main); font-size: 0.65rem; opacity: 0.8;">📜 Internal CRM Notes</div>
+                        <div class="detail-value" style="font-size: 0.9rem; white-space: pre-wrap; color: var(--text-secondary); line-height: 1.5; font-weight: 500; margin-top: 6px;"><?= !empty($active_cust['internal_notes']) ? htmlspecialchars($active_cust['internal_notes']) : '<i style="opacity:0.4;">No internal notes recorded.</i>' ?></div>
+                    </div>
+                </div>
+
+                <?php
+                $last_order_target = $_SESSION['last_viewed_order_id'] ?? null;
+                unset($_SESSION['last_viewed_order_id']); // One-time scroll trigger
+                ?>
+                <script>
+                (function() {
+                    var targetOrderId = <?= json_encode($last_order_target) ?>;
+                    function autoScrollOnMobile() {
+                        if (window.innerWidth < 992) {
+                            var el = targetOrderId ? document.querySelector('[data-order-id="' + targetOrderId + '"]') : null;
+                            if (!el) el = document.getElementById('customer-details');
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                if (targetOrderId && el.classList.contains('order-row-link')) {
+                                    el.style.transition = 'box-shadow 0.3s ease';
+                                    el.style.boxShadow = '0 0 0 3px var(--accent-color)';
+                                    setTimeout(function() { el.style.boxShadow = ''; }, 1800);
+                                }
+                            }
+                        }
+                    }
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', autoScrollOnMobile);
+                    } else {
+                        autoScrollOnMobile();
+                    }
+                })();
+                </script>
+            <?php else: ?>
+                <div class="empty-state" style='padding: 60px;'>
+                    Select a customer on the left to see full details.
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 </div>
